@@ -28,6 +28,7 @@
         "group": "Developer Tools",
         "pages": [
           "developer-tools/claude-code",
+          "developer-tools/cursor",
           "developer-tools/cline",
           "developer-tools/opencode",
           "developer-tools/kilo-code",
