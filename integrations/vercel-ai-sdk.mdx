@@ -300,15 +300,9 @@ await generateText({
   providerOptions: {
     adaptive: {
       // Semantic caching
-      prompt_response_cache: {
+      semantic_cache: {
         enabled: true,
-        semantic_threshold: 0.85 // Similarity threshold for cache hits
-      },
-      
-      // Prompt response cache for identical requests
-      prompt_cache: {
-        enabled: true,
-        ttl: 3600 // Cache duration in seconds (default: 1 hour)
+        similarity_threshold: 0.85 // Similarity threshold for cache hits
       }
     }
   }
@@ -341,22 +335,13 @@ Controls provider fallback behavior:
   - `"race"` = Try multiple providers simultaneously (faster)
 </Accordion>
 
-<Accordion title="prompt_response_cache - Semantic Caching">
+<Accordion title="semantic_cache - Semantic Caching">
 Improves performance by caching similar requests:
 
 - **`enabled`**: Enable semantic caching
-- **`semantic_threshold`**: Similarity threshold (0-1) for cache hits
+- **`similarity_threshold`**: Similarity threshold (0-1) for cache hits
   - Higher values = more strict matching
   - Lower values = more cache hits but less accuracy
-</Accordion>
-
-<Accordion title="prompt_cache - Ultra-Fast Caching">
-Ultra-fast caching for identical requests:
-
-- **`enabled`**: Enable prompt response caching for this request
-- **`ttl`**: Cache duration in seconds (default: 3600, i.e., 1 hour)
-  - Provides sub-millisecond response times for repeated requests
-  - Only successful responses are cached
 </Accordion>
 
 ---
@@ -470,7 +455,7 @@ const result = await generateText({
 
 // Check cache tier
 console.log(result.usage?.cache_tier);
-// "semantic_exact" | "semantic_similar" | "prompt_response" | undefined
+// "semantic" | undefined
 ```
 
 ---

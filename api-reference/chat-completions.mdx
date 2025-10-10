@@ -128,20 +128,7 @@ Authorization: Bearer your-adaptive-api-key
   </Expandable>
 </ParamField>
 
-## Performance & Caching
 
-<ParamField body="prompt_response_cache" type="object">
-  **Semantic caching** for similar requests (faster responses, lower costs)
-  
-  <Expandable title="Cache Configuration">
-    ```javascript
-    prompt_response_cache: {
-      enabled: true,
-      semantic_threshold: 0.85  // How similar for cache hit
-    }
-    ```
-  </Expandable>
-</ParamField>
 
 <Accordion title="📋 All Standard OpenAI Parameters">
 
@@ -379,34 +366,6 @@ Authorization: Bearer your-adaptive-api-key
   </Expandable>
 </ParamField>
 
-<ParamField body="prompt_response_cache" type="object">
-  Configuration for semantic caching to improve response times and reduce costs.
-  
-  <Expandable title="Cache Config">
-    <ParamField body="enabled" type="boolean" required>
-      Whether semantic caching is enabled
-    </ParamField>
-    
-    <ParamField body="semantic_threshold" type="number" required>
-      Similarity threshold for cache hits. Range: 0.0-1.0, higher values require more similarity
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="prompt_cache" type="object">
-  Configuration for prompt-response caching (disabled by default).
-  
-  <Expandable title="Prompt Cache Config">
-    <ParamField body="enabled" type="boolean" required>
-      Whether to enable prompt-response caching for this request
-    </ParamField>
-    
-    <ParamField body="ttl" type="integer">
-      Cache duration in seconds. Default: 3600 (1 hour)
-    </ParamField>
-  </Expandable>
-</ParamField>
-
 <ParamField body="fallback" type="object">
   Configuration for provider fallback behavior. Fallback is disabled by default (empty/omitted), enabled when mode is specified.
   
@@ -550,8 +509,7 @@ Authorization: Bearer your-adaptive-api-key
     <ResponseField name="cache_tier" type="string">
       **Adaptive addition:** Cache tier used for this response. Possible values:
       - `"semantic_exact"` - Exact semantic cache match
-      - `"semantic_similar"` - Similar semantic cache match  
-      - `"prompt_response"` - Prompt response cache hit
+      - `"semantic_similar"` - Similar semantic cache match
       - Omitted when no cache is used
     </ResponseField>
   </Expandable>
@@ -938,10 +896,6 @@ const completion = await openai.chat.completions.create({
     }
   },
   
-  prompt_response_cache: {
-    enabled: true,
-    semantic_threshold: 0.85
-  },
   fallback: {
     mode: 'sequential'  // Enabled by specifying mode
   }
@@ -962,16 +916,6 @@ The `usage.cache_tier` field shows which cache served your response:
     "completion_tokens": 8, 
     "total_tokens": 18,
     "cache_tier": "semantic_exact"
-  }
-}
-
-// Prompt cache hit  
-{
-  "usage": {
-    "prompt_tokens": 5,
-    "completion_tokens": 4,
-    "total_tokens": 9,
-    "cache_tier": "prompt_response"
   }
 }
 
@@ -1097,7 +1041,7 @@ const openai = new OpenAI({
 3. **Upgrade your plan** at [llmadaptive.uk](https://www.llmadaptive.uk) for higher limits
 4. **Use caching** to reduce requests:
    ```javascript
-   prompt_response_cache: { enabled: true }
+   semantic_cache: { enabled: true }
    ```
 </Accordion>
 

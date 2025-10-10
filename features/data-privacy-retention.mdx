@@ -117,25 +117,6 @@ model_router:
 ```
 </Accordion>
 
-### Prompt Caching (Disabled by Default)
-
-<Accordion title="Prompt Cache Configuration">
-**Default State**: Completely disabled
-
-```yaml
-# Backend config.yaml  
-prompt_cache:
-  enabled: false           # Explicitly disabled
-  default_ttl_seconds: 3600
-```
-
-**When Enabled**:
-- Stores exact prompt-response pairs for identical requests
-- Configurable TTL (time-to-live) settings
-- Redis-backed with encryption at rest
-- User can control caching per API key/project
-</Accordion>
-
 ## Data Flow and Security
 
 ### Request Processing Flow
@@ -422,12 +403,7 @@ class EmbeddingCache:
 ```
 
 ```yaml Backend Cache Configuration
-# From config.yaml - disabled by default
-prompt_cache:
-  enabled: false                    # Explicitly disabled
-  default_ttl_seconds: 3600
-  redis_url: "${REDIS_URL:-redis://localhost:6379}"
-
+# From config.yaml
 model_router:
   semantic_cache:
     enabled: true                   # Embeddings only, not content

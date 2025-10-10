@@ -93,10 +93,6 @@ The request body format is identical to the [Generate Content](/api-reference/ge
   **Adaptive Extension**: Semantic caching configuration.
 </ParamField>
 
-<ParamField body="prompt_cache" type="object">
-  **Adaptive Extension**: Prompt caching configuration.
-</ParamField>
-
 <ParamField body="fallback" type="object">
   **Adaptive Extension**: Fallback configuration for provider failures.
 </ParamField>
@@ -149,7 +145,7 @@ The endpoint returns a Server-Sent Events (SSE) stream with `Content-Type: text/
     </ResponseField>
 
     <ResponseField name="cache_tier" type="string">
-      **Adaptive Extension**: Cache tier used (`none`, `prompt`, `semantic`)
+      **Adaptive Extension**: Cache tier used (`none`, `semantic`)
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -564,7 +560,7 @@ Authentication errors return immediately before streaming begins:
     For real-time chat applications, prefer `gemini-2.5-flash` over Pro models
   </Step>
   <Step title="Enable Caching">
-    Use semantic and prompt caching for frequently asked questions or similar prompts
+    Use semantic caching for frequently asked questions or similar prompts
   </Step>
 </Steps>
 

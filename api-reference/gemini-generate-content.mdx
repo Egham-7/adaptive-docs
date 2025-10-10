@@ -123,17 +123,6 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
   ```
 </ParamField>
 
-<ParamField body="prompt_cache" type="object">
-  **Adaptive Extension**: Prompt caching configuration.
-
-  ```json
-  "prompt_cache": {
-    "enabled": true,
-    "ttl": 3600
-  }
-  ```
-</ParamField>
-
 <ParamField body="fallback" type="object">
   **Adaptive Extension**: Fallback configuration for provider failures.
 
@@ -197,7 +186,7 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
     </ResponseField>
 
     <ResponseField name="cache_tier" type="string">
-      **Adaptive Extension**: Cache tier used (`none`, `prompt`, `semantic`)
+      **Adaptive Extension**: Cache tier used (`none`, `semantic`)
     </ResponseField>
   </Expandable>
 </ResponseField>
