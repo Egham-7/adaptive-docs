@@ -1,0 +1,144 @@
+---
+title: "Cursor Integration"
+description: "Set up Cursor IDE with Adaptive's intelligent LLM routing for 60-90% cost savings"
+icon: "code"
+---
+
+Configure Cursor IDE to use Adaptive's intelligent routing for 60-90% cost savings while maintaining the same AI-assisted development experience.
+
+<Tip>
+**Save 60-90% on AI development costs** with intelligent model routing. Works as a drop-in replacement in Cursor IDE.
+</Tip>
+
+## Get Your Adaptive API Key
+
+Visit [llmadaptive.uk](https://www.llmadaptive.uk) to create an account and generate your API key.
+
+## Quick Setup
+
+<Steps>
+  <Step title="Open Cursor Settings" icon="gear">
+    Click the settings icon (⚙️) in the top-right corner of Cursor to open Settings.
+
+    <img src="/images/guides/dev-tools/cursor/cursor-step-1.png" alt="Open Cursor Settings" />
+  </Step>
+
+  <Step title="Navigate to Models" icon="robot">
+    In the left sidebar, click on **Models** to view available AI models and configuration options.
+
+    <img src="/images/guides/dev-tools/cursor/cursor-step-2.png" alt="Navigate to Models section" />
+  </Step>
+
+  <Step title="Configure API Keys" icon="key">
+    Click on **API Keys** to expand the API configuration section. Enable the **OpenAI API Key** toggle and enter your Adaptive API key.
+
+    <img src="/images/guides/dev-tools/cursor/cursor-step-3.png" alt="Open API Keys section" />
+  </Step>
+
+  <Step title="Set Base URL" icon="link">
+    Enable **Override OpenAI Base URL** and enter:
+    ```text
+    https://llmadaptive.uk/v1
+    ```
+
+    <img src="/images/guides/dev-tools/cursor/cursor-step-4.png" alt="Configure Base URL and API Key" />
+  </Step>
+
+  <Step title="Start Coding" icon="play">
+    Close settings and start using Cursor with cost-optimized AI routing. All your AI requests will now route through Adaptive.
+  </Step>
+</Steps>
+
+## Configuration Details
+
+<CodeGroup>
+```text OpenAI API Configuration
+OpenAI API Key: your-adaptive-api-key
+Override OpenAI Base URL: https://llmadaptive.uk/v1
+```
+
+```text Anthropic API Configuration (Alternative)
+Anthropic API Key: your-adaptive-api-key
+Override Anthropic Base URL: https://llmadaptive.uk/v1
+```
+</CodeGroup>
+
+<Note>
+You can configure either OpenAI or Anthropic API settings depending on which models you prefer. Adaptive supports both API formats with intelligent routing.
+</Note>
+
+## Features with Adaptive
+
+- **Intelligent Model Routing**: Automatically routes to the most cost-effective model
+- **60-90% Cost Savings**: Significant reduction in AI development costs
+- **Same Experience**: No changes to your Cursor workflow
+- **Real-time Analytics**: Track usage and savings in the Adaptive dashboard
+- **Multi-model Support**: Access Claude, GPT-4, and other models seamlessly
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Connection Issues" icon="wifi-off">
+- Verify your API key at [llmadaptive.uk/dashboard](https://www.llmadaptive.uk/dashboard)
+- Check that Base URL is set to `https://llmadaptive.uk/v1` (no trailing slash)
+- Restart Cursor after configuration changes
+- Ensure the API Key toggle is enabled
+</Accordion>
+
+<Accordion title="Model Selection" icon="robot">
+- Adaptive automatically routes to optimal models
+- You can still select specific models in Cursor's model dropdown
+- Supported models: Claude Sonnet, GPT-4, GPT-4o, and more
+- Test with a simple code completion request after setup
+</Accordion>
+
+<Accordion title="Authentication Errors" icon="key">
+- Regenerate your API key from the Adaptive dashboard if needed
+- Ensure you're using your Adaptive API key, not OpenAI/Anthropic keys
+- Check for extra spaces or characters in the API key field
+- Verify the Base URL override is properly enabled
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Monitor Usage & Savings"
+    href="https://www.llmadaptive.uk/dashboard"
+    icon="chart-line"
+    cta="View Dashboard"
+  >
+    Track your cost savings and usage analytics in real-time
+  </Card>
+  <Card
+    title="API Documentation"
+    href="/api-reference/chat-completions"
+    icon="book"
+    cta="View API Docs"
+  >
+    Learn about Adaptive's API capabilities and advanced features
+  </Card>
+  <Card
+    title="Other IDE Extensions"
+    href="/developer-tools/cline"
+    icon="code"
+    cta="More Tools"
+  >
+    Explore other AI development tools with Adaptive integration
+  </Card>
+  <Card
+    title="Get Support"
+    href="/troubleshooting"
+    icon="life-ring"
+    cta="Get Help"
+  >
+    Troubleshooting guides and support resources
+  </Card>
+</CardGroup>
+
+---
+
+<Note>
+**Was this page helpful?** Contact us at [info@llmadaptive.uk](mailto:info@llmadaptive.uk) for feedback or assistance with your Cursor integration.
+</Note>
