@@ -1,0 +1,665 @@
+---
+title: 'LlamaIndex Integration'
+description: 'Use Adaptive with LlamaIndex for intelligent routing in RAG applications and AI agents'
+---
+
+## Overview
+
+LlamaIndex is the leading framework for building context-augmented LLM applications, enabling RAG (Retrieval-Augmented Generation), agents, and workflows over your data. By integrating Adaptive with LlamaIndex, you get intelligent model routing while building powerful data-aware applications.
+
+## Key Benefits
+
+- **Drop-in replacement** - Works with existing LlamaIndex code
+- **Intelligent routing** - Automatic model selection for queries and agents
+- **Cost optimization** - 30-70% cost reduction across RAG pipelines
+- **RAG-optimized** - Adaptive selects models based on query complexity
+- **Agent support** - Smart routing for function-calling agents
+- **Streaming support** - Real-time responses in chat applications
+- **Multi-modal** - Support for text, images, and structured outputs
+
+## Installation
+
+Install LlamaIndex with OpenAI support:
+
+```bash
+pip install llama-index-llms-openai llama-index-embeddings-openai
+```
+
+Or install the full LlamaIndex package:
+
+```bash
+pip install llama-index
+```
+
+## Basic Usage
+
+### Method 1: Using OpenAI with Custom Base URL (Recommended)
+
+Configure the standard OpenAI LLM to use Adaptive's endpoint:
+
+```python
+import os
+from llama_index.llms.openai import OpenAI
+from llama_index.core import Settings
+
+# Set your Adaptive API key
+os.environ["OPENAI_API_KEY"] = os.environ["ADAPTIVE_API_KEY"]
+
+# Initialize OpenAI LLM with Adaptive endpoint
+llm = OpenAI(
+    model="",  # Empty string enables intelligent routing
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Set as global LLM
+Settings.llm = llm
+
+# Use with simple queries
+response = llm.complete("What is retrieval-augmented generation?")
+print(response)
+```
+
+### Method 2: Using OpenAILike (Alternative)
+
+Use the OpenAILike class for more explicit configuration:
+
+```python
+import os
+from llama_index.llms.openai_like import OpenAILike
+from llama_index.core import Settings
+
+# Initialize with Adaptive
+llm = OpenAILike(
+    model="",  # Empty for intelligent routing
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+    is_chat_model=True,
+    is_function_calling_model=True,  # Enable for agents
+    context_window=128000,
+    timeout=60,
+    max_retries=3,
+)
+
+# Set as global LLM
+Settings.llm = llm
+```
+
+## RAG Examples
+
+### Simple RAG Pipeline
+
+```python
+import os
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.llms.openai import OpenAI
+from llama_index.embeddings.openai import OpenAIEmbedding
+
+# Configure Adaptive for LLM
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Configure embeddings (use standard OpenAI or Adaptive)
+Settings.embed_model = OpenAIEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["OPENAI_API_KEY"],  # Use OpenAI for embeddings
+)
+
+# Load documents
+documents = SimpleDirectoryReader("./data").load_data()
+
+# Create index
+index = VectorStoreIndex.from_documents(documents)
+
+# Query the index
+query_engine = index.as_query_engine()
+response = query_engine.query("What are the main topics in these documents?")
+print(response)
+```
+
+### RAG with Streaming
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.llms.openai import OpenAI
+
+# Configure with streaming
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Load and index documents
+documents = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Query with streaming
+query_engine = index.as_query_engine(streaming=True)
+streaming_response = query_engine.query("Summarize the key findings")
+
+# Stream the response
+for text in streaming_response.response_gen:
+    print(text, end="", flush=True)
+```
+
+### Advanced RAG with Custom Retrieval
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.postprocessor import SimilarityPostprocessor
+from llama_index.llms.openai import OpenAI
+
+# Configure Adaptive
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Load and index
+documents = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Configure retriever with custom parameters
+retriever = VectorIndexRetriever(
+    index=index,
+    similarity_top_k=5,
+)
+
+# Add post-processing
+node_postprocessors = [
+    SimilarityPostprocessor(similarity_cutoff=0.7)
+]
+
+# Create query engine
+query_engine = RetrieverQueryEngine(
+    retriever=retriever,
+    node_postprocessors=node_postprocessors,
+)
+
+# Query
+response = query_engine.query("What is the most relevant information about X?")
+print(response)
+```
+
+## Agent Examples
+
+### Simple Function-Calling Agent
+
+```python
+import os
+from llama_index.llms.openai import OpenAI
+from llama_index.core.agent import FunctionAgent
+from llama_index.core.tools import FunctionTool
+
+# Configure Adaptive for agents
+llm = OpenAI(
+    model="",  # Adaptive automatically selects function-calling models
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Define tools
+def multiply(a: float, b: float) -> float:
+    """Multiply two numbers and return the result."""
+    return a * b
+
+def add(a: float, b: float) -> float:
+    """Add two numbers and return the result."""
+    return a + b
+
+# Create tools
+multiply_tool = FunctionTool.from_defaults(fn=multiply)
+add_tool = FunctionTool.from_defaults(fn=add)
+
+# Create agent
+agent = FunctionAgent(
+    tools=[multiply_tool, add_tool],
+    llm=llm,
+    system_prompt="You are a helpful math assistant. Use tools to perform calculations.",
+)
+
+# Use the agent
+response = agent.chat("What is (5 * 3) + 10?")
+print(response)
+```
+
+### RAG Agent with Document Search
+
+```python
+import os
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core.agent import ReActAgent
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.openai import OpenAI
+
+# Configure Adaptive
+llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+Settings.llm = llm
+
+# Load documents and create index
+documents = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(documents)
+query_engine = index.as_query_engine()
+
+# Create tool from query engine
+query_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="document_search",
+    description="Search through company documents to find relevant information",
+)
+
+# Create ReAct agent with tools
+agent = ReActAgent.from_tools(
+    tools=[query_tool],
+    llm=llm,
+    verbose=True,
+)
+
+# Use the agent
+response = agent.chat("What are the revenue figures from last quarter?")
+print(response)
+```
+
+### Multi-Tool Agent
+
+```python
+import os
+from llama_index.llms.openai import OpenAI
+from llama_index.core.agent import ReActAgent
+from llama_index.core.tools import FunctionTool
+import requests
+
+# Configure Adaptive
+llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Define multiple tools
+def get_weather(city: str) -> str:
+    """Get the current weather for a city."""
+    # Mock weather API call
+    return f"Weather in {city}: 72°F, sunny"
+
+def search_web(query: str) -> str:
+    """Search the web for information."""
+    # Mock web search
+    return f"Search results for: {query}"
+
+def calculate(expression: str) -> float:
+    """Evaluate a mathematical expression."""
+    return eval(expression)
+
+# Create tools
+weather_tool = FunctionTool.from_defaults(fn=get_weather)
+search_tool = FunctionTool.from_defaults(fn=search_web)
+calc_tool = FunctionTool.from_defaults(fn=calculate)
+
+# Create agent with multiple tools
+agent = ReActAgent.from_tools(
+    tools=[weather_tool, search_tool, calc_tool],
+    llm=llm,
+    verbose=True,
+)
+
+# Use the agent
+response = agent.chat(
+    "What's the weather in San Francisco, and calculate 25% of 1000"
+)
+print(response)
+```
+
+## Advanced Patterns
+
+### Custom Query Engine with Settings
+
+```python
+from llama_index.core import VectorStoreIndex, Settings
+from llama_index.llms.openai import OpenAI
+from llama_index.core.query_engine import CustomQueryEngine
+
+# Configure Adaptive
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+    temperature=0.7,
+    max_tokens=1000,
+)
+
+# Use Settings globally
+# All query engines will automatically use Adaptive
+```
+
+### Multi-Document Agents
+
+```python
+import os
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core.agent import ReActAgent
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.openai import OpenAI
+
+# Configure Adaptive
+llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+Settings.llm = llm
+
+# Load different document sets
+financial_docs = SimpleDirectoryReader("./financial_data").load_data()
+technical_docs = SimpleDirectoryReader("./technical_docs").load_data()
+
+# Create separate indexes
+financial_index = VectorStoreIndex.from_documents(financial_docs)
+technical_index = VectorStoreIndex.from_documents(technical_docs)
+
+# Create query engines
+financial_engine = financial_index.as_query_engine()
+technical_engine = technical_index.as_query_engine()
+
+# Create tools
+financial_tool = QueryEngineTool.from_defaults(
+    query_engine=financial_engine,
+    name="financial_search",
+    description="Search financial reports and data",
+)
+
+technical_tool = QueryEngineTool.from_defaults(
+    query_engine=technical_engine,
+    name="technical_search",
+    description="Search technical documentation and specifications",
+)
+
+# Create agent with multiple document sources
+agent = ReActAgent.from_tools(
+    tools=[financial_tool, technical_tool],
+    llm=llm,
+    verbose=True,
+)
+
+# Use the agent
+response = agent.chat(
+    "Compare the technical requirements with the budget constraints"
+)
+print(response)
+```
+
+### Chat Engine with Memory
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core.memory import ChatMemoryBuffer
+from llama_index.llms.openai import OpenAI
+
+# Configure Adaptive
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Load and index documents
+documents = SimpleDirectoryReader("./data").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Create chat engine with memory
+memory = ChatMemoryBuffer.from_defaults(token_limit=3000)
+
+chat_engine = index.as_chat_engine(
+    chat_mode="condense_plus_context",
+    memory=memory,
+    verbose=True,
+)
+
+# Multi-turn conversation
+response1 = chat_engine.chat("What are the main features?")
+print(response1)
+
+response2 = chat_engine.chat("Can you elaborate on the first one?")
+print(response2)
+```
+
+## Configuration Options
+
+### LLM Parameters
+
+All standard OpenAI parameters are supported:
+
+```python
+from llama_index.llms.openai import OpenAI
+
+llm = OpenAI(
+    model="",  # Empty for intelligent routing
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+    temperature=0.7,
+    max_tokens=1000,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
+    timeout=60,
+    max_retries=3,
+)
+```
+
+### Model Selection Strategy
+
+```python
+# Intelligent routing (recommended)
+model=""
+
+# Specific model
+model="gpt-4o"
+
+# Provider selection
+model="anthropic"  # Adaptive chooses best Anthropic model
+```
+
+### Global vs Local Configuration
+
+```python
+from llama_index.core import Settings
+
+# Global configuration (affects all queries)
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Local configuration (per query engine)
+query_engine = index.as_query_engine(
+    llm=OpenAI(
+        model="gpt-4o",  # Override for this specific query engine
+        api_base="https://llmadaptive.uk/api/v1",
+        api_key=os.environ["ADAPTIVE_API_KEY"],
+    )
+)
+```
+
+## Embeddings Configuration
+
+For embeddings, you can use either OpenAI directly or Adaptive:
+
+```python
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.core import Settings
+
+# Option 1: Use OpenAI for embeddings (recommended)
+Settings.embed_model = OpenAIEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["OPENAI_API_KEY"],
+)
+
+# Option 2: Use Adaptive for embeddings
+Settings.embed_model = OpenAIEmbedding(
+    model="text-embedding-3-small",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+```
+
+## Best Practices
+
+1. **Use empty model string** for intelligent routing across your RAG pipeline
+2. **Set Settings.llm globally** for consistent configuration
+3. **Use specific models** when you need deterministic behavior
+4. **Leverage streaming** for better user experience in chat applications
+5. **Enable function calling** for agents with `is_function_calling_model=True`
+6. **Use standard OpenAI for embeddings** to avoid unnecessary routing overhead
+7. **Configure timeout and retries** for production reliability
+
+## Error Handling
+
+```python
+import os
+from llama_index.llms.openai import OpenAI
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+
+try:
+    # Configure Adaptive
+    Settings.llm = OpenAI(
+        model="",
+        api_base="https://llmadaptive.uk/api/v1",
+        api_key=os.environ["ADAPTIVE_API_KEY"],
+        timeout=60,
+        max_retries=3,
+    )
+
+    # Load documents
+    documents = SimpleDirectoryReader("./data").load_data()
+    index = VectorStoreIndex.from_documents(documents)
+
+    # Query
+    query_engine = index.as_query_engine()
+    response = query_engine.query("What are the key insights?")
+
+    # Log which model was selected
+    print(f"Response: {response}")
+
+except Exception as e:
+    print(f"Error: {str(e)}")
+    # Adaptive handles retries and fallbacks automatically
+```
+
+## Debugging and Logging
+
+Enable verbose logging to see which models Adaptive selects:
+
+```python
+import logging
+from llama_index.core import Settings
+from llama_index.llms.openai import OpenAI
+
+# Enable debug logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Configure Adaptive
+Settings.llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+
+# Adaptive's model selection will be logged
+```
+
+## Migration Guide
+
+### From Standard OpenAI
+
+```python
+# Before (Standard OpenAI)
+from llama_index.llms.openai import OpenAI
+from llama_index.core import Settings
+
+Settings.llm = OpenAI(
+    model="gpt-4o",
+    api_key=os.environ["OPENAI_API_KEY"],
+)
+
+# After (With Adaptive)
+Settings.llm = OpenAI(
+    model="",  # Enable intelligent routing
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+```
+
+### From Azure OpenAI
+
+```python
+# Before (Azure OpenAI)
+from llama_index.llms.azure_openai import AzureOpenAI
+
+llm = AzureOpenAI(
+    model="gpt-4",
+    deployment_name="my-deployment",
+    api_key=os.environ["AZURE_API_KEY"],
+    azure_endpoint="https://my-resource.openai.azure.com/",
+)
+
+# After (With Adaptive)
+from llama_index.llms.openai import OpenAI
+
+llm = OpenAI(
+    model="",
+    api_base="https://llmadaptive.uk/api/v1",
+    api_key=os.environ["ADAPTIVE_API_KEY"],
+)
+```
+
+## Complete Example
+
+See the [complete LlamaIndex example](https://github.com/your-org/adaptive/blob/main/examples/python/examples/llamaindex_rag.py) for a full working implementation including:
+
+- Multi-document RAG pipeline
+- Function-calling agents
+- Streaming chat interface
+- Custom retrieval and re-ranking
+- Error handling and logging
+- Production-ready configuration
+
+## TypeScript/JavaScript Support
+
+LlamaIndex.TS also supports Adaptive:
+
+```typescript
+import { OpenAI, Settings } from "llamaindex";
+
+// Configure with Adaptive
+const llm = new OpenAI({
+  model: "",
+  additionalSessionOptions: {
+    baseURL: "https://llmadaptive.uk/api/v1",
+  },
+  apiKey: process.env.ADAPTIVE_API_KEY,
+});
+
+Settings.llm = llm;
+```
+
+## Next Steps
+
+- Explore [LlamaIndex documentation](https://docs.llamaindex.ai/) for advanced patterns
+- Build [production RAG applications](https://docs.llamaindex.ai/en/stable/getting_started/starter_example/) with cost optimization
+- Create [multi-agent systems](https://docs.llamaindex.ai/en/stable/examples/agent/multi_agent/) with intelligent routing
+- Implement [custom retrievers](https://docs.llamaindex.ai/en/stable/module_guides/querying/retriever/) for specialized use cases
+- Try [structured outputs](https://docs.llamaindex.ai/en/stable/examples/llm/openai/) with Pydantic models

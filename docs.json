@@ -22,7 +22,8 @@
           "integrations/openai-sdk",
           "integrations/vercel-ai-sdk",
           "integrations/langchain",
-          "integrations/langgraph"
+          "integrations/langgraph",
+          "integrations/llamaindex"
         ]
       },
       {
