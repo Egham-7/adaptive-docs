@@ -21,7 +21,8 @@
         "pages": [
           "integrations/openai-sdk",
           "integrations/vercel-ai-sdk",
-          "integrations/langchain"
+          "integrations/langchain",
+          "integrations/langgraph"
         ]
       },
       {
