@@ -19,11 +19,15 @@ LangGraph is a low-level orchestration framework for building stateful, multi-ac
 
 ## Installation
 
-Install the required dependencies:
+<CodeGroup>
+```bash Python
+pip install langgraph langchain-openai
+```
 
-```bash
+```bash JavaScript/TypeScript
 npm install @langchain/core @langchain/langgraph @langchain/openai
 ```
+</CodeGroup>
 
 ## Basic Usage
 
@@ -31,7 +35,19 @@ npm install @langchain/core @langchain/langgraph @langchain/openai
 
 The only change needed is to point LangGraph's `ChatOpenAI` to Adaptive's endpoint:
 
-```typescript
+<CodeGroup>
+```python Python
+from langchain_openai import ChatOpenAI
+
+model = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://llmadaptive.uk/api/v1",
+    model="",  # Empty string enables intelligent routing
+    temperature=0,
+)
+```
+
+```typescript TypeScript
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({
@@ -43,10 +59,45 @@ const model = new ChatOpenAI({
   temperature: 0,
 });
 ```
+</CodeGroup>
 
 ### Simple Chatbot with StateGraph
 
-```typescript
+<CodeGroup>
+```python Python
+from langgraph.graph import StateGraph, MessagesState, START, END
+from langchain_openai import ChatOpenAI
+
+# Initialize model with Adaptive
+model = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://llmadaptive.uk/api/v1",
+    model="",
+    temperature=0,
+)
+
+# Define the chatbot function
+def call_model(state: MessagesState):
+    response = model.invoke(state["messages"])
+    return {"messages": [response]}
+
+# Create the graph
+workflow = StateGraph(MessagesState)
+workflow.add_node("agent", call_model)
+workflow.add_edge(START, "agent")
+workflow.add_edge("agent", END)
+
+app = workflow.compile()
+
+# Use the chatbot
+result = app.invoke({
+    "messages": [{"role": "user", "content": "What is LangGraph?"}]
+})
+
+print(result["messages"][-1].content)
+```
+
+```typescript TypeScript
 import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -81,6 +132,7 @@ const result = await app.invoke({
 
 console.log(result.messages[result.messages.length - 1].content);
 ```
+</CodeGroup>
 
 ## Advanced Examples
 
@@ -88,7 +140,60 @@ console.log(result.messages[result.messages.length - 1].content);
 
 Adaptive automatically selects models that support function calling when tools are detected:
 
-```typescript
+<CodeGroup>
+```python Python
+from langgraph.graph import StateGraph, MessagesState, START, END
+from langgraph.prebuilt import ToolNode
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+
+# Define tools
+@tool
+def get_weather(location: str) -> str:
+    """Get the current weather for a location."""
+    # Weather API call
+    return f"Weather in {location}: 72°F, sunny"
+
+tools = [get_weather]
+
+# Initialize model with tools
+model = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://llmadaptive.uk/api/v1",
+    model="",
+    temperature=0,
+).bind_tools(tools)
+
+# Define the agent function
+def call_model(state: MessagesState):
+    response = model.invoke(state["messages"])
+    return {"messages": [response]}
+
+# Routing function
+def should_continue(state: MessagesState):
+    messages = state["messages"]
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return "tools"
+    return END
+
+# Create the graph
+workflow = StateGraph(MessagesState)
+workflow.add_node("agent", call_model)
+workflow.add_node("tools", ToolNode(tools))
+workflow.add_edge(START, "agent")
+workflow.add_conditional_edges("agent", should_continue, ["tools", END])
+workflow.add_edge("tools", "agent")
+
+app = workflow.compile()
+
+# Use the agent
+result = app.invoke({
+    "messages": [{"role": "user", "content": "What's the weather in San Francisco?"}]
+})
+```
+
+```typescript TypeScript
 import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
