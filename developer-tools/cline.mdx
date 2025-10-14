@@ -26,7 +26,7 @@ Visit [llmadaptive.uk](https://www.llmadaptive.uk) to create an account and gene
     Select **"Use your own API Key"** and enter:
     ```text
     API Provider: OpenAI Compatible
-    Base URL: https://www.llmadaptive.uk/api/v1
+    Base URL: https://api.llmadaptive.uk/v1
     API Key: your-adaptive-api-key
     Model: [leave empty for intelligent routing]
     ```
@@ -43,13 +43,13 @@ Visit [llmadaptive.uk](https://www.llmadaptive.uk) to create an account and gene
 // In VS Code settings.json
 {
   "cline.provider": "openai-compatible",
-  "cline.baseUrl": "https://www.llmadaptive.uk/api/v1",
+  "cline.baseUrl": "https://api.llmadaptive.uk/v1",
   "cline.apiKey": "your-adaptive-api-key"
 }
 ```
 
 ```bash Environment Variables
-export OPENAI_BASE_URL=https://www.llmadaptive.uk/api/v1
+export OPENAI_BASE_URL=https://api.llmadaptive.uk/v1
 export OPENAI_API_KEY=your-adaptive-api-key
 ```
 
@@ -65,7 +65,7 @@ export OPENAI_API_KEY=your-adaptive-api-key
 <AccordionGroup>
 <Accordion title="Connection Issues" icon="wifi-off">
 - Verify your API key at [llmadaptive.uk/dashboard](https://www.llmadaptive.uk/dashboard)
-- Check that Base URL is set to `https://www.llmadaptive.uk/api/v1`
+- Check that Base URL is set to `https://api.llmadaptive.uk/v1`
 - Restart VS Code after configuration changes
 </Accordion>
 

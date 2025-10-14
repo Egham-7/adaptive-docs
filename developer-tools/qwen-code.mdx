@@ -82,14 +82,14 @@ Qwen Code uses OpenAI-compatible API configuration:
 ```bash Bash/Zsh (~/.bashrc or ~/.zshrc)
 # Qwen Code with Adaptive LLM API Configuration
 export OPENAI_API_KEY="your-adaptive-api-key-here"  # qwen-code
-export OPENAI_BASE_URL="https://www.llmadaptive.uk/api/v1"  # qwen-code
+export OPENAI_BASE_URL="https://api.llmadaptive.uk/v1"  # qwen-code
 export OPENAI_MODEL="intelligent-routing"  # qwen-code - for automatic model selection
 ```
 
 ```fish Fish Shell (~/.config/fish/config.fish)
 # Qwen Code with Adaptive LLM API Configuration
 set -x OPENAI_API_KEY "your-adaptive-api-key-here"  # qwen-code
-set -x OPENAI_BASE_URL "https://www.llmadaptive.uk/api/v1"  # qwen-code
+set -x OPENAI_BASE_URL "https://api.llmadaptive.uk/v1"  # qwen-code
 set -x OPENAI_MODEL "intelligent-routing"  # qwen-code - for automatic model selection
 ```
 </CodeGroup>
@@ -421,7 +421,7 @@ Distribute requests across providers for optimal performance:
    ```
 
 4. Restart your terminal if changes were made to shell config
-5. Verify the base URL is correct: `https://www.llmadaptive.uk/api/v1`
+5. Verify the base URL is correct: `https://api.llmadaptive.uk/v1`
 6. Check for the `# qwen-code` comment to ensure correct environment variables
 </Accordion>
 
@@ -434,7 +434,7 @@ Distribute requests across providers for optimal performance:
 - Test API directly:
 
   ```bash
-  curl -X POST https://www.llmadaptive.uk/api/v1/chat/completions \
+  curl -X POST https://api.llmadaptive.uk/v1/chat/completions \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{

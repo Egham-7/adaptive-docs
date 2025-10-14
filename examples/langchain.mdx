@@ -35,7 +35,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1", // Adaptive's endpoint
+    baseURL: "https://api.llmadaptive.uk/v1", // Adaptive's endpoint
   },
   modelName: "", // Empty string enables intelligent routing
   temperature: 0.7,
@@ -164,7 +164,7 @@ const vectorStore = new MemoryVectorStore(
   new OpenAIEmbeddings({
     apiKey: process.env.ADAPTIVE_API_KEY,
     configuration: {
-      baseURL: "https://llmadaptive.uk/api/v1",
+      baseURL: "https://api.llmadaptive.uk/v1",
     },
   })
 );
@@ -217,7 +217,7 @@ All standard ChatOpenAI parameters work:
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0.7,

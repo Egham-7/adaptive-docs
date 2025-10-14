@@ -140,7 +140,7 @@ adaptive-docs/
     "dark": "#b8860b"
   },
   "api": {
-    "baseUrl": "https://llmadaptive.uk/api/v1",
+    "baseUrl": "https://api.llmadaptive.uk/v1",
     "auth": {
       "method": "bearer"
     },

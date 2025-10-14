@@ -16,7 +16,7 @@
   },
   "servers": [
     {
-      "url": "https://llmadaptive.uk/api/v1",
+      "url": "https://api.llmadaptive.uk/v1",
       "description": "Production server"
     },
     {
