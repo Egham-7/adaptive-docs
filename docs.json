@@ -93,7 +93,7 @@
     "primary": {
       "type": "button",
       "label": "Get Started",
-      "href": "https://www.llmadaptive.uk/signup"
+      "href": "https://www.llmadaptive.uk/sign-up?redirect_url=/api-platform/orgs"
     }
   },
   "footer": {
