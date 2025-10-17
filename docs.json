@@ -23,7 +23,8 @@
           "integrations/vercel-ai-sdk",
           "integrations/langchain",
           "integrations/langgraph",
-          "integrations/llamaindex"
+          "integrations/llamaindex",
+          "integrations/crewai"
         ]
       },
       {
