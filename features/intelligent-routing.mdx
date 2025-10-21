@@ -59,33 +59,37 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
 
 ## Real Examples
 
+<Note>
+Costs shown include Adaptive overhead ($0.10/1M input + $0.20/1M output). With BYOK (custom API keys), you only pay the overhead.
+</Note>
+
 <CardGroup cols={2}>
   <Card title="Simple Greeting" icon="message">
     **"Hello, how are you?"**
-    
-    Routes to: Gemini Flash  
-    Cost: **$0.10** per 1M tokens  
+
+    Routes to: Gemini Flash
+    Cost: **$0.10** per 1M tokens
     Savings: **97%** vs GPT-4
   </Card>
   <Card title="Code Generation" icon="code">
     **"Write a React component..."**
-    
-    Routes to: DeepSeek Coder  
-    Cost: **$0.34** per 1M tokens  
+
+    Routes to: DeepSeek Coder
+    Cost: **$0.34** per 1M tokens
     Savings: **87%** vs GPT-4
   </Card>
   <Card title="Complex Analysis" icon="brain">
     **"Analyze this dataset..."**
-    
-    Routes to: Claude Sonnet  
-    Cost: **$2.19** per 1M tokens  
+
+    Routes to: Claude Sonnet
+    Cost: **$2.19** per 1M tokens
     Savings: **72%** vs GPT-4
   </Card>
   <Card title="Function Calling" icon="tools">
     **"What's the weather?" + tools**
-    
-    Routes to: GPT-4o Mini  
-    Prioritizes function calling support  
+
+    Routes to: GPT-4o Mini
+    Prioritizes function calling support
     Smart tool-capable model selection
   </Card>
 </CardGroup>

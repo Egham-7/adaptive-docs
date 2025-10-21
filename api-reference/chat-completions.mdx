@@ -524,10 +524,10 @@ Authorization: Bearer your-adaptive-api-key
 ### 1. Simple Chat → 97% Cost Savings
 
 <Info>
-**Cost Comparison:** Simple question routes to Gemini Flash  
-**OpenAI Direct:** $3.00 per 1M tokens  
-**Adaptive Smart:** $0.10 per 1M tokens  
-**Savings: 97%**
+**Cost Comparison:** Simple question routes to Gemini Flash
+**OpenAI Direct:** $3.00 per 1M input tokens
+**Adaptive Smart:** Gemini Flash ($0.075/1M) + Overhead ($0.10/1M input, $0.20/1M output)
+**Savings: 97%** (total ~$0.10/1M vs $3.00/1M)
 </Info>
 
 <CodeGroup>
@@ -576,10 +576,10 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
 ### 2. Complex Analysis → 85% Cost Savings
 
 <Info>
-**Cost Comparison:** Complex task routes to DeepSeek Reasoner  
-**OpenAI Direct:** $15.00 per 1M tokens  
-**Adaptive Smart:** $2.19 per 1M tokens  
-**Savings: 85%**
+**Cost Comparison:** Complex task routes to DeepSeek Reasoner
+**OpenAI Direct:** $15.00 per 1M input tokens
+**Adaptive Smart:** DeepSeek ($1.00/1M) + Overhead ($0.10/1M input, $0.20/1M output)
+**Savings: 85%** (total ~$1.30/1M vs $15.00/1M)
 </Info>
 
 <CodeGroup>
