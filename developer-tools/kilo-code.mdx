@@ -7,7 +7,8 @@ icon: "/images/logos/kilocode.svg"
 Kilo Code is a powerful VS Code plugin with support for MCP (Model Context Protocol), enabling you to generate code, debug, and manage projects directly within the editor — delivering a more efficient and intelligent development experience. Kilo Code's performance is further enhanced with Adaptive's intelligent routing, helping you achieve 60-90% cost savings while maintaining the same AI-assisted development experience.
 
 <Tip>
-**Save 60-90% on AI development costs** with intelligent model routing. Works seamlessly with Kilo Code's development features.
+  **Save 60-90% on AI development costs** with intelligent model routing. Works
+  seamlessly with Kilo Code's development features.
 </Tip>
 
 ## Get Your Adaptive API Key
@@ -17,21 +18,25 @@ Kilo Code is a powerful VS Code plugin with support for MCP (Model Context Proto
 ## Step 1: Installing the Kilo Code Plugin
 
 ### 1. Open the Extensions Marketplace
+
 a. Launch VS Code
 b. Click the Extensions Marketplace icon on the left sidebar
 c. Search for "Kilo Code" in the search bar
 d. Locate the Kilo Code plugin
 
 ### 2. Install the Plugin
+
 a. Click the **Install** button to begin installation
 b. After installation, choose to trust the developer if prompted
 
 ## Step 2: Configuring API Settings
 
 ### 1. Select API Key Authentication
+
 Choose "Use your own API key" when prompted by Kilo Code
 
 ### 2. Enter Configuration Details
+
 Fill in the following information as specified:
 
 - **API Provider**: Select "OpenAI Compatible"
@@ -42,30 +47,31 @@ Fill in the following information as specified:
 ## Step 3: Configuring MCP (Optional)
 
 ### 1. Add an MCP Server
+
 Kilo Code supports MCP (Model Context Protocol) to extend the capabilities of AI models. You can add MCP servers to enhance functionality. Example MCP server configurations:
 
 ```json
 {
-    "mcpServers": {
-        "filesystem": {
-            "command": "npx",
-            "args": [
-                "@modelcontextprotocol/server-filesystem",
-                "/path/to/your/project"
-            ]
-        },
-        "sqlite": {
-            "command": "uv",
-            "args": [
-                "--directory",
-                "path/to/sqlite/server",
-                "run",
-                "mcp-server-sqlite",
-                "--db-path",
-                "~/database.db"
-            ]
-        }
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/your/project"
+      ]
+    },
+    "sqlite": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "path/to/sqlite/server",
+        "run",
+        "mcp-server-sqlite",
+        "--db-path",
+        "~/database.db"
+      ]
     }
+  }
 }
 ```
 
@@ -108,6 +114,7 @@ export OPENAI_API_KEY=your-adaptive-api-key
 5. Enter your Adaptive API key
 6. Select your preferred model
 ```
+
 </CodeGroup>
 
 ## Troubleshooting
@@ -166,5 +173,8 @@ export OPENAI_API_KEY=your-adaptive-api-key
 ---
 
 <Note>
-**Was this page helpful?** Contact us at [info@llmadaptive.uk](mailto:info@llmadaptive.uk) for feedback or assistance with your Kilo Code integration.
+  **Was this page helpful?** Contact us at
+  [info@llmadaptive.uk](mailto:info@llmadaptive.uk) for feedback or assistance
+  with your Kilo Code integration.
 </Note>
+
