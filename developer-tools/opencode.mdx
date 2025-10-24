@@ -19,17 +19,21 @@ Configure OpenCode to use Adaptive's intelligent routing for 60-90% cost savings
 
 <Steps>
   <Step title="Run Installer" icon="download">
-    ```bash curl -fsSL
-    https://raw.githubusercontent.com/Egham-7/adaptive/main/scripts/installers/opencode.sh
-    | bash ``` Follow prompts to complete authentication setup.
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/Egham-7/adaptive/main/scripts/installers/opencode.sh | bash
+    ```
+    Follow prompts to complete authentication setup.
   </Step>
+
   <Step title="Authenticate Provider" icon="key">
-    ```bash opencode auth login ``` Select **"Other"** → Enter **"adaptive"** →
-    Paste your API key
+    ```bash
+    opencode auth login
+    ```
+    Select **"Other"** → Enter **"adaptive"** → Paste your API key
   </Step>
+
   <Step title="Select Model" icon="robot">
-    Run `/models` in OpenCode and select **"Intelligent Routing"** for automatic
-    optimization.
+    Run `/models` in OpenCode and select **"Intelligent Routing"** for automatic optimization.
   </Step>
 </Steps>
 
