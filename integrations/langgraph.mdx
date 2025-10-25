@@ -46,7 +46,7 @@ from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://llmadaptive.uk/api/v1>",
+base_url="<https://api.llmadaptive.uk/v1>",
 model="", # Empty string enables intelligent routing
 temperature=0,
 )
@@ -59,7 +59,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1", // Adaptive's endpoint
+    baseURL: "https://api.llmadaptive.uk/v1", // Adaptive's endpoint
   },
   modelName: "", // Empty string enables intelligent routing
   temperature: 0,
@@ -79,7 +79,7 @@ from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://llmadaptive.uk/api/v1>",
+base_url="<https://api.llmadaptive.uk/v1>",
 model="",
 temperature=0,
 )
@@ -117,7 +117,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,
@@ -173,7 +173,7 @@ tools = [get_weather]
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://llmadaptive.uk/api/v1>",
+base_url="<https://api.llmadaptive.uk/v1>",
 model="",
 temperature=0,
 ).bind_tools(tools)
@@ -240,7 +240,7 @@ const tools = [weatherTool];
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,
@@ -296,7 +296,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,
@@ -350,7 +350,7 @@ const WorkflowState = Annotation.Root({
 const researcherModel = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0.3,
@@ -359,7 +359,7 @@ const researcherModel = new ChatOpenAI({
 const writerModel = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0.7,
@@ -423,7 +423,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,
@@ -469,7 +469,7 @@ import { MemorySaver } from "@langchain/langgraph";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,
@@ -535,7 +535,7 @@ All standard ChatOpenAI parameters work with Adaptive:
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0.7,
@@ -564,7 +564,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   modelName: "",
   temperature: 0,

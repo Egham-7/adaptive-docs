@@ -58,7 +58,7 @@ os.environ["OPENAI_API_KEY"] = os.environ["ADAPTIVE_API_KEY"]
 # Initialize OpenAI LLM with Adaptive endpoint
 llm = OpenAI(
     model="",  # Empty string enables intelligent routing
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -82,7 +82,7 @@ from llama_index.core import Settings
 # Initialize with Adaptive
 llm = OpenAILike(
     model="",  # Empty for intelligent routing
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
     is_chat_model=True,
     is_function_calling_model=True,  # Enable for agents
@@ -108,7 +108,7 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 # Configure Adaptive for LLM
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -139,7 +139,7 @@ from llama_index.llms.openai import OpenAI
 # Configure with streaming
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -168,7 +168,7 @@ from llama_index.llms.openai import OpenAI
 # Configure Adaptive
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -211,7 +211,7 @@ from llama_index.core.tools import FunctionTool
 # Configure Adaptive for agents
 llm = OpenAI(
     model="",  # Adaptive automatically selects function-calling models
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -252,7 +252,7 @@ from llama_index.llms.openai import OpenAI
 # Configure Adaptive
 llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -294,7 +294,7 @@ import requests
 # Configure Adaptive
 llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -344,7 +344,7 @@ from llama_index.core.query_engine import CustomQueryEngine
 # Configure Adaptive
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
     temperature=0.7,
     max_tokens=1000,
@@ -366,7 +366,7 @@ from llama_index.llms.openai import OpenAI
 # Configure Adaptive
 llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -421,7 +421,7 @@ from llama_index.llms.openai import OpenAI
 # Configure Adaptive
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -457,7 +457,7 @@ from llama_index.llms.openai import OpenAI
 
 llm = OpenAI(
     model="",  # Empty for intelligent routing
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
     temperature=0.7,
     max_tokens=1000,
@@ -490,7 +490,7 @@ from llama_index.core import Settings
 # Global configuration (affects all queries)
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -498,7 +498,7 @@ Settings.llm = OpenAI(
 query_engine = index.as_query_engine(
     llm=OpenAI(
         model="gpt-4o",  # Override for this specific query engine
-        api_base="https://llmadaptive.uk/api/v1",
+        api_base="https://api.llmadaptive.uk/v1",
         api_key=os.environ["ADAPTIVE_API_KEY"],
     )
 )
@@ -521,7 +521,7 @@ Settings.embed_model = OpenAIEmbedding(
 # Option 2: Use Adaptive for embeddings
 Settings.embed_model = OpenAIEmbedding(
     model="text-embedding-3-small",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 ```
@@ -547,7 +547,7 @@ try:
     # Configure Adaptive
     Settings.llm = OpenAI(
         model="",
-        api_base="https://llmadaptive.uk/api/v1",
+        api_base="https://api.llmadaptive.uk/v1",
         api_key=os.environ["ADAPTIVE_API_KEY"],
         timeout=60,
         max_retries=3,
@@ -584,7 +584,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Configure Adaptive
 Settings.llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 
@@ -608,7 +608,7 @@ Settings.llm = OpenAI(
 # After (With Adaptive)
 Settings.llm = OpenAI(
     model="",  # Enable intelligent routing
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 ```
@@ -631,7 +631,7 @@ from llama_index.llms.openai import OpenAI
 
 llm = OpenAI(
     model="",
-    api_base="https://llmadaptive.uk/api/v1",
+    api_base="https://api.llmadaptive.uk/v1",
     api_key=os.environ["ADAPTIVE_API_KEY"],
 )
 ```
@@ -666,7 +666,7 @@ import { OpenAI, Settings } from "llamaindex";
 const llm = new OpenAI({
   model: "",
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
 });
@@ -686,7 +686,7 @@ import fs from "fs/promises";
 Settings.llm = new OpenAI({
   model: "",
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
 });
@@ -731,7 +731,7 @@ import { OpenAI } from "@llamaindex/openai";
 Settings.llm = new OpenAI({
   model: "",
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
   temperature: 0,
@@ -781,7 +781,7 @@ import { SimpleDirectoryReader } from "@llamaindex/readers/directory";
 Settings.llm = new OpenAI({
   model: "",
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
 });
@@ -839,7 +839,7 @@ import { OpenAI } from "@llamaindex/openai";
 Settings.llm = new OpenAI({
   model: "",
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
 });
@@ -880,7 +880,7 @@ import { OpenAI } from "@llamaindex/openai";
 const llm = new OpenAI({
   model: "", // Empty for intelligent routing
   additionalSessionOptions: {
-    baseURL: "https://llmadaptive.uk/api/v1",
+    baseURL: "https://api.llmadaptive.uk/v1",
   },
   apiKey: process.env.ADAPTIVE_API_KEY,
   temperature: 0.7,
