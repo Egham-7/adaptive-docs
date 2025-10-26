@@ -67,7 +67,11 @@
       },
       {
         "group": "Examples & Use Cases",
-        "pages": ["examples/basic-chat", "examples/streaming-chat", "examples/select-model"]
+        "pages": [
+          "examples/basic-chat",
+          "examples/streaming-chat",
+          "examples/select-model"
+        ]
       },
       {
         "group": "Support",
@@ -76,8 +80,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/logo.svg",
-    "dark": "/logo/logo-dark.svg",
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo-dark.png",
     "href": "https://www.llmadaptive.uk"
   },
   "navbar": {
@@ -167,3 +171,4 @@
     }
   }
 }
+
