@@ -66,14 +66,6 @@
         ]
       },
       {
-        "group": "Examples & Use Cases",
-        "pages": [
-          "examples/basic-chat",
-          "examples/streaming-chat",
-          "examples/select-model"
-        ]
-      },
-      {
         "group": "Support",
         "pages": ["troubleshooting", "terms-of-service", "privacy-policy"]
       }
