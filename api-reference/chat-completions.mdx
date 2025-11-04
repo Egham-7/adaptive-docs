@@ -96,8 +96,9 @@ Authorization: Bearer your-adaptive-api-key
     
     <ParamField body="models" type="array">
       Allowed providers/models. Examples:
-      - `{ provider: "openai" }` - All OpenAI models
-      - `{ provider: "anthropic", model_name: "claude-3-sonnet" }` - Specific model
+      - `"openai:gpt-4o-mini"` - Specific model
+      - `"anthropic:claude-3-5-sonnet-20241022"` - Specific model
+      - `"google:gemini-1.5-pro"` - Specific model
     </ParamField>
     
     <ParamField body="complexity_threshold" type="number">
@@ -313,17 +314,17 @@ Authorization: Bearer your-adaptive-api-key
         <ParamField body="cost_per_1m_output_tokens" type="number">
           Cost per 1 million output tokens in USD. **Required for custom models**
         </ParamField>
-        
-        <ParamField body="max_context_tokens" type="integer">
-          Maximum context window size in tokens. **Required for custom models**
+
+        <ParamField body="context_length" type="integer">
+          Maximum context window size in tokens. **Required for custom models**. Replaces deprecated `max_context_tokens`.
         </ParamField>
-        
-        <ParamField body="max_output_tokens" type="integer">
-          Maximum output tokens the model can generate. **Required for custom models**
+
+        <ParamField body="max_completion_tokens" type="integer">
+          Maximum output tokens the model can generate. **Required for custom models**. Replaces deprecated `max_output_tokens`.
         </ParamField>
-        
-        <ParamField body="supports_tool_calling" type="boolean">
-          Whether the model supports function/tool calling. **Required for custom models**
+
+        <ParamField body="supported_parameters" type="array">
+          List of supported API parameters (e.g., ["temperature", "top_p", "tools"]). **Required for custom models**. Replaces deprecated `supports_tool_calling` boolean.
         </ParamField>
         
         <ParamField body="description" type="string">
@@ -657,9 +658,9 @@ const completion = await openai.chat.completions.create({
         model_name: "custom-model-v1",
         cost_per_1m_input_tokens: 2.0,
         cost_per_1m_output_tokens: 6.0,
-        max_context_tokens: 16000,
-        max_output_tokens: 4000,
-        supports_tool_calling: true,
+        context_length: 16000,
+        max_completion_tokens: 4000,
+        supported_parameters: ["temperature", "top_p", "tools"],
         task_type: "Text Generation",
         complexity: "medium"
       }
@@ -871,9 +872,9 @@ const completion = await openai.chat.completions.create({
         model_name: "custom-model-v1",
         cost_per_1m_input_tokens: 5.0,
         cost_per_1m_output_tokens: 10.0,
-        max_context_tokens: 32000,
-        max_output_tokens: 2048,
-        supports_tool_calling: false,
+        context_length: 32000,
+        max_completion_tokens: 2048,
+        supported_parameters: ["temperature", "top_p"],
         task_type: "Text Generation",
         complexity: "medium"
       }
@@ -1006,9 +1007,9 @@ const openai = new OpenAI({
        model_name: "model-v1",
        cost_per_1m_input_tokens: 2.0,
        cost_per_1m_output_tokens: 6.0,
-       max_context_tokens: 16000,
-       max_output_tokens: 4000,
-       supports_tool_calling: true,
+       context_length: 16000,
+       max_completion_tokens: 4000,
+       supported_parameters: ["temperature", "top_p", "tools"],
        task_type: "Text Generation",
        complexity: "medium"
      }]
@@ -1068,9 +1069,9 @@ const openai = new OpenAI({
      model_name: "model-name",                    // ✅ Required
      cost_per_1m_input_tokens: 2.0,              // ✅ Required
      cost_per_1m_output_tokens: 6.0,             // ✅ Required
-     max_context_tokens: 16000,                  // ✅ Required
-     max_output_tokens: 4000,                    // ✅ Required
-     supports_tool_calling: false,           // ✅ Required
+     context_length: 16000,                      // ✅ Required
+     max_completion_tokens: 4000,                // ✅ Required
+     supported_parameters: ["temperature", "top_p"],  // ✅ Required
      task_type: "Text Generation",               // ✅ Required
      complexity: "medium"                        // ✅ Required
    }]

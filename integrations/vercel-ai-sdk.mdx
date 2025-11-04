@@ -269,8 +269,8 @@ await generateText({
       // Intelligent routing configuration
       model_router: {
         models: [
-          { provider: "anthropic" }, // All Anthropic models
-          { provider: "openai", model_name: "gpt-4" } // Specific OpenAI model
+          "anthropic:claude-3-5-sonnet-20241022", // Specific Anthropic model
+          "openai:gpt-4" // Specific OpenAI model
         ],
         cost_bias: 0.3, // 0 = cheapest, 1 = best performance
         complexity_threshold: 0.5, // Override complexity detection
@@ -319,9 +319,9 @@ await generateText({
 <Accordion title="model_router - Intelligent Model Selection">
 Controls intelligent model selection:
 
-- **`models`**: Array of allowed providers/models
-  - `{ provider: "openai" }` - All models from provider
-  - `{ provider: "anthropic", model_name: "claude-3-sonnet" }` - Specific model
+- **`models`**: Array of allowed provider:model strings
+  - `"anthropic:claude-3-5-sonnet-20241022"` - Specific model
+  - `"openai:gpt-4"` - Specific model
 - **`cost_bias`**: Balance cost vs performance (0-1)
   - `0` = Always choose cheapest option
   - `0.5` = Balanced cost and performance  
@@ -352,7 +352,9 @@ Improves performance by caching similar requests:
 
 ## Custom Providers
 
-Configure custom providers alongside standard ones using the Adaptive provider:
+<Info>
+Custom providers are no longer supported. All models must be specified using the "provider:model_name" string format for models available in the registry.
+</Info>
 
 ```javascript Custom Provider Configuration
 await generateText({
@@ -360,36 +362,13 @@ await generateText({
   prompt: "Explain machine learning concepts",
   providerOptions: {
     adaptive: {
-      // Include custom provider in model list
+      // Include registry models in model list
       model_router: {
         models: [
-          { provider: "openai" }, // Standard provider
-          {
-            provider: "my-custom-llm", // Custom provider
-            model_name: "custom-model-v1",
-            cost_per_1m_input_tokens: 2.0,
-            cost_per_1m_output_tokens: 6.0,
-            max_context_tokens: 16000,
-            max_output_tokens: 4000,
-            supports_function_calling: true,
-            task_type: "Text Generation",
-            complexity: "medium"
-          }
+          "openai:gpt-4o-mini", // Standard provider
+          "anthropic:claude-3-5-sonnet-20241022"
         ],
         cost_bias: 0.5
-      },
-      
-      // Configure each custom provider
-      provider_configs: {
-        "my-custom-llm": {
-          base_url: "https://api.mycustom.com/v1",
-          api_key: "sk-custom-api-key-here",
-          auth_type: "bearer",
-          headers: {
-            "X-Custom-Header": "value"
-          },
-          timeout_ms: 45000
-        }
       }
     }
   }

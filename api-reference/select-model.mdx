@@ -21,34 +21,20 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 **Provider-agnostic format** - send your available models and prompt, get intelligent selection back.
 
 <ParamField body="models" type="array" required>
-  Array of available models. **For known models (GPT-4, Claude, Gemini, etc.), just specify `provider` and `model_name` - Adaptive knows the rest. Only provide full specs for custom/unknown models.**
-  
-  <Expandable title="Model Specification Options">
-    **Provider + Model (for known models):**
+  Array of available model specifications in "provider:model_name" format. **Adaptive automatically queries the [Model Registry](/api-reference/models) to fill in pricing, capabilities, and other details for known models.**
+
+  <Expandable title="Model Specification Format">
+    **String format (recommended):**
     ```json
-    {"provider": "openai", "model_name": "gpt-4o-mini"}
+    ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022", "google:gemini-1.5-pro"]
     ```
-    
-    **Provider-only (let Adaptive choose best model):**
+
+    **Legacy object format (deprecated):**
     ```json
-    {"provider": "anthropic"}
+    [{"provider": "openai", "model_name": "gpt-4o-mini"}]
     ```
-    
-    **Model-only (if provider is obvious):**
-    ```json
-    {"model_name": "gpt-4o-mini"}
-    ```
-    
-    **Full specification (for custom models):**
-    - **provider** (string, required): Provider name (e.g., "openai", "anthropic", "local", "custom")
-    - **model_name** (string): Model identifier (required unless provider-only)
-    - **cost_per_1m_input_tokens** (number): Cost per 1M input tokens (auto-filled for known models)
-    - **cost_per_1m_output_tokens** (number): Cost per 1M output tokens (auto-filled for known models)
-    - **max_context_tokens** (number): Maximum context window size (auto-filled for known models)
-    - **supports_tool_calling** (boolean): Whether the model supports tool/function calling (auto-filled for known models)
-    - **max_output_tokens** (number): Maximum output tokens (optional)
-    - **complexity** (string): Model complexity tier: "low", "medium", "high" (optional)
-    - **task_type** (string): Optimized task type (optional)
+
+    The string format is simpler, results in smaller request payloads, and is the recommended approach for all new integrations.
   </Expandable>
 </ParamField>
 
@@ -181,9 +167,9 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
   -H "X-Stainless-API-Key: $API_KEY" \
   -d '{
     "models": [
-      {"provider": "openai", "model_name": "gpt-4o-mini"},
-      {"model_name": "claude-3-5-sonnet"},
-      {"provider": "google"}
+      "openai:gpt-4o-mini",
+      "anthropic:claude-3-5-sonnet-20241022",
+      "google:gemini-1.5-pro"
     ],
     "prompt": "Hello, how are you?"
   }')
@@ -213,8 +199,8 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
   -H "X-Stainless-API-Key: $API_KEY" \
   -d '{
     "models": [
-      {"provider": "openai"},
-      {"provider": "anthropic"}
+      "openai:gpt-4o-mini",
+      "anthropic:claude-3-5-sonnet-20241022"
     ],
     "prompt": "Write a complex analysis of market trends"
   }')
@@ -247,16 +233,8 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
   -H "X-Stainless-API-Key: $API_KEY" \
   -d '{
     "models": [
-      {"provider": "openai", "model_name": "gpt-4o-mini"},
-      {
-        "provider": "local",
-        "model_name": "my-custom-llama-fine-tune",
-        "cost_per_1m_input_tokens": 0.0,
-        "cost_per_1m_output_tokens": 0.0,
-        "max_context_tokens": 4096,
-        "supports_tool_calling": false,
-        "complexity": "medium"
-      }
+      "openai:gpt-4o-mini",
+      "local:my-custom-llama-fine-tune"
     ],
     "prompt": "Hello, how are you?"
   }')
@@ -283,22 +261,8 @@ const response = await fetch('/api/v1/select-model', {
   headers: { 'X-Stainless-API-Key': apiKey },
   body: JSON.stringify({
     models: [
-      {
-        provider: "openai",
-        model_name: "gpt-4o-mini",
-        cost_per_1m_input_tokens: 0.15,
-        cost_per_1m_output_tokens: 0.6,
-        max_context_tokens: 128000,
-        supports_tool_calling: true
-      },
-      {
-        provider: "openai",
-        model_name: "gpt-4o", 
-        cost_per_1m_input_tokens: 2.5,
-        cost_per_1m_output_tokens: 10.0,
-        max_context_tokens: 128000,
-        supports_tool_calling: true
-      }
+      "openai:gpt-4o-mini",
+      "openai:gpt-4o"
     ],
     prompt: "Analyze this complex dataset and provide insights...",
     cost_bias: 0.1  // Maximize cost savings
@@ -323,9 +287,9 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
   -H "X-Stainless-API-Key: $API_KEY" \
   -d '{
     "models": [
-      {"provider": "openai", "model_name": "gpt-4o-mini"},
-      {"provider": "anthropic", "model_name": "claude-3-haiku"},
-      {"provider": "openai", "model_name": "gpt-3.5-turbo"}
+      "openai:gpt-4o-mini",
+      "anthropic:claude-3-haiku",
+      "openai:gpt-3.5-turbo"
     ],
     "prompt": "What is the weather like in San Francisco?",
     "tools": [
@@ -379,24 +343,8 @@ TIMEOUT = 30  # Request timeout in seconds
 
 # Define available models
 models = [
-    {
-        "provider": "openai",
-        "model_name": "gpt-4o-mini",
-        "cost_per_1m_input_tokens": 0.15,
-        "cost_per_1m_output_tokens": 0.6,
-        "max_context_tokens": 128000,
-        "supports_tool_calling": True,
-        "complexity": "low"
-    },
-    {
-        "provider": "openai", 
-        "model_name": "gpt-4o",
-        "cost_per_1m_input_tokens": 2.5,
-        "cost_per_1m_output_tokens": 10.0,
-        "max_context_tokens": 128000,
-        "supports_tool_calling": True,
-        "complexity": "high"
-    }
+    "openai:gpt-4o-mini",
+    "openai:gpt-4o"
 ]
 
 base_request = {
@@ -451,22 +399,8 @@ for config in configs:
 ```javascript
 // Define your available models with your own pricing
 const availableModels = [
-  {
-    provider: "openai",
-    model_name: "gpt-4o-mini", 
-    cost_per_1m_input_tokens: 0.15,
-    cost_per_1m_output_tokens: 0.6,
-    max_context_tokens: 128000,
-    supports_tool_calling: true
-  },
-  {
-    provider: "anthropic",
-    model_name: "claude-3-5-sonnet-20241022",
-    cost_per_1m_input_tokens: 3.0,
-    cost_per_1m_output_tokens: 15.0,
-    max_context_tokens: 200000,
-    supports_tool_calling: true
-  }
+  "openai:gpt-4o-mini",
+  "anthropic:claude-3-5-sonnet-20241022"
 ];
 
 // Get intelligent selection
@@ -504,9 +438,9 @@ const res = await fetch('https://api.llmadaptive.uk/v1/select-model', {
   headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
   body: JSON.stringify({
     models: [
-      { provider: "local", model_name: "llama-3-8b" },
-      { provider: "local", model_name: "llama-3-70b" },
-      { provider: "openai", model_name: "gpt-4" } // Cloud fallback
+      "local:llama-3-8b",
+      "local:llama-3-70b",
+      "openai:gpt-4" // Cloud fallback
     ],
     prompt: userMessage
   })
@@ -529,9 +463,9 @@ const res = await fetch('https://api.llmadaptive.uk/v1/select-model', {
   headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
   body: JSON.stringify({
     models: [
-      { provider: "anthropic" }, // Your enterprise contract
-      { provider: "openai" },    // Your enterprise contract  
-      { provider: "google" }     // Pay-per-use fallback
+      "anthropic:claude-3-5-sonnet-20241022", // Your enterprise contract
+      "openai:gpt-4o",    // Your enterprise contract  
+      "google:gemini-1.5-pro"     // Pay-per-use fallback
     ],
     prompt: userMessage,
     cost_bias: 0.8
@@ -552,8 +486,8 @@ const completion = await client.create({
 // Keep sensitive data local while getting smart routing
 const selection = await selectModel({
   models: [
-    { provider: "local", model_name: "llama-3-70b" },
-    { provider: "local", model_name: "llama-3-8b" }
+    "local:llama-3-70b",
+    "local:llama-3-8b"
   ],
   prompt: "NON_SENSITIVE_TASK_DESCRIPTION",
   // Don't send actual sensitive data to Adaptive
@@ -611,7 +545,7 @@ const shouldUseCheap = await fetch('https://api.llmadaptive.uk/v1/select-model',
   method: 'POST',
   headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    models: [{ provider: "openai", model_name: "gpt-4o-mini" }, { provider: "openai", model_name: "gpt-4o" }],
+    models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
     prompt: "Hi"
   })
 }).then(r => r.json());
@@ -620,7 +554,7 @@ const shouldUseExpensive = await fetch('https://api.llmadaptive.uk/v1/select-mod
   method: 'POST',
   headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    models: [{ provider: "openai", model_name: "gpt-4o-mini" }, { provider: "openai", model_name: "gpt-4o" }],
+    models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
     prompt: "Analyze this complex dataset..."
   })
 }).then(r => r.json());

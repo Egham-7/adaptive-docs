@@ -1,0 +1,181 @@
+---
+title: "Model Specification Migration Guide"
+description: "Breaking change: Model specifications now use string format instead of objects"
+icon: "arrow-right"
+---
+
+## Overview
+
+Starting with this release, Adaptive's API has migrated from object-based model specifications to a simpler string-based format. This change affects how you specify models in routing configurations.
+
+## Breaking Change Summary
+
+**Old Format (Deprecated):**
+```json
+{
+  "models": [
+    {"provider": "openai", "model_name": "gpt-4o-mini"},
+    {"provider": "anthropic", "model_name": "claude-3-5-sonnet-20241022"}
+  ]
+}
+```
+
+**New Format (Required):**
+```json
+{
+  "models": ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022"]
+}
+```
+
+## What Changed
+
+### Model Specification Format
+- **Before**: Objects with `provider` and `model_name` properties
+- **After**: Strings in `provider:model_name` format
+
+### Custom Providers
+- **Before**: Supported custom/local models with full configuration objects
+- **After**: Custom providers are no longer supported. Only registry models can be used.
+
+## Affected Endpoints
+
+This change affects all endpoints that accept model lists:
+
+- `/v1/select-model`
+- `/v1/chat/completions` (model_router.models)
+- `/v1/messages` (model_router.models)
+- `/v1/completions` (model_router.models)
+
+## Migration Steps
+
+### 1. Update Model Specifications
+
+Replace object arrays with string arrays:
+
+```javascript
+// Before
+model_router: {
+  models: [
+    { provider: "openai", model_name: "gpt-4o-mini" },
+    { provider: "anthropic", model_name: "claude-3-5-sonnet-20241022" }
+  ]
+}
+
+// After
+model_router: {
+  models: [
+    "openai:gpt-4o-mini",
+    "anthropic:claude-3-5-sonnet-20241022"
+  ]
+}
+```
+
+### 2. Remove Custom Models
+
+If you were using custom models, you'll need to:
+
+1. Remove custom model specifications
+2. Choose equivalent models from supported providers (OpenAI, Anthropic, Google, DeepSeek, etc.)
+3. Update your routing logic accordingly
+
+```javascript
+// Before (not supported)
+models: [
+  "openai:gpt-4o-mini",
+  {
+    provider: "custom",
+    model_name: "my-model",
+    cost_per_1m_input_tokens: 0.0,
+    // ... other properties
+  }
+]
+
+// After
+models: [
+  "openai:gpt-4o-mini",
+  "anthropic:claude-3-haiku-20240307" // Choose alternative
+]
+```
+
+### 3. Update Integration Code
+
+Update any code that constructs model objects:
+
+```python
+# Before
+models = [
+    {"provider": "openai", "model_name": "gpt-4o-mini"}
+]
+
+# After
+models = ["openai:gpt-4o-mini"]
+```
+
+## Benefits of the New Format
+
+<Check>**Simplicity**: Easier to read and write model specifications</Check>
+
+<Check>**Consistency**: Uniform string format across all endpoints</Check>
+
+<Check>**Performance**: Faster parsing and processing</Check>
+
+<Check>**Compatibility**: Better alignment with industry standards</Check>
+
+## Timeline
+
+- **Immediate**: Old object format is deprecated and will return errors
+- **Migration Required**: Update all client code to use string format
+- **No Grace Period**: Breaking change takes effect immediately
+
+## Need Help?
+
+If you encounter issues during migration:
+
+1. Check the updated API documentation for examples
+2. Review the [Models API](/api-reference/models) for available models
+3. Contact support if you need help selecting alternative models
+
+## Examples
+
+### Chat Completions
+
+```javascript
+// Before
+{
+  "model": "",
+  "messages": [{"role": "user", "content": "Hello"}],
+  "model_router": {
+    "models": [
+      {"provider": "openai", "model_name": "gpt-4o-mini"}
+    ]
+  }
+}
+
+// After
+{
+  "model": "",
+  "messages": [{"role": "user", "content": "Hello"}],
+  "model_router": {
+    "models": ["openai:gpt-4o-mini"]
+  }
+}
+```
+
+### Select Model
+
+```javascript
+// Before
+{
+  "models": [
+    {"provider": "openai"},
+    {"provider": "anthropic", "model_name": "claude-3-5-sonnet-20241022"}
+  ],
+  "prompt": "Hello"
+}
+
+// After
+{
+  "models": ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022"],
+  "prompt": "Hello"
+}
+```

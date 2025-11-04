@@ -149,7 +149,7 @@ These additional parameters control Adaptive's intelligent routing:
     </ParamField>
     
     <ParamField body="models" type="array">
-      Array of allowed providers/models for this request.
+      Array of allowed provider:model strings for this request.
     </ParamField>
   </Expandable>
 </ParamField>
@@ -195,9 +195,9 @@ const message = await anthropic.messages.create({
   model_router: {
     cost_bias: 0.3, // Favor cost savings
     models: [
-      { provider: 'anthropic' },
-      { provider: 'openai' },
-      { provider: 'deepseek' }
+      'anthropic:claude-3-5-sonnet-20241022',
+      'openai:gpt-4o-mini',
+      'deepseek:deepseek-chat'
     ]
   },
   
@@ -235,9 +235,9 @@ message = client.messages.create(
     model_router={
         "cost_bias": 0.3,  # Favor cost savings
         "models": [
-            {"provider": "anthropic"},
-            {"provider": "openai"},
-            {"provider": "deepseek"}
+            "anthropic:claude-3-5-sonnet-20241022",
+            "openai:gpt-4o-mini",
+            "deepseek:deepseek-chat"
         ]
     },
     
