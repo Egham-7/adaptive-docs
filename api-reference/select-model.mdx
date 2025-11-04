@@ -147,9 +147,9 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 ### "Known models - just specify what you have"
 
 ```bash
-# Mix and match specification styles
-response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-model \
+curl https://api.llmadaptive.uk/v1/select-model \
   -H "X-Stainless-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
     "models": [
       "openai:gpt-4o-mini",
@@ -157,19 +157,9 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
       "google:gemini-1.5-pro"
     ],
     "prompt": "Hello, how are you?"
-  }')
+  }'
 
-http_code=$(echo "$response" | tail -n1)
-response_body=$(echo "$response" | head -n -1)
-
-if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-  echo "Success: $response_body"
-else
-  echo "Error $http_code: $response_body" >&2
-  exit 1
-fi
-
-# Success response:
+# Response:
 {
   "provider": "openai",
   "model": "gpt-4o-mini"
@@ -179,28 +169,18 @@ fi
 ### "Just specify providers - let Adaptive choose"
 
 ```bash
-# Even simpler - just say what providers you have access to
-response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-model \
+curl https://api.llmadaptive.uk/v1/select-model \
   -H "X-Stainless-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
     "models": [
       "openai:gpt-4o-mini",
       "anthropic:claude-3-5-sonnet-20241022"
     ],
     "prompt": "Write a complex analysis of market trends"
-  }')
+  }'
 
-http_code=$(echo "$response" | tail -n1)
-response_body=$(echo "$response" | head -n -1)
-
-if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-  echo "Success: $response_body"
-else
-  echo "Error $http_code: $response_body" >&2
-  exit 1
-fi
-
-# Success response:
+# Response:
 {
   "provider": "anthropic",
   "model": "claude-3-5-sonnet-20241022",
@@ -237,9 +217,9 @@ console.log(result);
 ### "Function calling optimization"
 
 ```bash
-# Models with function calling will be prioritized when tools are provided
-response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-model \
+curl https://api.llmadaptive.uk/v1/select-model \
   -H "X-Stainless-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
     "models": [
       "openai:gpt-4o-mini",
@@ -263,19 +243,9 @@ response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-mode
         }
       }
     ]
-  }')
+  }'
 
-http_code=$(echo "$response" | tail -n1)
-response_body=$(echo "$response" | head -n -1)
-
-if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-  echo "Success: $response_body"
-else
-  echo "Error $http_code: $response_body" >&2
-  exit 1
-fi
-
-# Success response - will prefer models that support function calling:
+# Response - will prefer models that support function calling:
 {
   "provider": "openai",
   "model": "gpt-4o-mini",
