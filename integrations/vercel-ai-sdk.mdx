@@ -269,8 +269,8 @@ await generateText({
       // Intelligent routing configuration
       model_router: {
         models: [
-          "anthropic:claude-3-5-sonnet-20241022", // Specific Anthropic model
-          "openai:gpt-4" // Specific OpenAI model
+          "anthropic:claude-sonnet-4-5", // Specific Anthropic model
+          "openai:gpt-5-mini" // Specific OpenAI model
         ],
         cost_bias: 0.3, // 0 = cheapest, 1 = best performance
         complexity_threshold: 0.5, // Override complexity detection
@@ -320,8 +320,8 @@ await generateText({
 Controls intelligent model selection:
 
 - **`models`**: Array of allowed provider:model strings
-  - `"anthropic:claude-3-5-sonnet-20241022"` - Specific model
-  - `"openai:gpt-4"` - Specific model
+  - `"anthropic:claude-sonnet-4-5"` - Specific model
+  - `"openai:gpt-5-mini"` - Specific model
 - **`cost_bias`**: Balance cost vs performance (0-1)
   - `0` = Always choose cheapest option
   - `0.5` = Balanced cost and performance  
@@ -353,7 +353,7 @@ Improves performance by caching similar requests:
 ## Custom Providers
 
 <Info>
-Custom providers are no longer supported. All models must be specified using the "provider:model_name" string format for models available in the registry.
+Custom providers are no longer supported. All models must be specified using the `provider:model_name` string format for models available in the registry.
 </Info>
 
 ```javascript Custom Provider Configuration
@@ -365,8 +365,8 @@ await generateText({
       // Include registry models in model list
       model_router: {
         models: [
-          "openai:gpt-4o-mini", // Standard provider
-          "anthropic:claude-3-5-sonnet-20241022"
+          "openai:gpt-5-mini", // Standard provider
+          "anthropic:claude-3-5-haiku"
         ],
         cost_bias: 0.5
       }

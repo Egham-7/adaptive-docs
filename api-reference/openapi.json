@@ -140,8 +140,8 @@
           },
           "model": {
             "type": "string",
-            "description": "ID of the model to use. Use 'adaptive' for automatic model selection, or specify a specific model like 'gpt-4o', 'claude-3-5-sonnet', etc.",
-            "example": "adaptive"
+            "description": "ID of the model to use. Use \"\" (empty string) for intelligent routing, or specify a provider-prefixed model like 'openai:gpt-4.1-nano' or 'anthropic:claude-sonnet-4-5'.",
+            "example": ""
           },
           "stream": {
             "type": "boolean",
@@ -216,10 +216,10 @@
           },
           "provider_constraint": {
             "type": "array",
-            "description": "Limit model selection to specific providers. Available providers: openai, anthropic, groq, deepseek, google, grok, huggingface",
+            "description": "Limit model selection to specific providers. Available providers: openai, anthropic, gemini, z-ai",
             "items": {
               "type": "string",
-              "enum": ["openai", "anthropic", "groq", "deepseek", "google", "grok", "huggingface"]
+              "enum": ["openai", "anthropic", "gemini", "z-ai"]
             },
             "example": ["openai", "anthropic"]
           },
@@ -394,7 +394,7 @@
           "model": {
             "type": "string",
             "description": "The model used for the chat completion",
-            "example": "gpt-4o"
+            "example": "openai:gpt-4.1-nano"
           },
           "choices": {
             "type": "array",

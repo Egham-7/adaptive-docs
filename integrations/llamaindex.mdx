@@ -476,7 +476,7 @@ llm = OpenAI(
 model=""
 
 # Specific model
-model="gpt-4o"
+model="gpt-4.1-nano"
 
 # Provider selection
 model="anthropic"  # Adaptive chooses best Anthropic model
@@ -497,7 +497,7 @@ Settings.llm = OpenAI(
 # Local configuration (per query engine)
 query_engine = index.as_query_engine(
     llm=OpenAI(
-        model="gpt-4o",  # Override for this specific query engine
+        model="gpt-4.1-nano",  # Override for this specific query engine
         api_base="https://api.llmadaptive.uk/v1",
         api_key=os.environ["ADAPTIVE_API_KEY"],
     )
@@ -601,7 +601,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.core import Settings
 
 Settings.llm = OpenAI(
-    model="gpt-4o",
+    model="gpt-4.1-nano",
     api_key=os.environ["OPENAI_API_KEY"],
 )
 

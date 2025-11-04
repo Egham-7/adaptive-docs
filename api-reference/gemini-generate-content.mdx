@@ -1,7 +1,7 @@
 ---
 title: "Gemini Generate Content"
 description: "Generate content using Google's Gemini API format with Adaptive's intelligent routing"
-api: "POST /api/v1beta/models/{model}/generateContent"
+api: "POST /api/v1beta/models/{model}:generateContent"
 icon: "/images/logos/google.svg"
 ---
 
@@ -22,14 +22,21 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
 ## Path Parameters
 
 <ParamField path="model" type="string" required>
-  The model to use for generation. Supports Gemini model names and Adaptive's intelligent routing.
+  Model identifier for the route. Use:
+  - `intelligent-routing` to enable Adaptive's multi-provider routing with a Gemini-compatible request
+  - `provider:model_name` (e.g. `gemini:gemini-2.5-flash-lite`) to force a specific provider/model
 
   **Examples:**
-  - `gemini-2.5-pro` - Latest Gemini Pro model
-  - `gemini-2.5-flash` - Fast Gemini Flash model
-  - `gemini-1.5-pro` - Gemini 1.5 Pro
-  - Custom model aliases configured in Adaptive
+  - `intelligent-routing` – Adaptive picks the best provider/model automatically
+  - `gemini:gemini-2.5-flash-lite` – Force Google Gemini Flash Lite
+  - `anthropic:claude-haiku-4-5` – Route Gemini prompts to Anthropic
+  - Custom aliases configured in Adaptive must also follow `provider:model`
 </ParamField>
+
+<Tip>
+**Smart routing:** When calling the v1beta Gemini-compatible paths, set `{model}=intelligent-routing` to engage Adaptive's router. Alternatively, call `POST /api/v1/generate` (or `/api/v1/generate/stream`) and send `"model": ""` in the body.
+Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('gemini:gemini-2.5-flash')`) before inserting it into the path.
+</Tip>
 
 ## Request Body
 
@@ -50,87 +57,94 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
   ```
 </ParamField>
 
-<ParamField body="config" type="object">
-  Generation configuration parameters.
+<ParamField body="generation_config" type="object">
+  Generation configuration parameters. Matches Google's `GenerateContentConfig`.
 
   <Expandable title="Configuration Properties">
-    <ParamField body="config.temperature" type="number">
+    <ParamField body="generation_config.temperature" type="number">
       Controls randomness in generation (0.0 to 2.0). Default: 1.0
     </ParamField>
 
-    <ParamField body="config.topP" type="number">
+    <ParamField body="generation_config.topP" type="number">
       Nucleus sampling parameter (0.0 to 1.0). Default: 0.95
     </ParamField>
 
-    <ParamField body="config.topK" type="number">
+    <ParamField body="generation_config.topK" type="number">
       Top-K sampling parameter. Default: 40
     </ParamField>
 
-    <ParamField body="config.maxOutputTokens" type="number">
+    <ParamField body="generation_config.maxOutputTokens" type="number">
       Maximum tokens to generate. Default: 8192
     </ParamField>
 
-    <ParamField body="config.stopSequences" type="array">
+    <ParamField body="generation_config.stopSequences" type="array">
       Sequences that stop generation when encountered.
     </ParamField>
 
-    <ParamField body="config.candidateCount" type="number">
+    <ParamField body="generation_config.candidateCount" type="number">
       Number of response candidates to generate. Default: 1
     </ParamField>
   </Expandable>
 </ParamField>
 
+<ParamField body="tools" type="array">
+  Gemini tool definitions (function declarations). Use Google Gen AI SDK structures.
+</ParamField>
+
+<ParamField body="tool_config" type="object">
+  Tool configuration controlling how tools are executed.
+</ParamField>
+
+<ParamField body="safety_settings" type="array">
+  Safety setting overrides for Gemini responses.
+</ParamField>
+
+<ParamField body="system_instruction" type="object">
+  Optional system instruction injected ahead of user content.
+</ParamField>
+
 <ParamField body="provider_configs" type="object">
-  **Adaptive Extension**: Provider-specific configuration overrides.
+  **Adaptive Extension**: Override provider API keys or base URLs at request time.
 
   ```json
   "provider_configs": {
-    "anthropic": {
-      "temperature": 0.7
+    "gemini": {
+      "base_url": "https://my-private-gemini-proxy",
+      "api_key": "gemini-key"
     },
-    "openai": {
-      "temperature": 0.8
+    "anthropic": {
+      "api_key": "anthropic-key"
     }
   }
   ```
 </ParamField>
 
 <ParamField body="model_router" type="object">
-  **Adaptive Extension**: Control intelligent routing behavior.
+  **Adaptive Extension**: Intelligent routing controls.
 
   <Expandable title="Router Options">
-    <ParamField body="model_router.enabled" type="boolean">
-      Enable/disable intelligent routing. Default: true
+    <ParamField body="model_router.cost_bias" type="number">
+      Balance cost vs performance (0 = cheapest, 1 = best quality). Default: inherited from workspace config.
     </ParamField>
 
-    <ParamField body="model_router.fallback_models" type="array">
-      List of fallback models if primary model fails.
+    <ParamField body="model_router.models" type="array">
+      Restrict routing to specific `provider:model` identifiers (e.g. `"gemini:gemini-2.5-flash-lite"`).
     </ParamField>
 
-    <ParamField body="model_router.cost_optimization" type="boolean">
-      Enable cost-based model selection. Default: true
+    <ParamField body="model_router.cache" type="object">
+      Cache configuration (capacity, time-to-live, semantic thresholds).
     </ParamField>
   </Expandable>
 </ParamField>
 
-<ParamField body="semantic_cache" type="object">
-  **Adaptive Extension**: Semantic caching configuration.
-
-  ```json
-  "semantic_cache": {
-    "enabled": true,
-    "similarity_threshold": 0.95
-  }
-  ```
-</ParamField>
-
 <ParamField body="fallback" type="object">
-  **Adaptive Extension**: Fallback configuration for provider failures.
+  **Adaptive Extension**: Provider fallback settings when the primary model fails.
 
   ```json
   "fallback": {
-    "enabled": true,
-    "max_retries": 3
+    "mode": "sequential",
+    "max_retries": 2,
+    "timeout_ms": 15000
   }
   ```
 </ParamField>
@@ -214,7 +228,7 @@ const ai = new GoogleGenAI({
 });
 
 const response = await ai.models.generateContent({
-  model: 'gemini-2.5-pro',
+  model: 'intelligent-routing',
   contents: [
     {
       role: 'user',
@@ -223,7 +237,7 @@ const response = await ai.models.generateContent({
       ]
     }
   ],
-  config: {
+  generation_config: {
     temperature: 0.7,
     maxOutputTokens: 1024
   }
@@ -237,8 +251,12 @@ console.log('Tokens used:', response.usageMetadata.totalTokenCount);
 ```python Python
 import requests
 
+from urllib.parse import quote
+
+model_path = quote('intelligent-routing', safe='')
+
 response = requests.post(
-    'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+    f'https://api.llmadaptive.uk/v1beta/models/{model_path}:generateContent',
     headers={
         'x-goog-api-key': 'your-adaptive-api-key',
         'Content-Type': 'application/json'
@@ -252,7 +270,7 @@ response = requests.post(
                 ]
             }
         ],
-        'config': {
+        'generation_config': {
             'temperature': 0.7,
             'maxOutputTokens': 1024
         }
@@ -266,7 +284,7 @@ print(f"Tokens: {data['usageMetadata']['totalTokenCount']}")
 ```
 
 ```bash cURL
-curl -X POST https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent \
+curl -X POST https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent \
   -H "x-goog-api-key: your-adaptive-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -280,7 +298,7 @@ curl -X POST https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateCon
         ]
       }
     ],
-    "config": {
+    "generation_config": {
       "temperature": 0.7,
       "maxOutputTokens": 1024
     }
@@ -289,7 +307,7 @@ curl -X POST https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateCon
 
 ```javascript JavaScript (Fetch)
 const response = await fetch(
-  'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+  'https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent',
   {
     method: 'POST',
     headers: {
@@ -305,7 +323,7 @@ const response = await fetch(
           ]
         }
       ],
-      config: {
+      generation_config: {
         temperature: 0.7,
         maxOutputTokens: 1024
       }
@@ -327,7 +345,7 @@ console.log('Tokens:', data.usageMetadata.totalTokenCount);
 <CodeGroup>
 ```typescript Multi-Turn Chat
 const response = await ai.models.generateContent({
-  model: 'gemini-2.5-pro',
+  model: 'gemini:gemini-2.5-flash-lite',
   contents: [
     {
       role: 'user',
@@ -347,7 +365,7 @@ const response = await ai.models.generateContent({
 
 ```python Multi-Turn Chat
 response = requests.post(
-    'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+    'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-flash-lite/generateContent',
     headers={'x-goog-api-key': api_key},
     json={
         'contents': [
@@ -365,29 +383,29 @@ response = requests.post(
 <CodeGroup>
 ```typescript Adaptive Features
 const response = await ai.models.generateContent({
-  model: 'gemini-2.5-pro',
+  model: 'gemini:gemini-2.5-flash-lite',
   contents: [
     {
       role: 'user',
       parts: [{ text: 'Write a sorting algorithm in Python' }]
     }
   ],
-  config: {
+  generation_config: {
     temperature: 0.3,
     maxOutputTokens: 2048
   },
   // Adaptive-specific features
-  semantic_cache: {
-    enabled: true,
-    similarity_threshold: 0.95
+  model_router: {
+    cost_bias: 0.3,
+    models: ['gemini:gemini-2.5-flash-lite', 'anthropic:claude-sonnet-4-5'],
+    cache: {
+      enabled: true,
+      semantic_threshold: 0.95
+    }
   },
   fallback: {
-    enabled: true,
-    max_retries: 3
-  },
-  model_router: {
-    cost_optimization: true,
-    fallback_models: ['claude-sonnet-4-20250514', 'gpt-4o']
+    mode: 'sequential',
+    max_retries: 2
   }
 });
 

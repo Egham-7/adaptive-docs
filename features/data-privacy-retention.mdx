@@ -264,9 +264,9 @@ const completion = await openai.chat.completions.create({
   model_router: {
     // Prefer providers with better privacy policies
     models: [
-      { provider: "groq" },      // Zero retention
-      { provider: "fireworks" }, // Zero retention
-      { provider: "together" }   // Zero retention
+      "z-ai:glm-4.6",              // Zero retention
+      "anthropic:claude-haiku-4-5", // Strict privacy guarantees
+      "gemini:gemini-2.5-flash-lite" // Regional deployment controls
     ]
   }
 });
@@ -278,9 +278,9 @@ completion = client.chat.completions.create(
     messages=[{"role": "user", "content": "Confidential analysis"}],
     model_router={
       "models": [
-        "groq:llama-3.1-8b-instant",      // Zero retention
-        "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", // Zero retention
-        "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"   // Zero retention
+        "z-ai:glm-4.6",              // Zero retention
+        "anthropic:claude-haiku-4-5", // Strict privacy guarantees
+        "gemini:gemini-2.5-flash-lite" // Regional deployment controls
       ]
     }
 )

@@ -115,7 +115,7 @@ chmod +x gemini-cli.sh
 
 ```bash Custom Model Configuration
 export ADAPTIVE_API_KEY='your-api-key-here'
-export ADAPTIVE_MODEL='gemini-2.5-pro'  # Optional: specify default model
+export ADAPTIVE_MODEL='gemini-2.5-flash-lite'  # Optional: specify default model
 curl -fsSL https://raw.githubusercontent.com/Egham-7/adaptive/main/scripts/installers/gemini-cli.sh | bash
 ```
 </CodeGroup>
@@ -129,7 +129,7 @@ Configure which Gemini model to use by default:
 <CodeGroup>
 ```bash Gemini 2.5 Pro
 # Use Gemini 2.5 Pro for complex tasks
-export GEMINI_MODEL='gemini:gemini-2.5-pro'
+export GEMINI_MODEL='gemini:gemini-2.5-flash-lite'
 gemini "write a complex algorithm"
 ```
 
@@ -164,7 +164,7 @@ When `GEMINI_MODEL` is not set or empty, Adaptive intelligently selects the best
 
 | Model | Best For | Speed | Cost |
 |-------|----------|-------|------|
-| `gemini-2.5-pro` | Complex reasoning, deep analysis | Slower | Higher |
+| `gemini-2.5-flash-lite` | Complex reasoning, deep analysis | Slower | Higher |
 | `gemini-2.5-flash` | Moderate tasks, balanced performance | Fast | Medium |
 | `gemini-2.5-flash-lite` | Simple tasks, quick responses | Fastest | Lowest |
 
@@ -254,7 +254,7 @@ gemini "review this function for potential bugs"
     -H "Authorization: Bearer $GEMINI_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{
-      "model": "gemini-2.5-pro",
+      "model": "gemini-2.5-flash-lite",
       "messages": [{"role": "user", "content": "Hello"}]
     }'
   ```

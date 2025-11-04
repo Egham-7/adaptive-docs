@@ -33,7 +33,7 @@ Authorization: Bearer your-adaptive-api-key
 <ParamField body="model" type="string" required>
   **For intelligent routing**: Use `""` (empty string) to automatically select the best model for cost and quality
   
-  **For specific models**: Use provider:model format like `"anthropic:claude-3-sonnet"` or `"openai:gpt-4"`
+  **For specific models**: Use provider:model format like `"anthropic:claude-sonnet-4-5"` or `"openai:gpt-5-mini"`
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -82,8 +82,8 @@ Authorization: Bearer your-adaptive-api-key
     // Limit to specific providers
     model_router: {
       models: [
-        "openai:gpt-4o-mini",
-        "anthropic:claude-3-5-sonnet-20241022"
+        "openai:gpt-5-mini",
+        "anthropic:claude-sonnet-4-5"
       ]
     }
     ```
@@ -96,9 +96,9 @@ Authorization: Bearer your-adaptive-api-key
     
     <ParamField body="models" type="array">
       Allowed providers/models. Examples:
-      - `"openai:gpt-4o-mini"` - Specific model
-      - `"anthropic:claude-3-5-sonnet-20241022"` - Specific model
-      - `"google:gemini-1.5-pro"` - Specific model
+      - `"openai:gpt-5-mini"` - Specific model
+      - `"anthropic:claude-sonnet-4-5"` - Specific model
+      - `"gemini:gemini-2.5-flash-lite"` - Specific model
     </ParamField>
     
     <ParamField body="complexity_threshold" type="number">
@@ -293,18 +293,18 @@ Authorization: Bearer your-adaptive-api-key
       Array of model capabilities to consider for routing. Can be simplified or detailed:
       
       **Simple formats:**
-      - `"openai:gpt-4o-mini"` - Use specific OpenAI model
-      - `"anthropic:claude-3-sonnet-20240229"` - Use specific Anthropic model
+      - `"openai:gpt-5-mini"` - Use specific OpenAI model
+      - `"anthropic:claude-sonnet-4-5"` - Use specific Anthropic model
       
       **Custom models require all parameters:**
       
       <Expandable title="Model Capability Object">
         <ParamField body="provider" type="string" required>
-          Provider name: `"openai"`, `"anthropic"`, `"google"`, `"groq"`, `"deepseek"`, `"mistral"`, `"grok"`, `"huggingface"`
+          Provider name: `"openai"`, `"anthropic"`, `"gemini"`, `"z-ai"`
         </ParamField>
         
         <ParamField body="model_name" type="string">
-          Specific model identifier (e.g., `"gpt-4"`, `"claude-3-sonnet"`). **Required for specific model selection**
+          Specific model identifier (e.g., `"gpt-5-mini"`, `"claude-sonnet-4-5"`). **Required for specific model selection**
         </ParamField>
         
         <ParamField body="cost_per_1m_input_tokens" type="number">
@@ -578,8 +578,8 @@ const completion = await openai.chat.completions.create({
   ],
   model_router: {
     models: [
-      "anthropic:claude-3-5-sonnet-20241022", // All Anthropic models
-      "openai:gpt-4" // Specific OpenAI model
+      "anthropic:claude-sonnet-4-5", // Premium Anthropic option
+      "openai:gpt-5-mini" // Specific OpenAI model
     ],
     cost_bias: 0.2, // Prefer cost savings
     complexity_threshold: 0.3,
@@ -604,8 +604,8 @@ const completion = await openai.chat.completions.create({
   ],
   model_router: {
       models: [
-        "openai:gpt-4o-mini", // Will use custom config below
-        "anthropic:claude-3-5-sonnet-20241022" // Will also use custom config
+        "openai:gpt-5-mini", // Will use custom config below
+        "anthropic:claude-sonnet-4-5" // Will also use custom config
       ]
   },
   
@@ -772,8 +772,8 @@ const completion = await openai.chat.completions.create({
   // Adaptive-specific
   model_router: {
     models: [
-      "openai:gpt-4o-mini", // Use all OpenAI models
-      "anthropic:claude-3-sonnet-20240229", // Specific model
+      "openai:gpt-5-mini", // Use OpenAI gpt-5 family
+      "anthropic:claude-sonnet-4-5", // Specific model
     ],
     cost_bias: 0.3,
     complexity_threshold: 0.5,
@@ -885,7 +885,7 @@ const openai = new OpenAI({
     
     // ✅ Correct - use supported providers
     model_router: {
-      models: ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022"]
+      models: ["openai:gpt-5-mini", "anthropic:claude-sonnet-4-5"]
     }
     ```
  </Accordion>
@@ -937,17 +937,19 @@ const openai = new OpenAI({
 
 2. **Model definition must include all fields**:
    ```javascript
-   models: [{
-     provider: "my-provider",
-     model_name: "model-name",                    // ✅ Required
-     cost_per_1m_input_tokens: 2.0,              // ✅ Required
-     cost_per_1m_output_tokens: 6.0,             // ✅ Required
-     context_length: 16000,                      // ✅ Required
-     max_completion_tokens: 4000,                // ✅ Required
-     supported_parameters: ["temperature", "top_p"],  // ✅ Required
-     task_type: "Text Generation",               // ✅ Required
-     complexity: "medium"                        // ✅ Required
-   }]
+   model_router: {
+     models: [{
+       provider: "my-provider",
+       model_name: "model-name",                    // ✅ Required
+       cost_per_1m_input_tokens: 2.0,              // ✅ Required
+       cost_per_1m_output_tokens: 6.0,             // ✅ Required
+       context_length: 16000,                      // ✅ Required
+       max_completion_tokens: 4000,                // ✅ Required
+       supported_parameters: ["temperature", "top_p"],  // ✅ Required
+       task_type: "Text Generation",               // ✅ Required
+       complexity: "medium"                        // ✅ Required
+     }]
+   }
    ```
 
 3. **Test the provider directly first**:
