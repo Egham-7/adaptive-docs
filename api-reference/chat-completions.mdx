@@ -82,8 +82,8 @@ Authorization: Bearer your-adaptive-api-key
     // Limit to specific providers
     model_router: {
       models: [
-        { provider: "openai" },
-        { provider: "anthropic" }
+        "openai:gpt-4o-mini",
+        "anthropic:claude-3-5-sonnet-20241022"
       ]
     }
     ```
@@ -293,8 +293,8 @@ Authorization: Bearer your-adaptive-api-key
       Array of model capabilities to consider for routing. Can be simplified or detailed:
       
       **Simple formats:**
-      - `{ "provider": "openai" }` - Use all OpenAI models
-      - `{ "provider": "anthropic", "model_name": "claude-3-sonnet-20240229" }` - Use specific model
+      - `"openai:gpt-4o-mini"` - Use specific OpenAI model
+      - `"anthropic:claude-3-sonnet-20240229"` - Use specific Anthropic model
       
       **Custom models require all parameters:**
       
@@ -304,27 +304,27 @@ Authorization: Bearer your-adaptive-api-key
         </ParamField>
         
         <ParamField body="model_name" type="string">
-          Specific model identifier (e.g., `"gpt-4"`, `"claude-3-sonnet"`). **Required for custom models or specific model selection**
+          Specific model identifier (e.g., `"gpt-4"`, `"claude-3-sonnet"`). **Required for specific model selection**
         </ParamField>
         
         <ParamField body="cost_per_1m_input_tokens" type="number">
-          Cost per 1 million input tokens in USD. **Required for custom models**
+          Cost per 1 million input tokens in USD.
         </ParamField>
         
         <ParamField body="cost_per_1m_output_tokens" type="number">
-          Cost per 1 million output tokens in USD. **Required for custom models**
+          Cost per 1 million output tokens in USD.
         </ParamField>
 
         <ParamField body="context_length" type="integer">
-          Maximum context window size in tokens. **Required for custom models**. Replaces deprecated `max_context_tokens`.
+          Maximum context window size in tokens. Replaces deprecated `max_context_tokens`.
         </ParamField>
 
         <ParamField body="max_completion_tokens" type="integer">
-          Maximum output tokens the model can generate. **Required for custom models**. Replaces deprecated `max_output_tokens`.
+          Maximum output tokens the model can generate. Replaces deprecated `max_output_tokens`.
         </ParamField>
 
         <ParamField body="supported_parameters" type="array">
-          List of supported API parameters (e.g., ["temperature", "top_p", "tools"]). **Required for custom models**. Replaces deprecated `supports_tool_calling` boolean.
+          List of supported API parameters (e.g., ["temperature", "top_p", "tools"]). Replaces deprecated `supports_tool_calling` boolean.
         </ParamField>
         
         <ParamField body="description" type="string">
@@ -383,57 +383,7 @@ Authorization: Bearer your-adaptive-api-key
       Maximum number of retry attempts
     </ParamField>
   </Expandable>
-</ParamField>
-
-<ParamField body="provider_configs" type="object">
-  Configuration for custom providers. Required when using custom providers in your model list.
-  
-  <Expandable title="Provider Config Object">
-    <ParamField body="base_url" type="string" required>
-      API base URL for the custom provider (e.g., `"https://api.custom.com/v1"`)
-    </ParamField>
-    
-    <ParamField body="api_key" type="string" required>
-      Full API key for authentication with the custom provider
-    </ParamField>
-    
-    <ParamField body="auth_type" type="string">
-      Authentication type: `"bearer"`, `"api_key"`, `"basic"`, or `"custom"`. Default: `"bearer"`
-    </ParamField>
-    
-    <ParamField body="auth_header_name" type="string">
-      Custom authentication header name. Default: `"Authorization"`
-    </ParamField>
-    
-    <ParamField body="headers" type="object">
-      Additional headers to send with requests to the custom provider
-    </ParamField>
-    
-    <ParamField body="timeout_ms" type="integer">
-      Request timeout in milliseconds. Range: 1000-120000. Default: 30000
-    </ParamField>
-    
-    <ParamField body="rate_limit_rpm" type="integer">
-      Rate limit in requests per minute. Range: 1-100000
-    </ParamField>
-    
-    <ParamField body="health_endpoint" type="string">
-      Health check endpoint for monitoring provider availability
-    </ParamField>
-    
-    <ParamField body="retry_config" type="object">
-      Custom retry configuration for failed requests
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-</Accordion>
-
-## Advanced Configuration
-
-<Accordion title="🔧 Custom Providers & Enterprise Features">
-
-### Custom Providers
+ </ParamField>
 
 </Accordion>
 
@@ -628,8 +578,8 @@ const completion = await openai.chat.completions.create({
   ],
   model_router: {
     models: [
-      { provider: "anthropic" }, // All Anthropic models
-      { provider: "openai", model_name: "gpt-4" } // Specific OpenAI model
+      "anthropic:claude-3-5-sonnet-20241022", // All Anthropic models
+      "openai:gpt-4" // Specific OpenAI model
     ],
     cost_bias: 0.2, // Prefer cost savings
     complexity_threshold: 0.3,
@@ -637,48 +587,6 @@ const completion = await openai.chat.completions.create({
   },
   fallback: {
     mode: 'sequential'  // Enabled by specifying mode
-  }
-});
-```
-
-### Using Custom Providers
-
-```javascript
-// Custom provider example
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'Explain machine learning concepts' }
-  ],
-  model_router: {
-    models: [
-      { provider: "openai" }, // Standard provider
-      { 
-        provider: "my-custom-llm", // Custom provider
-        model_name: "custom-model-v1",
-        cost_per_1m_input_tokens: 2.0,
-        cost_per_1m_output_tokens: 6.0,
-        context_length: 16000,
-        max_completion_tokens: 4000,
-        supported_parameters: ["temperature", "top_p", "tools"],
-        task_type: "Text Generation",
-        complexity: "medium"
-      }
-    ],
-    cost_bias: 0.5
-  },
-  
-  // Configure each custom provider
-  provider_configs: {
-    "my-custom-llm": {
-      base_url: "https://api.mycustom.com/v1",
-      api_key: "sk-custom-api-key-here",
-      auth_type: "bearer",
-      headers: {
-        "X-Custom-Header": "value"
-      },
-      timeout_ms: 45000
-    }
   }
 });
 ```
@@ -695,10 +603,10 @@ const completion = await openai.chat.completions.create({
     { role: 'user', content: 'Hello from custom OpenAI endpoint!' }
   ],
   model_router: {
-    models: [
-      { provider: "openai" }, // Will use custom config below
-      { provider: "anthropic" } // Will also use custom config
-    ]
+      models: [
+        "openai:gpt-4o-mini", // Will use custom config below
+        "anthropic:claude-3-5-sonnet-20241022" // Will also use custom config
+      ]
   },
   
   // Custom configurations for standard providers
@@ -864,37 +772,12 @@ const completion = await openai.chat.completions.create({
   // Adaptive-specific
   model_router: {
     models: [
-      { provider: "openai" }, // Use all OpenAI models
-      { provider: "anthropic", model_name: "claude-3-sonnet-20240229" }, // Specific model
-      // Custom model example (all params required):
-      {
-        provider: "my-custom-provider",
-        model_name: "custom-model-v1",
-        cost_per_1m_input_tokens: 5.0,
-        cost_per_1m_output_tokens: 10.0,
-        context_length: 32000,
-        max_completion_tokens: 2048,
-        supported_parameters: ["temperature", "top_p"],
-        task_type: "Text Generation",
-        complexity: "medium"
-      }
+      "openai:gpt-4o-mini", // Use all OpenAI models
+      "anthropic:claude-3-sonnet-20240229", // Specific model
     ],
     cost_bias: 0.3,
     complexity_threshold: 0.5,
     token_threshold: 2000
-  },
-  
-  provider_configs: {
-    "my-custom-provider": {
-      base_url: "https://api.custom.com/v1",
-      api_key: "sk-custom-key-123",
-      auth_type: "bearer",
-      headers: {
-        "Custom-Header": "custom-value"
-      },
-      timeout_ms: 30000,
-      rate_limit_rpm: 1000
-    }
   },
   
   fallback: {
@@ -993,29 +876,19 @@ const openai = new OpenAI({
    { role: "user", content: "Your message here" }
    ```
 
-3. **Invalid model_router config**:
-   ```javascript
-   // ❌ Wrong - custom model missing required fields
-   model_router: {
-     models: [{ provider: "custom-provider" }]  // Missing details
-   }
-   
-   // ✅ Correct - all required fields for custom models
-   model_router: {
-     models: [{
-       provider: "custom-provider",
-       model_name: "model-v1",
-       cost_per_1m_input_tokens: 2.0,
-       cost_per_1m_output_tokens: 6.0,
-       context_length: 16000,
-       max_completion_tokens: 4000,
-       supported_parameters: ["temperature", "top_p", "tools"],
-       task_type: "Text Generation",
-       complexity: "medium"
-     }]
-   }
-   ```
-</Accordion>
+ 3. **Invalid model_router config**:
+    ```javascript
+    // ❌ Wrong - model missing required fields
+    model_router: {
+      models: [{ provider: "unknown-provider" }]  // Provider not supported
+    }
+    
+    // ✅ Correct - use supported providers
+    model_router: {
+      models: ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022"]
+    }
+    ```
+ </Accordion>
 
 <Accordion title="⏱️ Rate Limited (429)">
 **Problem**: `{"error": {"message": "Rate limit exceeded", "type": "rate_limit_error"}}`

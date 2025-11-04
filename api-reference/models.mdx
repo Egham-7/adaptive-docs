@@ -34,40 +34,6 @@ A Registry Model is a comprehensive data structure containing:
 1. **Centralized Data Source**: The registry service maintains up-to-date model information
 2. **Automatic Lookups**: When you specify a provider or model, Adaptive queries the registry
 3. **Auto-Fill**: Known models automatically get pricing and capability data filled in
-4. **Custom Models**: You can specify custom models not in the registry with your own details
-
-### Registry vs Manual Specification
-
-**Using Registry (Recommended):**
-```json
-{
-  "models": [
-    "openai",
-    "anthropic:claude-3-5-sonnet-20241022"
-  ]
-}
-```
-✅ Automatic pricing updates
-✅ Accurate capability information
-✅ No manual maintenance required
-
-**Manual Specification (Custom Models):**
-```json
-{
-  "models": [
-    {
-      "provider": "local",
-      "model_name": "my-custom-model",
-      "cost_per_1m_input_tokens": 0.0,
-      "cost_per_1m_output_tokens": 0.0,
-      "context_length": 8192,
-      "supported_parameters": ["temperature", "top_p"]
-    }
-  ]
-}
-```
-✅ Support for custom models
-⚠️ Manual maintenance required
 
 ## Endpoints
 

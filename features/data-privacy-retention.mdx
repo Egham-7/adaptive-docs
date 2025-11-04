@@ -277,10 +277,11 @@ completion = client.chat.completions.create(
     model="",
     messages=[{"role": "user", "content": "Confidential analysis"}],
     model_router={
-        "models": [
-            {"provider": "groq"},      # Zero retention
-            {"provider": "fireworks"}  # Zero retention
-        ]
+      "models": [
+        "groq:llama-3.1-8b-instant",      // Zero retention
+        "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", // Zero retention
+        "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"   // Zero retention
+      ]
     }
 )
 ```

@@ -62,7 +62,8 @@
           "api-reference/messages",
           "api-reference/gemini-generate-content",
           "api-reference/gemini-stream-generate-content",
-          "api-reference/select-model"
+          "api-reference/select-model",
+          "api-reference/models"
         ]
       },
       {

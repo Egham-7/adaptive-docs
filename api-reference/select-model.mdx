@@ -1,7 +1,7 @@
 ---
-title: 'Select Model'
-api: 'POST https://api.llmadaptive.uk/v1/select-model'
-description: 'Get intelligent model selection for any provider or infrastructure'
+title: "Select Model"
+api: "POST https://api.llmadaptive.uk/v1/select-model"
+description: "Get intelligent model selection for any provider or infrastructure"
 icon: "route"
 ---
 
@@ -12,7 +12,7 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 **Use Adaptive's intelligence, run inference wherever you want:**
 
 - **"I have my own OpenAI/Anthropic accounts"** - Get optimal model selection, pay your providers directly
-- **"I run models on-premise"** - Get routing decisions for your local infrastructure  
+- **"I run models on-premise"** - Get routing decisions for your local infrastructure
 - **"I have enterprise contracts"** - Use your existing provider relationships with intelligent routing
 - **"I need data privacy"** - Keep inference local while getting smart model selection
 
@@ -24,17 +24,9 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
   Array of available model specifications in "provider:model_name" format. **Adaptive automatically queries the [Model Registry](/api-reference/models) to fill in pricing, capabilities, and other details for known models.**
 
   <Expandable title="Model Specification Format">
-    **String format (recommended):**
     ```json
     ["openai:gpt-4o-mini", "anthropic:claude-3-5-sonnet-20241022", "google:gemini-1.5-pro"]
     ```
-
-    **Legacy object format (deprecated):**
-    ```json
-    [{"provider": "openai", "model_name": "gpt-4o-mini"}]
-    ```
-
-    The string format is simpler, results in smaller request payloads, and is the recommended approach for all new integrations.
   </Expandable>
 </ParamField>
 
@@ -43,37 +35,36 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 </ParamField>
 
 <ParamField body="user" type="string">
-  Optional user identifier for caching optimization (enables user-specific cache hits)
+  Optional user identifier for caching optimization (enables user-specific cache
+  hits)
 </ParamField>
 
 <ParamField body="cost_bias" type="number">
-  Cost optimization preference (0.0 = cheapest, 1.0 = best performance)
-  
-  Default: Uses server configuration. Override to prioritize cost savings or performance for this specific selection.
+  Cost optimization preference (0.0 = cheapest, 1.0 = best performance) Default:
+  Uses server configuration. Override to prioritize cost savings or performance
+  for this specific selection.
 </ParamField>
 
 <ParamField body="tools" type="object[]">
-  Available tool definitions for function calling detection
-  
-  Tool definitions help Adaptive understand if your prompt requires function calling capabilities, influencing model selection towards models that support tools.
-  
+  Available tool definitions for function calling detection Tool definitions
+  help Adaptive understand if your prompt requires function calling
+  capabilities, influencing model selection towards models that support tools.
   <Expandable title="Tool Definition Properties">
     <ParamField body="type" type="string" required>
       Type of tool (always "function")
     </ParamField>
-    
+
     <ParamField body="function" type="object" required>
       Function definition object
-      
       <Expandable title="Function Properties">
         <ParamField body="name" type="string" required>
           Name of the function
         </ParamField>
-        
+
         <ParamField body="description" type="string">
           Description of what the function does
         </ParamField>
-        
+
         <ParamField body="parameters" type="object">
           JSON Schema object defining the function parameters
         </ParamField>
@@ -83,27 +74,25 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 </ParamField>
 
 <ParamField body="tool_call" type="object">
-  Current tool call being made (if any)
-  
-  If this request is part of a tool calling sequence, provide the current tool call context to help with model selection optimization.
-  
+  Current tool call being made (if any) If this request is part of a tool
+  calling sequence, provide the current tool call context to help with model
+  selection optimization.
   <Expandable title="Tool Call Properties">
     <ParamField body="id" type="string" required>
       Unique identifier for the tool call
     </ParamField>
-    
+
     <ParamField body="type" type="string" required>
       Type of tool call (always "function")
     </ParamField>
-    
+
     <ParamField body="function" type="object" required>
       Function call details
-      
       <Expandable title="Function Call Properties">
         <ParamField body="name" type="string" required>
           Name of the function being called
         </ParamField>
-        
+
         <ParamField body="arguments" type="string" required>
           JSON string containing the function arguments
         </ParamField>
@@ -114,14 +103,15 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 
 <ParamField body="model_router_cache" type="object">
   Semantic cache configuration for this request
-  
   <Expandable title="Semantic Cache Configuration">
     <ParamField body="enabled" type="boolean">
-      Override whether to use semantic caching for this specific request (overrides server configuration)
+      Override whether to use semantic caching for this specific request
+      (overrides server configuration)
     </ParamField>
-    
+
     <ParamField body="semantic_threshold" type="number">
-      Override similarity threshold for cache hits (0.0-1.0, higher = more strict matching)
+      Override similarity threshold for cache hits (0.0-1.0, higher = more
+      strict matching)
     </ParamField>
   </Expandable>
 </ParamField>
@@ -129,33 +119,28 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 ## Response
 
 <ResponseField name="provider" type="string">
-  **Selected provider name**
-  
-  The provider that was chosen for this prompt (e.g., "openai", "anthropic", "local")
+  **Selected provider name** The provider that was chosen for this prompt (e.g.,
+  "openai", "anthropic", "local")
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  **Selected model identifier**
-  
-  The specific model that was chosen (e.g., "gpt-4", "claude-3-5-sonnet", "llama-3-8b")
+  **Selected model identifier** The specific model that was chosen (e.g.,
+  "gpt-4", "claude-3-5-sonnet", "llama-3-8b")
 </ResponseField>
 
 <ResponseField name="alternatives" type="array">
-  **Alternative provider/model combinations** (optional)
-  
-  Fallback options if the primary selection is unavailable
-  
+  **Alternative provider/model combinations** (optional) Fallback options if the
+  primary selection is unavailable
   <Expandable title="Alternative Object">
     <ResponseField name="provider" type="string">
       Alternative provider name
     </ResponseField>
-    
+
     <ResponseField name="model" type="string">
       Alternative model identifier
     </ResponseField>
   </Expandable>
 </ResponseField>
-
 
 ## Quick Examples
 
@@ -186,7 +171,7 @@ fi
 
 # Success response:
 {
-  "provider": "openai", 
+  "provider": "openai",
   "model": "gpt-4o-mini"
 }
 ```
@@ -225,48 +210,18 @@ fi
 }
 ```
 
-### "Custom models - specify full details"
-
-```bash
-# Only specify details for custom/unknown models
-response=$(curl -s -w "\n%{http_code}" https://api.llmadaptive.uk/v1/select-model \
-  -H "X-Stainless-API-Key: $API_KEY" \
-  -d '{
-    "models": [
-      "openai:gpt-4o-mini",
-      "local:my-custom-llama-fine-tune"
-    ],
-    "prompt": "Hello, how are you?"
-  }')
-
-http_code=$(echo "$response" | tail -n1)
-response_body=$(echo "$response" | head -n -1)
-
-if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-  echo "Success: $response_body"
-else
-  echo "Error $http_code: $response_body" >&2
-  exit 1
-fi
-
-# Known models use Adaptive's specs, custom models use yours
-```
-
 ### "Test cost optimization"
 
 ```javascript
 // Will cost_bias actually pick cheaper models?
-const response = await fetch('/api/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': apiKey },
+const response = await fetch("/api/v1/select-model", {
+  method: "POST",
+  headers: { "X-Stainless-API-Key": apiKey },
   body: JSON.stringify({
-    models: [
-      "openai:gpt-4o-mini",
-      "openai:gpt-4o"
-    ],
+    models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
     prompt: "Analyze this complex dataset and provide insights...",
-    cost_bias: 0.1  // Maximize cost savings
-  })
+    cost_bias: 0.1, // Maximize cost savings
+  }),
 });
 
 if (!response.ok) {
@@ -375,14 +330,14 @@ for config in configs:
             headers=headers,
             timeout=TIMEOUT
         )
-        
+
         # Check if request was successful
         if response.ok:
             result = response.json()
             print(f"{config['name']}: {result['provider']}/{result['model']}")
         else:
             print(f"Error for {config['name']}: HTTP {response.status_code} - {response.text}")
-            
+
     except requests.exceptions.Timeout:
         print(f"Timeout error for {config['name']}: Request took longer than {TIMEOUT} seconds")
     except requests.exceptions.ConnectionError:
@@ -396,21 +351,22 @@ for config in configs:
 ## Real-World Integration Patterns
 
 ### 1. Use Your Own Provider Accounts
+
 ```javascript
 // Define your available models with your own pricing
 const availableModels = [
   "openai:gpt-4o-mini",
-  "anthropic:claude-3-5-sonnet-20241022"
+  "anthropic:claude-3-5-sonnet-20241022",
 ];
 
 // Get intelligent selection
-const selection = await fetch('/api/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': adaptiveKey },
+const selection = await fetch("/api/v1/select-model", {
+  method: "POST",
+  headers: { "X-Stainless-API-Key": adaptiveKey },
   body: JSON.stringify({
     models: availableModels,
-    prompt: userMessage
-  })
+    prompt: userMessage,
+  }),
 });
 
 const result = await selection.json();
@@ -419,57 +375,71 @@ const result = await selection.json();
 if (result.provider === "openai") {
   const completion = await yourOpenAI.chat.completions.create({
     model: result.model,
-    messages: [{ role: "user", content: userMessage }]
+    messages: [{ role: "user", content: userMessage }],
   });
 } else if (result.provider === "anthropic") {
   const completion = await yourAnthropic.messages.create({
     model: result.model,
     messages: [{ role: "user", content: userMessage }],
-    max_tokens: 4096
+    max_tokens: 4096,
   });
 }
 ```
 
 ### 2. On-Premise Model Routing
+
 ```javascript
 // Tell Adaptive about your local models (plus a cloud fallback)
-const res = await fetch('https://api.llmadaptive.uk/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
+const res = await fetch("https://api.llmadaptive.uk/v1/select-model", {
+  method: "POST",
+  headers: {
+    "X-Stainless-API-Key": adaptiveKey,
+    "Content-Type": "application/json",
+  },
   body: JSON.stringify({
     models: [
       "local:llama-3-8b",
       "local:llama-3-70b",
-      "openai:gpt-4" // Cloud fallback
+      "openai:gpt-4", // Cloud fallback
     ],
-    prompt: userMessage
-  })
+    prompt: userMessage,
+  }),
 });
 const selection = await res.json();
 
 // Route to the right infrastructure using provider/model
 if (selection.provider === "local" && selection.model === "llama-3-8b") {
-  await yourLocalServer.infer({ model: selection.model, messages: [{ role: "user", content: userMessage }] });
+  await yourLocalServer.infer({
+    model: selection.model,
+    messages: [{ role: "user", content: userMessage }],
+  });
 } else if (selection.provider === "openai") {
-  await yourOpenAI.chat.completions.create({ model: selection.model, messages: [{ role: "user", content: userMessage }] });
+  await yourOpenAI.chat.completions.create({
+    model: selection.model,
+    messages: [{ role: "user", content: userMessage }],
+  });
 }
 ```
 
 ### 3. Enterprise Contract Optimization
+
 ```javascript
 // Maximize usage of your enterprise contracts
-const res = await fetch('https://api.llmadaptive.uk/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
+const res = await fetch("https://api.llmadaptive.uk/v1/select-model", {
+  method: "POST",
+  headers: {
+    "X-Stainless-API-Key": adaptiveKey,
+    "Content-Type": "application/json",
+  },
   body: JSON.stringify({
     models: [
       "anthropic:claude-3-5-sonnet-20241022", // Your enterprise contract
-      "openai:gpt-4o",    // Your enterprise contract  
-      "google:gemini-1.5-pro"     // Pay-per-use fallback
+      "openai:gpt-4o", // Your enterprise contract
+      "google:gemini-1.5-pro", // Pay-per-use fallback
     ],
     prompt: userMessage,
-    cost_bias: 0.8
-  })
+    cost_bias: 0.8,
+  }),
 });
 const selection = await res.json();
 
@@ -477,18 +447,16 @@ const selection = await res.json();
 const client = yourProviderClients[selection.provider];
 const completion = await client.create({
   model: selection.model,
-  messages: [{ role: "user", content: userMessage }]
+  messages: [{ role: "user", content: userMessage }],
 });
 ```
 
 ### 4. Data Privacy & Compliance
+
 ```javascript
 // Keep sensitive data local while getting smart routing
 const selection = await selectModel({
-  models: [
-    "local:llama-3-70b",
-    "local:llama-3-8b"
-  ],
+  models: ["local:llama-3-70b", "local:llama-3-8b"],
   prompt: "NON_SENSITIVE_TASK_DESCRIPTION",
   // Don't send actual sensitive data to Adaptive
 });
@@ -511,9 +479,7 @@ if (selection.model === "llama-3-70b") {
 {
   "provider": "anthropic",
   "model": "claude-3-5-sonnet-20241022",
-  "alternatives": [
-    { "provider": "openai", "model": "gpt-4o" }
-  ]
+  "alternatives": [{ "provider": "openai", "model": "gpt-4o" }]
 }
 ```
 
@@ -526,12 +492,13 @@ if (selection.model === "llama-3-70b") {
 ## Common Patterns
 
 ### Before/After Comparison
+
 ```javascript
 // See what changes with different parameters
 const baseline = await selectModel(request);
 const withConstraints = await selectModel({
   ...request,
-  cost_bias: 0.1
+  cost_bias: 0.1,
 });
 
 console.log(`Baseline: ${baseline.model}`);
@@ -539,25 +506,38 @@ console.log(`Cost-optimized: ${withConstraints.model}`);
 ```
 
 ### Validate Your Setup
+
 ```javascript
 // Make sure your routing rules work
-const shouldUseCheap = await fetch('https://api.llmadaptive.uk/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
-    prompt: "Hi"
-  })
-}).then(r => r.json());
+const shouldUseCheap = await fetch(
+  "https://api.llmadaptive.uk/v1/select-model",
+  {
+    method: "POST",
+    headers: {
+      "X-Stainless-API-Key": adaptiveKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
+      prompt: "Hi",
+    }),
+  },
+).then((r) => r.json());
 
-const shouldUseExpensive = await fetch('https://api.llmadaptive.uk/v1/select-model', {
-  method: 'POST',
-  headers: { 'X-Stainless-API-Key': adaptiveKey, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
-    prompt: "Analyze this complex dataset..."
-  })
-}).then(r => r.json());
+const shouldUseExpensive = await fetch(
+  "https://api.llmadaptive.uk/v1/select-model",
+  {
+    method: "POST",
+    headers: {
+      "X-Stainless-API-Key": adaptiveKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      models: ["openai:gpt-4o-mini", "openai:gpt-4o"],
+      prompt: "Analyze this complex dataset...",
+    }),
+  },
+).then((r) => r.json());
 
 // Verify different complexity tasks get different models
 ```
@@ -565,6 +545,7 @@ const shouldUseExpensive = await fetch('https://api.llmadaptive.uk/v1/select-mod
 ## Authentication
 
 Same as chat completions:
+
 ```bash
 # Any of these work
 -H "X-Stainless-API-Key: your-key"
@@ -574,8 +555,10 @@ Same as chat completions:
 ## No Inference = Fast & Cheap
 
 This endpoint:
+
 - ✅ **Fast** - No LLM inference, just routing logic
 - ✅ **Cheap** - Doesn't count against token usage
 - ✅ **Accurate** - Uses exact same selection logic as real completions
 
 Perfect for testing, debugging, and cost planning without burning through your budget.
+
