@@ -1,0 +1,221 @@
+---
+title: "Multi-Agent System with CrewAI"
+description: "Build multi-agent systems using CrewAI with Adaptive routing"
+icon: "users"
+---
+
+## Overview
+
+This guide demonstrates how to integrate Adaptive's intelligent routing with CrewAI for multi-agent systems. Each agent automatically gets the optimal model for its specific task while maintaining CrewAI's coordination patterns.
+
+**Key Benefits:**
+- Intelligent model routing per agent role
+- Cost optimization across agent interactions
+- Seamless integration with existing CrewAI workflows
+- Automatic fallback and error recovery
+
+## Prerequisites
+
+- Python 3.8+
+- `crewai`
+- Adaptive API key
+
+## Installation
+
+```bash
+pip install crewai
+```
+
+## Basic Multi-Agent Setup
+
+### Configure Agents with Adaptive
+
+```python
+from crewai import Agent, Task, Crew, LLM
+
+# Configure Adaptive LLM for all agents
+adaptive_llm = LLM(
+    model="",  # Empty string enables intelligent routing
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+# Create specialized agents
+researcher = Agent(
+    role='Research Analyst',
+    goal='Gather and analyze information',
+    backstory='Expert researcher with analytical skills',
+    llm=adaptive_llm,
+    verbose=True
+)
+
+writer = Agent(
+    role='Content Writer',
+    goal='Create engaging content',
+    backstory='Creative writer specializing in technical content',
+    llm=adaptive_llm,
+    verbose=True
+)
+
+reviewer = Agent(
+    role='Quality Reviewer',
+    goal='Ensure content quality and accuracy',
+    backstory='Detail-oriented editor with technical expertise',
+    llm=adaptive_llm,
+    verbose=True
+)
+```
+
+### Create Tasks and Execute
+
+```python
+from crewai import Task, Process
+
+# Define tasks
+research_task = Task(
+    description='Research the latest developments in AI',
+    agent=researcher,
+    expected_output='Comprehensive research summary'
+)
+
+write_task = Task(
+    description='Write a blog post based on the research',
+    agent=writer,
+    expected_output='Engaging 500-word blog post',
+    context=[research_task]
+)
+
+review_task = Task(
+    description='Review and edit the blog post',
+    agent=reviewer,
+    expected_output='Polished, publication-ready content',
+    context=[write_task]
+)
+
+# Create and execute crew
+crew = Crew(
+    agents=[researcher, writer, reviewer],
+    tasks=[research_task, write_task, review_task],
+    process=Process.sequential
+)
+
+result = crew.kickoff()
+print(result)
+```
+
+## Error Handling with Adaptive
+
+```python
+import logging
+from crewai import Crew
+
+logger = logging.getLogger(__name__)
+
+class ResilientCrew(Crew):
+    """Crew with Adaptive-aware error handling."""
+
+    def __init__(self, *args, max_retries=3, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_retries = max_retries
+
+    def kickoff(self):
+        """Execute with error recovery."""
+        for attempt in range(self.max_retries):
+            try:
+                logger.info(f"Starting crew execution (attempt {attempt + 1})")
+                return super().kickoff()
+            except Exception as e:
+                logger.warning(f"Crew attempt {attempt + 1} failed: {e}")
+
+                if attempt == self.max_retries - 1:
+                    logger.error("All crew attempts failed")
+                    raise
+
+                # Adaptive automatically handles provider fallbacks
+                # Just wait before retry
+                import time
+                time.sleep(2 ** attempt)
+
+# Usage
+crew = ResilientCrew(
+    agents=[researcher, writer, reviewer],
+    tasks=[research_task, write_task, review_task],
+    max_retries=3
+)
+
+try:
+    result = crew.kickoff()
+    print(f"Success: {result}")
+except Exception as e:
+    print(f"Failed after retries: {e}")
+```
+
+## Hierarchical Workflows
+
+```python
+# Manager agent for coordination
+manager = Agent(
+    role='Project Manager',
+    goal='Coordinate and oversee workflows',
+    backstory='Experienced coordinator',
+    llm=adaptive_llm
+)
+
+# Create sub-crews
+research_crew = Crew(agents=[researcher], tasks=[research_task])
+content_crew = Crew(agents=[writer, reviewer], tasks=[write_task, review_task])
+
+# Execute hierarchically
+research_result = research_crew.kickoff()
+content_result = content_crew.kickoff()
+
+# Final review
+final_task = Task(
+    description=f'Review final output: {content_result}',
+    agent=manager,
+    expected_output='Final approval and feedback'
+)
+
+manager_crew = Crew(agents=[manager], tasks=[final_task])
+final_result = manager_crew.kickoff()
+```
+
+## What You Get with Adaptive
+
+<CardGroup cols={2}>
+  <Card title="Intelligent Routing" icon="brain">
+    Each agent gets the optimal model for its task
+  </Card>
+  <Card title="Cost Optimization" icon="dollar-sign">
+    Automatic cost-effective model selection
+  </Card>
+  <Card title="Provider Resilience" icon="shield">
+    Automatic fallback when providers fail
+  </Card>
+  <Card title="Seamless Integration" icon="plug">
+    Drop-in replacement for LLM in CrewAI agents
+  </Card>
+</CardGroup>
+
+## Environment Variables
+
+```bash
+ADAPTIVE_API_KEY=your-adaptive-api-key
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="CrewAI Docs" href="https://docs.crewai.com" icon="book">
+    Learn more about CrewAI patterns
+  </Card>
+  <Card title="Error Handling Guide" href="/guides/error-handling" icon="shield">
+    Comprehensive error handling patterns
+  </Card>
+  <Card title="RAG Pipeline" href="/examples/rag-pipeline" icon="database">
+    Combine with retrieval-augmented generation
+  </Card>
+  <Card title="Batch Processing" href="/examples/batch-processing" icon="batch">
+    Process multiple agent tasks efficiently
+  </Card>
+</CardGroup>

@@ -219,6 +219,39 @@ const llm = new ChatOpenAI({
 ```
 </CodeGroup>
 
+## Error Handling
+
+Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+
+```python
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+
+# Adaptive handles routing failures automatically
+llm = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1",
+    model=""  # Intelligent routing with automatic retries
+)
+
+chain = LLMChain(
+    llm=llm,
+    prompt=PromptTemplate(
+        input_variables=["topic"],
+        template="Explain {topic} simply"
+    )
+)
+
+try:
+    result = chain.run({"topic": "machine learning"})
+    print(result)
+except Exception as e:
+    print(f"Chain failed: {e}")
+    # Adaptive has already tried multiple providers
+```
+
+---
+
 ## Next Steps
 
 <CardGroup cols={2}>

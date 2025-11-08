@@ -476,19 +476,68 @@ console.log('Provider:', response.provider);
 **Solution**: Reduce request rate or upgrade your plan for higher limits. Adaptive's load balancing helps distribute requests across providers.
 </Accordion>
 
-<Accordion title="500 INTERNAL">
-```json
-{
-  "error": {
-    "code": 500,
-    "message": "Internal server error",
-    "status": "INTERNAL"
-  }
-}
-```
-**Solution**: Temporary server issue. Adaptive's fallback system will automatically retry with alternative providers.
-</Accordion>
-</AccordionGroup>
+ <Accordion title="500 INTERNAL">
+ ```json
+ {
+   "error": {
+     "code": 500,
+     "message": "Internal server error",
+     "status": "INTERNAL"
+   }
+ }
+ ```
+ **Solution**: Temporary server issue. Adaptive's fallback system will automatically retry with alternative providers.
+ </Accordion>
+
+ <Accordion title="503 UNAVAILABLE - All Providers Failed">
+ ```json
+ {
+   "error": {
+     "code": 503,
+     "message": "All 3 providers failed (sequential fallback mode)",
+     "status": "UNAVAILABLE",
+     "details": {
+       "mode": "sequential",
+       "attempts": 3,
+       "failures": [
+         {
+           "provider": "gemini",
+           "model": "gemini-2.5-flash",
+           "error": "Rate limit exceeded",
+           "duration_ms": 234
+         },
+         {
+           "provider": "anthropic",
+           "model": "claude-3-5-haiku",
+           "error": "Service unavailable",
+           "duration_ms": 156
+         },
+         {
+           "provider": "openai",
+           "model": "gpt-5-mini",
+           "error": "Timeout after 15000ms",
+           "duration_ms": 15023
+         }
+       ]
+     }
+   }
+ }
+ ```
+
+ **Solution**: This occurs when all configured fallback providers fail. Adaptive provides structured error details showing:
+ - Which providers were attempted
+ - The specific error from each provider
+ - How long each attempt took
+ - The fallback mode used (sequential/race)
+
+ **Actions**:
+ 1. Check the `details.failures` array to diagnose which providers failed and why
+ 2. Configure alternative providers in your fallback settings
+ 3. Increase `timeout_ms` if providers are timing out
+ 4. Enable caching to reduce dependency on real-time provider availability
+ 5. Review [Provider Resiliency](/features/provider-resiliency) for best practices
+ </Accordion>
+ </AccordionGroup>
 
 ## Features & Benefits
 

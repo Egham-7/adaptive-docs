@@ -1,0 +1,251 @@
+---
+title: "RAG Pipeline with LangChain"
+description: "Build a retrieval-augmented generation system using LangChain and Adaptive"
+icon: "search"
+---
+
+## Overview
+
+This guide demonstrates how to integrate Adaptive's intelligent routing with LangChain for RAG applications. By using Adaptive as your LLM provider, you get automatic model selection and cost optimization while leveraging LangChain's powerful RAG ecosystem.
+
+**Key Benefits:**
+- Intelligent model routing for both retrieval and generation
+- Cost-effective scaling through provider optimization
+- Seamless integration with existing LangChain RAG patterns
+- Production-ready error handling
+
+## Prerequisites
+
+- Python 3.8+
+- LangChain and vector store dependencies
+- Adaptive API key
+
+## Installation
+
+```bash
+pip install langchain langchain-openai langchain-pinecone
+```
+
+## Basic RAG Integration
+
+### Simple RAG Chain
+
+```python
+from langchain.chains import RetrievalQA
+from langchain.vectorstores import Pinecone
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.document_loaders import TextLoader
+
+# Initialize Adaptive LLM
+llm = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1",
+    model=""  # Empty for intelligent routing
+)
+
+# Initialize embeddings (using Adaptive for consistency)
+embeddings = OpenAIEmbeddings(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1",
+    model="text-embedding-3-small"
+)
+
+# Load and process documents
+loader = TextLoader("your-document.txt")
+documents = loader.load()
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+chunks = text_splitter.split_documents(documents)
+
+# Create vector store
+vectorstore = Pinecone.from_documents(
+    chunks,
+    embeddings,
+    index_name="your-index"
+)
+
+# Create RAG chain
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=vectorstore.as_retriever(),
+    return_source_documents=True
+)
+
+# Query with intelligent routing
+result = qa_chain({"query": "What is the main topic?"})
+print(result["result"])
+```
+
+### Error Handling for RAG
+
+```python
+from langchain.chains import RetrievalQA
+from langchain_openai import ChatOpenAI
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AdaptiveRAGChain:
+    """RAG chain with Adaptive-specific error handling."""
+
+    def __init__(self, vectorstore):
+        self.llm = ChatOpenAI(
+            api_key="your-adaptive-api-key",
+            base_url="https://api.llmadaptive.uk/v1",
+            model="",  # Intelligent routing
+            temperature=0.1,
+            max_tokens=1000
+        )
+        self.vectorstore = vectorstore
+        self.chain = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            chain_type="stuff",
+            retriever=vectorstore.as_retriever(),
+            return_source_documents=True
+        )
+
+    def query(self, question: str):
+        """Execute RAG query with error handling."""
+        try:
+            result = self.chain({"query": question})
+
+            # Validate response
+            if not result.get("result", "").strip():
+                raise ValueError("Empty response from Adaptive RAG chain")
+
+            return {
+                "answer": result["result"],
+                "sources": len(result.get("source_documents", [])),
+                "provider": result.get("metadata", {}).get("provider", "unknown")
+            }
+
+        except Exception as e:
+            logger.error(f"RAG query failed: {e}")
+            # Fallback: try with basic retrieval
+            try:
+                docs = self.vectorstore.similarity_search(question, k=3)
+                context = "\n".join([doc.page_content for doc in docs])
+
+                fallback_prompt = f"Based on this context, answer: {question}\n\nContext: {context}"
+                fallback_result = self.llm.invoke(fallback_prompt)
+
+                return {
+                    "answer": fallback_result.content,
+                    "sources": len(docs),
+                    "fallback_used": True
+                }
+            except Exception as fallback_error:
+                logger.error(f"Fallback also failed: {fallback_error}")
+                raise RuntimeError("RAG system temporarily unavailable")
+
+# Usage
+rag = AdaptiveRAGChain(vectorstore)
+result = rag.query("What are the key benefits?")
+print(f"Answer: {result['answer']}")
+print(f"Provider used: {result.get('provider', 'unknown')}")
+```
+
+## Advanced Patterns
+
+### Streaming RAG Responses
+
+```python
+from langchain.chains import RetrievalQA
+from langchain_openai import ChatOpenAI
+
+# Streaming LLM
+streaming_llm = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1",
+    model="",
+    streaming=True
+)
+
+# Create streaming RAG chain
+streaming_chain = RetrievalQA.from_chain_type(
+    llm=streaming_llm,
+    chain_type="stuff",
+    retriever=vectorstore.as_retriever()
+)
+
+# Stream response
+for chunk in streaming_chain.stream({"query": "Explain this concept"}):
+    print(chunk.content, end="", flush=True)
+```
+
+### Multi-Vector Retrieval
+
+```python
+from langchain.retrievers import MultiVectorRetriever
+from langchain.storage import InMemoryStore
+from langchain_openai import ChatOpenAI
+
+# Parent document retriever for better context
+store = InMemoryStore()
+id_key = "doc_id"
+
+retriever = MultiVectorRetriever(
+    vectorstore=vectorstore,
+    docstore=store,
+    id_key=id_key,
+)
+
+# Add documents with parent-child relationships
+# (Implementation depends on your specific needs)
+
+# Use with Adaptive
+llm = ChatOpenAI(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1",
+    model=""
+)
+
+chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=retriever,
+    chain_type="stuff"
+)
+```
+
+## What You Get with Adaptive
+
+<CardGroup cols={2}>
+  <Card title="Intelligent Routing" icon="brain">
+    Automatic model selection for optimal performance and cost
+  </Card>
+  <Card title="Provider Transparency" icon="eye">
+    See which AI provider was used in response metadata
+  </Card>
+  <Card title="Cost Optimization" icon="dollar-sign">
+    Significant savings through smart provider selection
+  </Card>
+  <Card title="Seamless Integration" icon="plug">
+    Drop-in replacement for OpenAI in LangChain RAG chains
+  </Card>
+</CardGroup>
+
+## Environment Variables
+
+```bash
+# .env
+ADAPTIVE_API_KEY=your-adaptive-api-key
+PINECONE_API_KEY=your-pinecone-key
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="LangChain Docs" href="https://python.langchain.com/docs/get_started/introduction" icon="book">
+    Learn more about LangChain RAG patterns
+  </Card>
+  <Card title="Error Handling Guide" href="/guides/error-handling" icon="shield">
+    Comprehensive error handling patterns
+  </Card>
+  <Card title="Multi-Agent System" href="/examples/multi-agent-system" icon="users">
+    Add multi-agent capabilities
+  </Card>
+  <Card title="Batch Processing" href="/examples/batch-processing" icon="batch">
+    Process multiple queries efficiently
+  </Card>
+</CardGroup>

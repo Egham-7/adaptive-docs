@@ -412,8 +412,24 @@ response = requests.post(
 
 ## Error Handling
 
-The endpoint returns standard Anthropic-compatible error responses:
+Adaptive returns detailed error information to help you diagnose and resolve issues quickly. While compatible with Anthropic's error format, Adaptive provides additional error types and context.
 
+### Common Errors
+
+See the [complete error reference](/api-reference/errors) for all error types and detailed troubleshooting.
+
+**Authentication (401)**
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "authentication_error",
+    "message": "Invalid API key"
+  }
+}
+```
+
+**Validation (400)**
 ```json
 {
   "type": "error",
@@ -423,6 +439,54 @@ The endpoint returns standard Anthropic-compatible error responses:
   }
 }
 ```
+
+**Fallback Failed (503)** - Unique to Adaptive
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "fallback_failed",
+    "message": "all 2 providers failed (race mode)",
+    "details": {
+      "mode": "race",
+      "attempts": 2,
+      "failures": [
+        {
+          "provider": "anthropic",
+          "model": "claude-3-sonnet",
+          "error": "Rate limit exceeded",
+          "duration_ms": 850
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-3-haiku",
+          "error": "Service temporarily unavailable",
+          "duration_ms": 1200
+        }
+      ]
+    }
+  }
+}
+```
+
+### Error Response Structure
+
+All errors follow this consistent format:
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "error_type",
+    "message": "Human-readable description",
+    "details": {  // Optional - Adaptive-specific context
+      // Error-specific information
+    }
+  }
+}
+```
+
+For Anthropic-specific error handling, see [Error Handling Best Practices](/guides/error-handling).
 
 ## Next Steps
 

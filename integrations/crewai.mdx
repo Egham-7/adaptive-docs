@@ -500,42 +500,31 @@ llm = LLM(
 
 ## Error Handling
 
+Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+
 ```python
 from crewai import Agent, Task, Crew, LLM
 
+# Adaptive handles routing failures automatically
+llm = LLM(
+    model="",  # Intelligent routing with automatic retries
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+agent = Agent(
+    role='Research Analyst',
+    goal='Conduct research',
+    backstory='Expert researcher',
+    llm=llm
+)
+
 try:
-    llm = LLM(
-        model="",
-        api_key="your-adaptive-api-key",
-        base_url="https://api.llmadaptive.uk/v1"
-    )
-
-    agent = Agent(
-        role='Assistant',
-        goal='Complete tasks efficiently',
-        backstory='A reliable AI assistant',
-        llm=llm
-    )
-
-    task = Task(
-        description='Summarize recent AI developments',
-        agent=agent,
-        expected_output='A concise summary'
-    )
-
-    crew = Crew(
-        agents=[agent],
-        tasks=[task],
-        verbose=True
-    )
-
     result = crew.kickoff()
     print(result)
-
 except Exception as e:
-    print(f"Error: {e}")
-    # Adaptive handles provider fallback automatically
-    # Check your API key and base_url if errors persist
+    print(f"Crew failed: {e}")
+    # Adaptive has already tried multiple providers
 ```
 
 ## Next Steps

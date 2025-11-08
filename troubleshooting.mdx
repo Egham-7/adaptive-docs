@@ -391,9 +391,219 @@ icon: "wrench"
            ADAPTIVE_API_KEY: process.env.ADAPTIVE_API_KEY,
          },
        };
-       ```
-  </Accordion>
-</AccordionGroup>
+        ```
+   </Accordion>
+ </AccordionGroup>
+
+ ## Adaptive-Specific Error Scenarios
+
+<Warning>
+**🔄 Unique to Adaptive**: These errors provide multi-provider failure insights not available from other AI APIs.
+</Warning>
+
+### All Providers Failed (503)
+
+<Accordion title="Scenario: FallbackError in Sequential Mode">
+**Symptom:**
+```json
+{
+  "error": {
+    "type": "fallback_failed",
+    "message": "all 3 providers failed (sequential mode)"
+  }
+}
+```
+
+**Diagnosis:**
+1. Check `details.failures` array for per-provider errors
+2. Look for patterns (all rate limits? All service unavailable?)
+3. Check `duration_ms` - were requests timing out?
+
+**Solutions:**
+- **All rate limits**: Implement request queuing or reduce rate
+- **Mixed errors**: Retry with exponential backoff
+- **All unavailable**: Check [status page](https://status.llmadaptive.uk)
+- **High duration_ms**: Check network latency
+
+**Prevention:**
+- Implement circuit breaker pattern
+- Cache successful responses
+- Set up fallback to local models
+</Accordion>
+
+<Accordion title="Scenario: FallbackError in Race Mode">
+**Symptom:**
+```json
+{
+  "error": {
+    "type": "fallback_failed",
+    "message": "all 2 providers failed (race mode)",
+    "details": {
+      "mode": "race",
+      "attempts": 2,
+      "failures": [
+        {
+          "provider": "openai",
+          "model": "gpt-4",
+          "error": "Rate limit exceeded",
+          "duration_ms": 850
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-3-opus",
+          "error": "Service temporarily unavailable",
+          "duration_ms": 1200
+        }
+      ]
+    }
+  }
+}
+```
+
+**Race mode characteristics:**
+- Faster failure detection (returns as soon as all fail)
+- All requests happen simultaneously
+- `duration_ms` shows time to complete all attempts
+
+**Solutions:**
+- Switch to sequential mode for slower but more controlled fallback
+- Implement request throttling
+- Use cached responses during outages
+</Accordion>
+
+### Model Registry Errors (404)
+
+<Accordion title="Scenario: Model Not Found">
+**Symptom:**
+```json
+{
+  "error": {
+    "type": "model_registry_error",
+    "message": "Model 'invalid-model' not found"
+  }
+}
+```
+
+**Common causes:**
+- Typo in model name
+- Model not available in your region
+- Model temporarily disabled
+
+**Solutions:**
+1. **Check available models:**
+   ```bash
+   curl -H "X-Stainless-API-Key: your-key" \
+        https://api.llmadaptive.uk/v1/models
+   ```
+
+2. **Use intelligent routing:**
+   ```javascript
+   // Instead of specific model
+   model: "gpt-4"  // ❌ May not be available
+
+   // Use intelligent routing
+   model: ""       // ✅ Adaptive chooses best available
+   ```
+
+3. **Verify model support** on [supported models](/supported-models) page
+</Accordion>
+
+### Model Router Errors (503)
+
+<Accordion title="Scenario: Unable to Route Request">
+**Symptom:**
+```json
+{
+  "error": {
+    "type": "model_router_error",
+    "message": "Unable to route request to appropriate model"
+  }
+}
+```
+
+**Common causes:**
+- Complex prompt that doesn't match any model's capabilities
+- All matching models are currently unavailable
+- Routing service temporarily overloaded
+
+**Solutions:**
+1. **Specify a model explicitly:**
+   ```javascript
+   // Instead of intelligent routing
+   model: ""                    // ❌ May fail to route
+
+   // Specify explicitly
+   model: "gpt-3.5-turbo"      // ✅ Direct routing
+   ```
+
+2. **Simplify your prompt** if using intelligent routing
+
+3. **Retry with backoff** - often transient
+</Accordion>
+
+### Provider-Specific Errors
+
+<Accordion title="Scenario: Pass-Through Provider Errors">
+**Symptom:**
+```json
+{
+  "error": {
+    "type": "provider_failure",
+    "message": "OpenAI API error: Rate limit exceeded",
+    "details": {
+      "provider": "openai",
+      "model": "gpt-4",
+      "original_error": {
+        "type": "rate_limit_exceeded",
+        "message": "Rate limit exceeded"
+      }
+    }
+  }
+}
+```
+
+**Understanding pass-through errors:**
+- Adaptive tried one specific provider (not fallback)
+- Provider returned an error that Adaptive passes through
+- Includes original provider error details
+
+**Solutions:**
+- Check provider-specific documentation
+- Implement provider-specific retry logic
+- Consider switching providers or using fallback
+</Accordion>
+
+## Error Investigation Checklist
+
+When encountering errors:
+
+1. **Capture Context**
+   - [ ] Copy full error response
+   - [ ] Note the request_id
+   - [ ] Record timestamp
+   - [ ] Save request payload (redacted)
+
+2. **Check Error Details**
+   - [ ] Error type and HTTP code
+   - [ ] Provider failure details (if FallbackError)
+   - [ ] Duration metrics
+   - [ ] Any retry-after headers
+
+3. **Verify Configuration**
+   - [ ] API key is valid
+   - [ ] Base URL is correct
+   - [ ] Model identifier is valid
+   - [ ] Request payload structure
+
+4. **Review Documentation**
+   - [ ] [Error Reference](/api-reference/errors)
+   - [ ] [Error Handling Guide](/guides/error-handling)
+   - [ ] Provider-specific docs
+
+5. **Contact Support** (if needed)
+   - Include request_id
+   - Provide error reproduction steps
+   - Share redacted request/response
 
 ## Performance Issues
 

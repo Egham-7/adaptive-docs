@@ -16,6 +16,21 @@
         "group": "Getting Started",
         "pages": ["index", "quickstart", "authentication"]
       },
+
+      {
+        "group": "Key Features",
+        "pages": [
+          "supported-models",
+          "features/intelligent-routing",
+          "features/bring-your-own-keys",
+          "features/zero-completion-insurance",
+          "features/data-privacy-retention",
+          "features/semantic-cache",
+          "features/provider-resiliency",
+          "features/performance"
+        ]
+      },
+
       {
         "group": "Framework Integrations",
         "pages": [
@@ -42,28 +57,26 @@
           "developer-tools/qwen-code"
         ]
       },
+
       {
-        "group": "Key Features",
+        "group": "Examples",
         "pages": [
-          "supported-models",
-          "features/intelligent-routing",
-          "features/bring-your-own-keys",
-          "features/zero-completion-insurance",
-          "features/data-privacy-retention",
-          "features/semantic-cache",
-          "features/provider-resiliency",
-          "features/performance"
+          "examples/production-chatbot",
+          "examples/rag-pipeline",
+          "examples/multi-agent-system",
+          "examples/batch-processing"
         ]
       },
       {
         "group": "API Reference",
         "pages": [
+          "api-reference/errors"
           "api-reference/chat-completions",
           "api-reference/messages",
-          "api-reference/gemini-generate-content",
-          "api-reference/gemini-stream-generate-content",
+          "api-reference/models",
           "api-reference/select-model",
-          "api-reference/models"
+          "api-reference/gemini-generate-content",
+          "api-reference/gemini-stream-generate-content"
         ]
       },
       {

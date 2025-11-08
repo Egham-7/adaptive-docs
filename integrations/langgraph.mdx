@@ -557,49 +557,25 @@ const model = new ChatOpenAI({
 
 ## Error Handling
 
+Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+
 ```typescript
 import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
+// Adaptive handles routing failures automatically
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
     baseURL: "https://api.llmadaptive.uk/v1",
   },
-  modelName: "",
+  modelName: "", // Intelligent routing with automatic retries
   temperature: 0,
 });
 
 async function callModel(state: typeof MessagesAnnotation.State) {
-  try {
-    const response = await model.invoke(state.messages);
-
-    // Log which model Adaptive selected
-    if (response.response_metadata) {
-      const modelName =
-        response.response_metadata.model_name ||
-        response.response_metadata.model ||
-        "unknown";
-      console.log(`Adaptive selected: ${modelName}`);
-    }
-
-    return { messages: [response] };
-  } catch (error: any) {
-    if (error.status === 429) {
-      console.log("Rate limited, Adaptive will retry with fallback...");
-      throw error; // Let Adaptive handle retry
-    }
-
-    console.error("Error in agent:", error.message);
-    return {
-      messages: [
-        {
-          role: "assistant",
-          content: "I encountered an error. Please try again.",
-        },
-      ],
-    };
-  }
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
 }
 
 const workflow = new StateGraph(MessagesAnnotation)
@@ -608,7 +584,14 @@ const workflow = new StateGraph(MessagesAnnotation)
   .addEdge("agent", "__end__");
 
 const app = workflow.compile();
+
+// Adaptive handles errors automatically - no try/catch needed for basic usage
+const result = await app.invoke({
+  messages: [{ role: "user", content: "Hello, how are you?" }],
+});
 ```
+
+---
 
 ## Complete Example
 

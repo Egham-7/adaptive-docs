@@ -1,0 +1,266 @@
+---
+title: "Production Chatbot with Vercel AI SDK"
+description: "Build a streaming chatbot using Next.js and Vercel AI SDK with Adaptive"
+icon: "message-circle"
+---
+
+## Overview
+
+This guide demonstrates how to integrate Adaptive's intelligent routing with Vercel AI SDK for a production-ready chatbot. Focus on the Adaptive-specific integration while leveraging Vercel's streaming capabilities.
+
+**Key Benefits:**
+- Real-time streaming responses with intelligent routing
+- Automatic model selection and cost optimization
+- Seamless integration with Vercel AI SDK patterns
+- Production-ready error handling
+
+## Prerequisites
+
+- Node.js 18+
+- Next.js 14+
+- Vercel AI SDK
+- Adaptive API key
+
+## Installation
+
+```bash
+npm install ai @ai-sdk/openai
+```
+
+## Basic Chatbot Integration
+
+### API Route
+
+```typescript app/api/chat/route.ts
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+
+// Configure Adaptive as OpenAI provider
+const adaptiveClient = openai({
+  apiKey: process.env.ADAPTIVE_API_KEY!,
+  baseURL: 'https://api.llmadaptive.uk/v1',
+});
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  // Empty model string enables intelligent routing
+  const result = await streamText({
+    model: adaptiveClient(''),
+    messages,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+### Client Component
+
+```typescript 'use client';
+
+import { useChat } from 'ai/react';
+
+export default function Chat() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat();
+
+  return (
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {messages.map(m => (
+        <div key={m.id} className="whitespace-pre-wrap">
+          {m.role === 'user' ? 'User: ' : 'AI: '}
+          {m.content}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+          value={input}
+          placeholder="Say something..."
+          onChange={handleInputChange}
+        />
+      </form>
+    </div>
+  );
+}
+```
+
+## Error Handling for Adaptive
+
+```typescript app/api/chat/route.ts
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+import { NextResponse } from 'next/server';
+
+const adaptiveClient = openai({
+  apiKey: process.env.ADAPTIVE_API_KEY!,
+  baseURL: 'https://api.llmadaptive.uk/v1',
+});
+
+export async function POST(req: Request) {
+  try {
+    const { messages } = await req.json();
+
+    const result = await streamText({
+      model: adaptiveClient(''), // Intelligent routing
+      messages,
+      maxTokens: 1000,
+      temperature: 0.7,
+    });
+
+    return result.toDataStreamResponse();
+
+  } catch (error: any) {
+    console.error('Adaptive chat error:', error);
+
+    // Handle Adaptive-specific errors
+    if (error.status === 429) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Intelligent routing will retry automatically.' },
+        { status: 429 }
+      );
+    }
+
+    if (error.status === 503) {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. All providers are busy.' },
+        { status: 503 }
+      );
+    }
+
+    // Fallback for other errors
+    return NextResponse.json(
+      { error: 'Chat service temporarily unavailable. Please try again.' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Advanced Streaming Patterns
+
+### Streaming with Tool Calls
+
+```typescript app/api/chat/route.ts
+export async function POST(req: Request) {
+  const { messages, tools } = await req.json();
+
+  const result = await streamText({
+    model: adaptiveClient(''),
+    messages,
+    tools: tools?.map((tool: any) => ({
+      type: 'function' as const,
+      function: tool,
+    })),
+    maxTokens: 1000,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+### Client with Error Recovery
+
+```typescript 'use client';
+
+import { useChat } from 'ai/react';
+import { useState } from 'react';
+
+export default function Chat() {
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+
+  const { messages, input, handleInputChange, handleSubmit, error, reload } = useChat({
+    api: '/api/chat',
+    onError: (error) => {
+      console.error('Chat error:', error);
+
+      // Auto-retry for transient errors
+      if (retryCount < maxRetries && error.message?.includes('temporarily unavailable')) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          reload();
+        }, 1000 * (retryCount + 1)); // Exponential backoff
+      }
+    },
+    onFinish: () => setRetryCount(0), // Reset on success
+  });
+
+  return (
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {/* Messages */}
+      {messages.map(m => (
+        <div key={m.id} className="whitespace-pre-wrap">
+          {m.role === 'user' ? 'User: ' : 'AI: '}
+          {m.content}
+        </div>
+      ))}
+
+      {/* Error display */}
+      {error && (
+        <div className="text-red-500 mb-4">
+          {error.message}
+          {retryCount < maxRetries && (
+            <button
+              onClick={() => reload()}
+              className="ml-2 px-2 py-1 bg-red-500 text-white rounded text-sm"
+            >
+              Retry ({retryCount}/{maxRetries})
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Input */}
+      <form onSubmit={handleSubmit}>
+        <input
+          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+          value={input}
+          placeholder="Ask anything... Adaptive routes to the best model"
+          onChange={handleInputChange}
+        />
+      </form>
+    </div>
+  );
+}
+```
+
+## What You Get with Adaptive
+
+<CardGroup cols={2}>
+  <Card title="Intelligent Routing" icon="brain">
+    Automatic model selection based on your query
+  </Card>
+  <Card title="Cost Optimization" icon="dollar-sign">
+    Significant savings through smart provider selection
+  </Card>
+  <Card title="Provider Transparency" icon="eye">
+    See which AI provider was used in response metadata
+  </Card>
+  <Card title="Seamless Integration" icon="plug">
+    Drop-in replacement for OpenAI in Vercel AI SDK
+  </Card>
+</CardGroup>
+
+## Environment Variables
+
+```bash
+ADAPTIVE_API_KEY=your-adaptive-api-key
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vercel AI SDK Docs" href="https://sdk.vercel.ai/docs" icon="book">
+    Learn more about Vercel AI SDK patterns
+  </Card>
+  <Card title="Error Handling Guide" href="/guides/error-handling" icon="shield">
+    Comprehensive error handling patterns
+  </Card>
+  <Card title="LangChain Integration" href="/integrations/langchain" icon="chain">
+    Use Adaptive with LangChain
+  </Card>
+  <Card title="Batch Processing" href="/examples/batch-processing" icon="batch">
+    Process multiple queries efficiently
+  </Card>
+</CardGroup>

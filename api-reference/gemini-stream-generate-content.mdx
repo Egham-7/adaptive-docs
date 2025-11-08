@@ -528,20 +528,70 @@ Authentication errors return immediately before streaming begins:
 **Solution**: Provide a valid API key in the `x-goog-api-key` header.
 </Accordion>
 
-<Accordion title="Rate Limiting">
-```json
-{
-  "error": {
-    "code": 429,
-    "message": "Rate limit exceeded",
-    "status": "RESOURCE_EXHAUSTED"
-  }
-}
-```
+ <Accordion title="Rate Limiting">
+ ```json
+ {
+   "error": {
+     "code": 429,
+     "message": "Rate limit exceeded",
+     "status": "RESOURCE_EXHAUSTED"
+   }
+ }
+ ```
 
-**Solution**: Adaptive's multi-provider load balancing helps distribute requests and avoid rate limits.
-</Accordion>
-</AccordionGroup>
+ **Solution**: Adaptive's multi-provider load balancing helps distribute requests and avoid rate limits.
+ </Accordion>
+
+ <Accordion title="Stream Fallback Failure">
+ If the stream fails during fallback attempts, an error chunk will be sent:
+
+ ```json
+ data: {
+   "error": {
+     "code": 503,
+     "message": "All 3 providers failed (race fallback mode)",
+     "status": "UNAVAILABLE",
+     "details": {
+       "mode": "race",
+       "attempts": 3,
+       "failures": [
+         {
+           "provider": "gemini",
+           "model": "gemini-2.5-flash",
+           "error": "Connection timeout",
+           "duration_ms": 5123
+         },
+         {
+           "provider": "anthropic",
+           "model": "claude-3-5-haiku",
+           "error": "Rate limit exceeded",
+           "duration_ms": 234
+         },
+         {
+           "provider": "openai",
+           "model": "gpt-5-mini",
+           "error": "Service unavailable",
+           "duration_ms": 3456
+         }
+       ]
+     }
+   }
+ }
+ ```
+
+ **Solution**: Streaming fallback failures occur when all providers fail during the streaming process. The error details show:
+ - Which providers were attempted simultaneously (race mode)
+ - The specific failure reason for each provider
+ - Timing information for each attempt
+
+ **Actions**:
+ 1. Check the `details.failures` array to identify which providers failed
+ 2. Consider switching to sequential mode for more predictable fallback behavior
+ 3. Increase `timeout_ms` in your fallback configuration
+ 4. Implement client-side reconnection logic for stream interruptions
+ 5. Review [Provider Resiliency](/features/provider-resiliency) for streaming best practices
+ </Accordion>
+ </AccordionGroup>
 
 ## Performance Optimization
 

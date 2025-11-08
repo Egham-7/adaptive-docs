@@ -994,11 +994,142 @@ const openai = new OpenAI({
 ### 🚨 Emergency Troubleshooting
 
 <Warning>
-**Service Down?**  
-1. Check our status page: [status.llmadaptive.uk](https://status.llmadaptive.uk)  
-2. Join our Discord: [discord.gg/adaptive](https://discord.gg/adaptive)  
+**Service Down?**
+1. Check our status page: [status.llmadaptive.uk](https://status.llmadaptive.uk)
+2. Join our Discord: [discord.gg/adaptive](https://discord.gg/adaptive)
 3. Email support: info@llmadaptive.uk
 </Warning>
+
+### Adaptive-Specific Errors
+
+<Warning>
+**🔄 Unique to Adaptive**: These errors provide insights not available from other AI APIs. They help you understand multi-provider failures and make intelligent retry decisions.
+</Warning>
+
+<AccordionGroup>
+<Accordion title="🔄 Fallback Error (503) - All Providers Failed">
+**Adaptive's Signature Feature**: When intelligent routing exhausts all provider options.
+
+**Error Response:**
+```json
+{
+  "error": {
+    "type": "fallback_failed",
+    "message": "all 3 providers failed (sequential mode)",
+    "details": {
+      "mode": "sequential",
+      "attempts": 3,
+      "failures": [
+        {
+          "provider": "openai",
+          "model": "gpt-4",
+          "error": "Rate limit exceeded",
+          "duration_ms": 1250
+        },
+        {
+          "provider": "anthropic",
+          "model": "claude-3-opus",
+          "error": "Service temporarily unavailable",
+          "duration_ms": 2100
+        },
+        {
+          "provider": "google",
+          "model": "gemini-pro",
+          "error": "Quota exceeded",
+          "duration_ms": 980
+        }
+      ]
+    }
+  }
+}
+```
+
+**What This Tells You:**
+- **Provider Details**: Which providers were tried and why they failed
+- **Performance Insights**: How long each provider took (`duration_ms`)
+- **Failure Patterns**: All rate limits? Mixed errors? Service outages?
+
+**Recovery Strategies:**
+1. **All Rate Limits**: Implement exponential backoff (1s → 2s → 4s)
+2. **Mixed Errors**: Check [status page](https://status.llmadaptive.uk) for outages
+3. **High Duration**: Consider race mode for faster failure detection
+
+**Code Example:**
+```javascript
+catch (error) {
+  if (error.response?.data?.error?.type === 'fallback_failed') {
+    const failures = error.response.data.error.details.failures;
+
+    // Analyze failure patterns
+    const allRateLimited = failures.every(f => f.error.includes('rate limit'));
+    const hasOutage = failures.some(f => f.error.includes('unavailable'));
+
+    if (allRateLimited) {
+      // Wait and retry with backoff
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return retryRequest();
+    }
+
+    if (hasOutage) {
+      // Use cached response or simplified answer
+      return getFallbackResponse();
+    }
+  }
+  throw error;
+}
+```
+
+**See:** [Complete Error Reference](/api-reference/errors#fallback-errors-503-unique-to-adaptive)
+</Accordion>
+
+<Accordion title="🔍 Model Registry Error (404)">
+**Problem**: Model lookup failed in Adaptive's registry.
+
+**Error Response:**
+```json
+{
+  "error": {
+    "type": "model_registry_error",
+    "message": "Model 'invalid-model-name' not found"
+  }
+}
+```
+
+**Common Causes:**
+- Typo in model name
+- Model not available in your region
+- Model temporarily disabled
+
+**Solutions:**
+1. **Check available models**: `GET /v1/models`
+2. **Use intelligent routing**: Set `model: ""` instead of specific model
+3. **Verify model name** from [supported models](/supported-models) page
+</Accordion>
+
+<Accordion title="🧭 Model Router Error (503)">
+**Problem**: Intelligent routing couldn't select an appropriate model.
+
+**Error Response:**
+```json
+{
+  "error": {
+    "type": "model_router_error",
+    "message": "Unable to route request to appropriate model"
+  }
+}
+```
+
+**Common Causes:**
+- Complex prompt that doesn't match any model's capabilities
+- All matching models are currently unavailable
+- Routing service temporarily overloaded
+
+**Solutions:**
+1. **Specify a model explicitly** instead of using `""`
+2. **Simplify your prompt** if using intelligent routing
+3. **Retry with backoff** - this is often transient
+</Accordion>
+</AccordionGroup>
 
 ## Rate Limits
 
