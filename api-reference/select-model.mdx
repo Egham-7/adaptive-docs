@@ -25,7 +25,7 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 
   <Expandable title="Model Specification Format">
     ```json
-    ["openai:gpt-5-mini", "anthropic:claude-sonnet-4-5", "gemini:gemini-2.5-flash-lite"]
+    ["openai/gpt-5-mini", "anthropic/claude-sonnet-4-5", "gemini/gemini-2.5-flash-lite"]
     ```
   </Expandable>
 </ParamField>
@@ -152,9 +152,9 @@ curl https://api.llmadaptive.uk/v1/select-model \
   -H "Content-Type: application/json" \
   -d '{
     "models": [
-      "openai:gpt-5-mini",
-      "anthropic:claude-sonnet-4-5",
-      "gemini:gemini-2.5-flash-lite"
+      "openai/gpt-5-mini",
+      "anthropic/claude-sonnet-4-5",
+      "gemini/gemini-2.5-flash-lite"
     ],
     "prompt": "Hello, how are you?"
   }'
@@ -174,8 +174,8 @@ curl https://api.llmadaptive.uk/v1/select-model \
   -H "Content-Type: application/json" \
   -d '{
     "models": [
-      "openai:gpt-5-mini",
-      "anthropic:claude-sonnet-4-5"
+      "openai/gpt-5-mini",
+      "anthropic/claude-sonnet-4-5"
     ],
     "prompt": "Write a complex analysis of market trends"
   }'
@@ -198,7 +198,7 @@ const response = await fetch("/api/v1/select-model", {
   method: "POST",
   headers: { "X-Stainless-API-Key": apiKey },
   body: JSON.stringify({
-    models: ["openai:gpt-4.1-nano", "openai:gpt-5-mini"],
+    models: ["openai/gpt-4.1-nano", "openai/gpt-5-mini"],
     prompt: "Analyze this complex dataset and provide insights...",
     cost_bias: 0.1, // Maximize cost savings
   }),
@@ -222,9 +222,9 @@ curl https://api.llmadaptive.uk/v1/select-model \
   -H "Content-Type: application/json" \
   -d '{
     "models": [
-      "openai:gpt-5-codex",
-      "anthropic:claude-opus-4-1",
-      "openai:gpt-5-nano"
+      "openai/gpt-5-codex",
+      "anthropic/claude-opus-4-1",
+      "openai/gpt-5-nano"
     ],
     "prompt": "What is the weather like in San Francisco?",
     "tools": [
@@ -268,8 +268,8 @@ TIMEOUT = 30  # Request timeout in seconds
 
 # Define available models
 models = [
-    "openai:gpt-4.1-nano",
-    "openai:gpt-5-mini"
+    "openai/gpt-4.1-nano",
+    "openai/gpt-5-mini"
 ]
 
 base_request = {
@@ -325,9 +325,9 @@ for config in configs:
 ```javascript
 // Define your available models with your own pricing
 const availableModels = [
-  "openai:gpt-5-mini",
-  "anthropic:claude-sonnet-4-5",
-  "gemini:gemini-2.5-flash-lite",
+  "openai/gpt-5-mini",
+  "anthropic/claude-sonnet-4-5",
+  "gemini/gemini-2.5-flash-lite",
 ];
 
 // Get intelligent selection
@@ -369,9 +369,9 @@ const res = await fetch("https://api.llmadaptive.uk/v1/select-model", {
   },
   body: JSON.stringify({
     models: [
-      "anthropic:claude-opus-4-1",
-      "z-ai:glm-4.6",
-      "openai:gpt-5-mini", // Cloud fallback
+      "anthropic/claude-opus-4-1",
+      "z-ai/glm-4.6",
+      "openai/gpt-5-mini", // Cloud fallback
     ],
     prompt: userMessage,
   }),
@@ -410,9 +410,9 @@ const res = await fetch("https://api.llmadaptive.uk/v1/select-model", {
   },
   body: JSON.stringify({
     models: [
-      "anthropic:claude-opus-4-1", // Your enterprise contract
-      "openai:gpt-5-mini", // Your enterprise contract
-      "gemini:gemini-2.5-flash-lite", // Pay-per-use fallback
+      "anthropic/claude-opus-4-1", // Your enterprise contract
+      "openai/gpt-5-mini", // Your enterprise contract
+      "gemini/gemini-2.5-flash-lite", // Pay-per-use fallback
     ],
     prompt: userMessage,
     cost_bias: 0.8,
@@ -434,8 +434,8 @@ const completion = await client.create({
 // Prefer privacy-focused providers while keeping prompts redacted
 const selection = await selectModel({
   models: [
-    "z-ai:glm-4.6",              // Zero-retention provider
-    "anthropic:claude-haiku-4-5" // Privacy-focused Anthropic model
+    "z-ai/glm-4.6",              // Zero-retention provider
+    "anthropic/claude-haiku-4-5" // Privacy-focused Anthropic model
   ],
   prompt: "NON_SENSITIVE_TASK_DESCRIPTION",
   // Don't send actual sensitive data to Adaptive
@@ -502,7 +502,7 @@ const shouldUseCheap = await fetch(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      models: ["openai:gpt-4.1-nano", "openai:gpt-5-mini"],
+      models: ["openai/gpt-4.1-nano", "openai/gpt-5-mini"],
       prompt: "Hi",
     }),
   },
@@ -517,7 +517,7 @@ const shouldUseExpensive = await fetch(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      models: ["openai:gpt-4.1-nano", "openai:gpt-5-mini"],
+      models: ["openai/gpt-4.1-nano", "openai/gpt-5-mini"],
       prompt: "Analyze this complex dataset...",
     }),
   },

@@ -978,7 +978,7 @@ try {
     messages: [{ role: "user", content: "Hello!" }],
     model_router: {
       cost_bias: 0.3,
-      models: ["openai:gpt-5-mini", "anthropic:claude-sonnet-4-5"]
+      models: ["openai/gpt-5-mini", "anthropic/claude-sonnet-4-5"]
     }
   });
   
@@ -1008,7 +1008,7 @@ try {
     ```javascript
     model_router: {
       models: [
-        "openai:gpt-5-mini"
+        "openai/gpt-5-mini"
       ]
     }
     ```

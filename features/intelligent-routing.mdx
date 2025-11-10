@@ -193,7 +193,7 @@ const completion = await openai.chat.completions.create({
   model: "",
   messages: [{ role: "user", content: "Write a story" }],
   model_router: {
-    models: ["openai:gpt-5-mini", "anthropic:claude-sonnet-4-5"] // Specify allowed models
+    models: ["openai/gpt-5-mini", "anthropic/claude-sonnet-4-5"] // Specify allowed models
   }
 });
 ```
@@ -204,8 +204,8 @@ completion = client.chat.completions.create(
     messages=[{"role": "user", "content": "Write a story"}],
     model_router={
         "models": [
-            "openai:gpt-4.1-nano",  # Lightweight OpenAI option
-            "anthropic:claude-3-5-haiku"  # Specific model
+            "openai/gpt-4.1-nano",  # Lightweight OpenAI option
+            "anthropic/claude-3-5-haiku"  # Specific model
         ]
     }
 )

@@ -131,7 +131,7 @@ chmod +x qwen-code.sh
 
 ```bash Custom Model Configuration
 export ADAPTIVE_API_KEY='your-api-key-here'
-export ADAPTIVE_MODEL='qwen:qwen-plus'  # Optional: specify default model
+export ADAPTIVE_MODEL='qwen/qwen-plus'  # Optional: specify default model
 curl -fsSL https://raw.githubusercontent.com/Egham-7/adaptive/main/scripts/installers/qwen-code.sh | bash
 ```
 </CodeGroup>
@@ -151,23 +151,23 @@ qwen "complex algorithm optimization"
 
 ```bash Qwen Models
 # Use Qwen-Coder models specifically
-export OPENAI_MODEL='qwen:qwen-plus'
+export OPENAI_MODEL='qwen/qwen-plus'
 qwen "explain this Python code"
 
 # Or use Qwen Turbo for faster responses
-export OPENAI_MODEL='qwen:qwen-turbo'
+export OPENAI_MODEL='qwen/qwen-turbo'
 qwen "what is a closure?"
 ```
 
 ```bash Anthropic Claude
 # Use Claude for complex reasoning
-export OPENAI_MODEL='anthropic:claude-sonnet-4-5'
+export OPENAI_MODEL='anthropic/claude-sonnet-4-5'
 qwen "refactor this codebase"
 ```
 
 ```bash OpenAI Models
 # Use GPT-4 for specific tasks
-export OPENAI_MODEL='openai:gpt-4'
+export OPENAI_MODEL='openai/gpt-4'
 qwen "write comprehensive tests"
 ```
 </CodeGroup>
@@ -463,10 +463,10 @@ Distribute requests across providers for optimal performance:
    export OPENAI_MODEL='intelligent-routing'
    ```
 
-3. Verify provider:model format:
+3. Verify author/model format:
 
    ```bash
-   export OPENAI_MODEL='qwen:qwen-plus'  # Correct
+   export OPENAI_MODEL='qwen/qwen-plus'  # Correct
    export OPENAI_MODEL='qwen-plus'       # Incorrect
    ```
 
@@ -483,7 +483,7 @@ Distribute requests across providers for optimal performance:
 - Use faster models for simple tasks:
 
   ```bash
-  export OPENAI_MODEL='qwen:qwen-turbo'
+  export OPENAI_MODEL='qwen/qwen-turbo'
   ```
 
 - Enable semantic caching for repeated queries
