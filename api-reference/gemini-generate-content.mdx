@@ -214,6 +214,83 @@ Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('ge
   **Adaptive Extension**: The provider that handled the request (e.g., `google`, `anthropic`, `openai`)
 </ResponseField>
 
+## SDK Examples
+
+<CodeGroup>
+```javascript Node.js
+import { GoogleGenerativeAI } from '@google/genai';
+
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  httpOptions: {
+    baseUrl: 'https://api.llmadaptive.uk/v1beta'
+  }
+});
+
+const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
+
+const result = await model.generateContent({
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'Explain quantum computing in simple terms.' }]
+    }
+  ],
+  generationConfig: {
+    maxOutputTokens: 1024,
+    temperature: 0.7
+  }
+});
+
+console.log(result.response.text());
+```
+
+```python Python
+import os
+import google.generativeai as genai
+
+genai.configure(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    transport="rest",
+    client_options={"api_endpoint": "https://api.llmadaptive.uk/v1beta"}
+)
+
+model = genai.GenerativeModel("intelligent-routing")
+
+response = model.generate_content(
+    "Explain quantum computing in simple terms.",
+    generation_config={
+        "max_output_tokens": 1024,
+        "temperature": 0.7
+    }
+)
+
+print(response.text)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Explain quantum computing in simple terms."}]
+      }
+    ],
+    "generationConfig": {
+      "maxOutputTokens": 1024,
+      "temperature": 0.7
+    }
+  }'
+```
+</CodeGroup>
+
+<Note>
+Prefer environment variables? Set `GOOGLE_GEMINI_BASE_URL=https://api.llmadaptive.uk/v1beta` so any Gemini-compatible SDK automatically points to Adaptive's endpoint.
+</Note>
+
 ## Error Responses
 
 <ResponseField name="error" type="object">

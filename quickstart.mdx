@@ -162,6 +162,76 @@ curl https://api.llmadaptive.uk/v1/messages \
 
 </Tab>
 
+<Tab title="Gemini SDK">
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import { GoogleGenerativeAI } from '@google/genai';
+
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  httpOptions: {
+    baseUrl: 'https://api.llmadaptive.uk/v1beta'
+  }
+});
+
+const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
+
+const result = await model.generateContent({
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'Hello!' }]
+    }
+  ],
+  generationConfig: {
+    maxOutputTokens: 512
+  }
+});
+
+console.log(result.response.text());
+```
+
+```python Python
+import os
+import google.generativeai as genai
+
+genai.configure(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    transport="rest",
+    client_options={"api_endpoint": "https://api.llmadaptive.uk/v1beta"}
+)
+
+model = genai.GenerativeModel("intelligent-routing")
+
+response = model.generate_content(
+    "Hello!",
+    generation_config={"max_output_tokens": 512}
+)
+
+print(response.text)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Hello!"}]
+      }
+    ],
+    "generationConfig": {
+      "maxOutputTokens": 512
+    }
+  }'
+```
+</CodeGroup>
+
+</Tab>
+
 <Tab title="Vercel AI SDK">
 
 <CodeGroup>

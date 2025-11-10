@@ -26,6 +26,31 @@ Adaptive's AI-powered routing engine analyzes every request and automatically se
   </Step>
 </Steps>
 
+## SDK Setup
+
+All examples below assume you've configured the official OpenAI SDKs to point at Adaptive:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
+
 ## Quick Start
 
 Simply leave the model field empty to enable intelligent routing:

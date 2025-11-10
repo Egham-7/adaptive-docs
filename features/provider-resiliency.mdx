@@ -10,6 +10,31 @@ Adaptive's provider resiliency system ensures your applications stay online even
 **Cost Consideration**: Fallback is disabled by default to control costs. Enable it when you need maximum reliability and can handle potential higher costs from multiple provider calls.
 </Warning>
 
+## SDK Setup
+
+These resiliency examples rely on the standard OpenAI SDK configured to talk to Adaptive:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
+
 ## How Resiliency Works
 
 <Steps>

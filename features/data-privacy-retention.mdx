@@ -6,6 +6,31 @@ icon: "shield-check"
 
 Understanding how your data is processed, stored, and protected throughout the Adaptive platform, including what data is retained and your control over data handling.
 
+## SDK Setup
+
+Privacy configuration examples use the OpenAI SDK with Adaptive overrides:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
+
 ## Data Processing Architecture
 
 Adaptive processes data across three services with different data handling characteristics:

@@ -26,6 +26,53 @@ Authorization: Bearer apk_123456
 
 **That's it!** Your requests automatically save 60-90% while maintaining quality.
 
+## SDK Examples
+
+<CodeGroup>
+```javascript Node.js
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const response = await client.chat.completions.create({
+  model: '', // Empty for intelligent routing
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+response = client.chat.completions.create(
+    model="",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "model": "",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
 ## Essential Parameters
 
 <ParamField body="model" type="string" required>

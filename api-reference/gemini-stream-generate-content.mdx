@@ -193,6 +193,85 @@ data: {"candidates":[{"content":{"parts":[{"text":" in a"}],"role":"model"},"fin
 The final chunk includes `finishReason` and complete `usageMetadata` with token counts and cache information.
 </Note>
 
+## SDK Examples
+
+<CodeGroup>
+```javascript Node.js
+import { GoogleGenerativeAI } from '@google/genai';
+
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  httpOptions: {
+    baseUrl: 'https://api.llmadaptive.uk/v1beta'
+  }
+});
+
+const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
+
+const response = await model.generateContentStream({
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'Write a short poem about adaptive AI systems.' }]
+    }
+  ],
+  generationConfig: {
+    maxOutputTokens: 512,
+    temperature: 0.7
+  }
+});
+
+for await (const chunk of response.stream) {
+  const text = chunk.text();
+  if (text) process.stdout.write(text);
+}
+```
+
+```python Python
+import os
+import google.generativeai as genai
+
+genai.configure(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    transport="rest",
+    client_options={"api_endpoint": "https://api.llmadaptive.uk/v1beta"}
+)
+
+model = genai.GenerativeModel("intelligent-routing")
+
+stream = model.generate_content(
+    "Write a short poem about adaptive AI systems.",
+    generation_config={
+        "max_output_tokens": 512,
+        "temperature": 0.7
+    },
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.text:
+        print(chunk.text, end="", flush=True)
+```
+
+```bash cURL (SSE)
+curl -N https://api.llmadaptive.uk/v1beta/models/intelligent-routing:streamGenerateContent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Write a short poem about adaptive AI systems."}]
+      }
+    ],
+    "generationConfig": {
+      "maxOutputTokens": 512,
+      "temperature": 0.7
+    }
+  }'
+```
+</CodeGroup>
+
 ## Error Handling
 
 <AccordionGroup>

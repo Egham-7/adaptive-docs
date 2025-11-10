@@ -46,7 +46,7 @@ from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://api.llmadaptive.uk/v1>",
+base_url="https://api.llmadaptive.uk/v1",
 model="", # Empty string enables intelligent routing
 temperature=0,
 )
@@ -79,7 +79,7 @@ from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://api.llmadaptive.uk/v1>",
+base_url="https://api.llmadaptive.uk/v1",
 model="",
 temperature=0,
 )
@@ -173,7 +173,7 @@ tools = [get_weather]
 
 model = ChatOpenAI(
 api_key="your-adaptive-api-key",
-base_url="<https://api.llmadaptive.uk/v1>",
+base_url="https://api.llmadaptive.uk/v1",
 model="",
 temperature=0,
 ).bind_tools(tools)
