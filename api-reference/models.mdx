@@ -528,7 +528,7 @@ selection_response = requests.post(
     json={
         "prompt": "Write a Python function to process CSV files",
         "models": [
-            f"{m['provider']}:{m['model_name']}"
+            f"{m['provider']}/{m['model_name']}"
             for m in models
             if "tools" in m.get("supported_parameters", [])
         ]

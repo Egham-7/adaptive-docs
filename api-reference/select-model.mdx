@@ -34,10 +34,7 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
   The prompt text to analyze for optimal model selection
 </ParamField>
 
-<ParamField body="user" type="string">
-  Optional user identifier for caching optimization (enables user-specific cache
-  hits)
-</ParamField>
+
 
 <ParamField body="cost_bias" type="number">
   Cost optimization preference (0.0 = cheapest, 1.0 = best performance) Default:
@@ -45,61 +42,7 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
   for this specific selection.
 </ParamField>
 
-<ParamField body="tools" type="object[]">
-  Available tool definitions for function calling detection Tool definitions
-  help Adaptive understand if your prompt requires function calling
-  capabilities, influencing model selection towards models that support tools.
-  <Expandable title="Tool Definition Properties">
-    <ParamField body="type" type="string" required>
-      Type of tool (always "function")
-    </ParamField>
 
-    <ParamField body="function" type="object" required>
-      Function definition object
-      <Expandable title="Function Properties">
-        <ParamField body="name" type="string" required>
-          Name of the function
-        </ParamField>
-
-        <ParamField body="description" type="string">
-          Description of what the function does
-        </ParamField>
-
-        <ParamField body="parameters" type="object">
-          JSON Schema object defining the function parameters
-        </ParamField>
-      </Expandable>
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="tool_call" type="object">
-  Current tool call being made (if any) If this request is part of a tool
-  calling sequence, provide the current tool call context to help with model
-  selection optimization.
-  <Expandable title="Tool Call Properties">
-    <ParamField body="id" type="string" required>
-      Unique identifier for the tool call
-    </ParamField>
-
-    <ParamField body="type" type="string" required>
-      Type of tool call (always "function")
-    </ParamField>
-
-    <ParamField body="function" type="object" required>
-      Function call details
-      <Expandable title="Function Call Properties">
-        <ParamField body="name" type="string" required>
-          Name of the function being called
-        </ParamField>
-
-        <ParamField body="arguments" type="string" required>
-          JSON string containing the function arguments
-        </ParamField>
-      </Expandable>
-    </ParamField>
-  </Expandable>
-</ParamField>
 
 <ParamField body="model_router_cache" type="object">
   Semantic cache configuration for this request
@@ -118,28 +61,49 @@ Get Adaptive's intelligent model selection without using our inference. **Provid
 
 ## Response
 
-<ResponseField name="provider" type="string">
-  **Selected provider name** The provider that was chosen for this prompt (e.g.,
-  "openai", "anthropic", "gemini")
-</ResponseField>
+<ResponseField name="selected_model" type="object">
+  **Selected model details** Complete model information for the chosen model
+  <Expandable title="RegistryModel Object">
+    <ResponseField name="id" type="integer">
+      Unique model identifier
+    </ResponseField>
 
-<ResponseField name="model" type="string">
-  **Selected model identifier** The specific model that was chosen (e.g.,
-  "gpt-5-mini", "claude-sonnet-4-5", "glm-4.6")
+    <ResponseField name="author" type="string">
+      Model provider/author (e.g., "openai", "anthropic", "gemini")
+    </ResponseField>
+
+    <ResponseField name="model_name" type="string">
+      Model identifier (e.g., "gpt-5-mini", "claude-sonnet-4-5")
+    </ResponseField>
+
+    <ResponseField name="display_name" type="string">
+      Human-readable model name
+    </ResponseField>
+
+    <ResponseField name="description" type="string">
+      Model description and capabilities
+    </ResponseField>
+
+    <ResponseField name="context_length" type="integer">
+      Maximum context window in tokens
+    </ResponseField>
+
+    <ResponseField name="pricing" type="object">
+      Cost information for the model
+    </ResponseField>
+
+    <ResponseField name="providers" type="array">
+      Available endpoints for this model
+    </ResponseField>
+  </Expandable>
 </ResponseField>
 
 <ResponseField name="alternatives" type="array">
-  **Alternative provider/model combinations** (optional) Fallback options if the
-  primary selection is unavailable
-  <Expandable title="Alternative Object">
-    <ResponseField name="provider" type="string">
-      Alternative provider name
-    </ResponseField>
+  **Alternative models** (optional) Fallback model options if the primary selection is unavailable. Each alternative is a complete RegistryModel object.
+</ResponseField>
 
-    <ResponseField name="model" type="string">
-      Alternative model identifier
-    </ResponseField>
-  </Expandable>
+<ResponseField name="cache_tier" type="string">
+  **Cache hit information** Indicates if the selection came from cache ("semantic_exact", "semantic_similar", or empty if not cached)
 </ResponseField>
 
 ## Quick Examples
@@ -161,8 +125,13 @@ curl https://api.llmadaptive.uk/v1/select-model \
 
 # Response:
 {
-  "provider": "openai",
-  "model": "gpt-5-mini"
+  "selected_model": {
+    "id": 123,
+    "author": "openai",
+    "model_name": "gpt-5-mini",
+    "display_name": "GPT-5 Mini",
+    "context_length": 128000
+  }
 }
 ```
 
@@ -182,10 +151,21 @@ curl https://api.llmadaptive.uk/v1/select-model \
 
 # Response:
 {
-  "provider": "anthropic",
-  "model": "claude-sonnet-4-5",
+  "selected_model": {
+    "id": 456,
+    "author": "anthropic",
+    "model_name": "claude-sonnet-4-5",
+    "display_name": "Claude Sonnet 4.5",
+    "context_length": 200000
+  },
   "alternatives": [
-    {"provider": "openai", "model": "gpt-5-mini"}
+    {
+      "id": 123,
+      "author": "openai",
+      "model_name": "gpt-5-mini",
+      "display_name": "GPT-5 Mini",
+      "context_length": 128000
+    }
   ]
 }
 ```
@@ -214,46 +194,7 @@ console.log(result);
 // Check if it picked the cheaper model despite complexity
 ```
 
-### "Function calling optimization"
 
-```bash
-curl https://api.llmadaptive.uk/v1/select-model \
-  -H "X-Stainless-API-Key: $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "models": [
-      "openai/gpt-5-codex",
-      "anthropic/claude-opus-4-1",
-      "openai/gpt-5-nano"
-    ],
-    "prompt": "What is the weather like in San Francisco?",
-    "tools": [
-      {
-        "type": "function",
-        "function": {
-          "name": "get_weather",
-          "description": "Get current weather for a location",
-          "parameters": {
-            "type": "object",
-            "properties": {
-              "location": {"type": "string", "description": "City name"}
-            },
-            "required": ["location"]
-          }
-        }
-      }
-    ]
-  }'
-
-# Response - will prefer models that support function calling:
-{
-  "provider": "openai",
-  "model": "gpt-5-codex",
-  "alternatives": [
-    {"provider": "anthropic", "model": "claude-opus-4-1"}
-  ]
-}
-```
 
 ### "Compare different configurations"
 
@@ -304,7 +245,7 @@ for config in configs:
         # Check if request was successful
         if response.ok:
             result = response.json()
-            print(f"{config['name']}: {result['provider']}/{result['model']}")
+            print(f"{config['name']}: {result['selected_model']['author']}/{result['selected_model']['model_name']}")
         else:
             print(f"Error for {config['name']}: HTTP {response.status_code} - {response.text}")
 
@@ -343,14 +284,14 @@ const selection = await fetch("/api/v1/select-model", {
 const result = await selection.json();
 
 // Route to your own provider accounts
-if (result.provider === "openai") {
+if (result.selected_model.author === "openai") {
   const completion = await yourOpenAI.chat.completions.create({
-    model: result.model,
+    model: result.selected_model.model_name,
     messages: [{ role: "user", content: userMessage }],
   });
-} else if (result.provider === "anthropic") {
+} else if (result.selected_model.author === "anthropic") {
   const completion = await yourAnthropic.messages.create({
-    model: result.model,
+    model: result.selected_model.model_name,
     messages: [{ role: "user", content: userMessage }],
     max_tokens: 4096,
   });
@@ -461,17 +402,33 @@ if (selection.provider === "z-ai") {
 
 ```json
 {
-  "provider": "openai",
-  "model": "gpt-5-mini",
-  "alternatives": [{ "provider": "anthropic", "model": "claude-sonnet-4-5" }]
+  "selected_model": {
+    "id": 123,
+    "author": "openai",
+    "model_name": "gpt-5-mini",
+    "display_name": "GPT-5 Mini",
+    "context_length": 128000,
+    "pricing": {...},
+    "providers": [...]
+  },
+  "alternatives": [
+    {
+      "id": 456,
+      "author": "anthropic",
+      "model_name": "claude-sonnet-4-5",
+      "display_name": "Claude Sonnet 4.5",
+      "context_length": 200000
+    }
+  ],
+  "cache_tier": "semantic_exact"
 }
 ```
 
 ### Key Insights
 
-- **`provider`** - Which API service should be called
-- **`model`** - The specific model identifier to use with that provider
-- **`alternatives`** - Fallback options if the primary selection is unavailable
+- **`selected_model`** - Complete model information for the chosen model including pricing, capabilities, and available endpoints
+- **`alternatives`** - Fallback model options with full model details
+- **`cache_tier`** - Indicates if the selection came from semantic cache ("semantic_exact", "semantic_similar", or empty)
 
 ## Common Patterns
 
@@ -485,8 +442,8 @@ const withConstraints = await selectModel({
   cost_bias: 0.1,
 });
 
-console.log(`Baseline: ${baseline.model}`);
-console.log(`Cost-optimized: ${withConstraints.model}`);
+console.log(`Baseline: ${baseline.selected_model.model_name}`);
+console.log(`Cost-optimized: ${withConstraints.selected_model.model_name}`);
 ```
 
 ### Validate Your Setup
