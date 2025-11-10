@@ -35,10 +35,10 @@ icon: "wrench"
 
     4. **Test with curl:**
        ```bash
-       curl -H "X-Stainless-API-Key: your-adaptive-api-key" \
-            -H "Content-Type: application/json" \
-            https://api.llmadaptive.uk/v1/chat/completions \
-            -d '{"model":"","messages":[{"role":"user","content":"test"}]}'
+        curl -H "Authorization: Bearer apk_123456" \
+             -H "Content-Type: application/json" \
+             https://api.llmadaptive.uk/v1/chat/completions \
+             -d '{"model":"","messages":[{"role":"user","content":"test"}]}'
        ```
   </Accordion>
 
@@ -492,8 +492,8 @@ icon: "wrench"
 **Solutions:**
 1. **Check available models:**
    ```bash
-   curl -H "X-Stainless-API-Key: your-key" \
-        https://api.llmadaptive.uk/v1/models
+    curl -H "Authorization: Bearer apk_123456" \
+         https://api.llmadaptive.uk/v1/models
    ```
 
 2. **Use intelligent routing:**
@@ -891,7 +891,7 @@ When reporting issues, please include:
     Verify API access outside your application
     ```bash
     curl -X POST https://api.llmadaptive.uk/v1/chat/completions \
-      -H "X-Stainless-API-Key: $ADAPTIVE_API_KEY" \
+      -H "Authorization: Bearer apk_123456" \
       -H "Content-Type: application/json" \
       -d '{"model":"","messages":[{"role":"user","content":"test"}]}'
     ```

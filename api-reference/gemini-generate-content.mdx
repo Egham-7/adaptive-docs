@@ -16,7 +16,7 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
 ## Authentication
 
 <ParamField header="x-goog-api-key" type="string" required>
-  Your Adaptive API key. Also supports `Authorization: Bearer`, `X-API-Key`, or `api-key` headers.
+  Your Adaptive API key. Use `Authorization: Bearer apk_123456` header.
 </ParamField>
 
 ## Path Parameters
@@ -242,12 +242,12 @@ Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('ge
 {
   "error": {
     "code": 401,
-    "message": "API key required. Provide it via x-goog-api-key, Authorization: Bearer, X-API-Key, or api-key header",
+    "message": "API key required. Provide it via Authorization: Bearer header",
     "status": "UNAUTHENTICATED"
   }
 }
 ```
-**Solution**: Provide a valid API key in the `x-goog-api-key` header or other supported header formats.
+**Solution**: Provide a valid API key in the `Authorization: Bearer` header.
 </Accordion>
 
 <Accordion title="400 INVALID_ARGUMENT">

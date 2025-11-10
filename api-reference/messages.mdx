@@ -20,14 +20,9 @@ POST https://api.llmadaptive.uk/v1/messages
 <CodeGroup>
 ```bash Bearer Token
 curl https://api.llmadaptive.uk/v1/messages \
-  -H "Authorization: Bearer your-adaptive-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json"
 ```
-
-```bash Anthropic Style
-curl https://api.llmadaptive.uk/v1/messages \
-  -H "x-api-key: your-adaptive-key" \
-  -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01"
 ```
 </CodeGroup>
@@ -75,7 +70,7 @@ print(message.content[0].text)
 
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/messages \
-  -H "x-api-key: your-adaptive-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
@@ -313,7 +308,7 @@ import requests
 response = requests.post(
     'https://api.llmadaptive.uk/v1/messages',  # ← Changed URL
     headers={
-        'Authorization': 'Bearer your-adaptive-key',  # ← Adaptive key
+        'Authorization': 'Bearer apk_123456',  # ← Adaptive key
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01'
     },

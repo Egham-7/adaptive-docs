@@ -100,7 +100,7 @@ print(response.choices[0].message.content)
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-adaptive-api-key" \
+   -H "Authorization: Bearer apk_123456" \
   -d '{
     "model": "",
     "messages": [{"role": "user", "content": "Hello!"}]
@@ -150,7 +150,7 @@ print(response.content[0].text)
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/messages \
   -H "Content-Type: application/json" \
-  -H "x-api-key: your-adaptive-api-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
     "model": "",
@@ -396,7 +396,7 @@ async function adaptiveChat(messages, options = {}) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Stainless-API-Key': process.env.ADAPTIVE_API_KEY
+          'Authorization': 'Bearer apk_123456'
         },
         body: JSON.stringify({
           model: '',

@@ -37,16 +37,16 @@ Adaptive accepts standard OpenAI-compatible authentication headers:
 <Tab title="Bearer Token (Recommended)">
 ```bash
 curl https://api.llmadaptive.uk/v1/chat/completions \
-  -H "Authorization: Bearer your-adaptive-api-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
   -d '{"model": "", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 </Tab>
 
-<Tab title="X-Stainless-API-Key">
+<Tab title="Alternative Format">
 ```bash
 curl https://api.llmadaptive.uk/v1/chat/completions \
-  -H "X-Stainless-API-Key: your-adaptive-api-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
   -d '{"model": "", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
@@ -55,7 +55,7 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
 <Tab title="Anthropic Style">
 ```bash
 curl https://api.llmadaptive.uk/v1/messages \
-  -H "x-api-key: your-adaptive-api-key" \
+  -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01" \
   -d '{"model": "", "max_tokens": 1000, "messages": [{"role": "user", "content": "Hello!"}]}'
@@ -136,7 +136,7 @@ $client = new GuzzleHttp\Client();
 
 $response = $client->post('https://api.llmadaptive.uk/v1/chat/completions', [
     'headers' => [
-        'Authorization' => 'Bearer ' . getenv('ADAPTIVE_API_KEY'),
+        'Authorization' => 'Bearer apk_123456',
         'Content-Type' => 'application/json',
     ],
     'json' => [
@@ -161,7 +161,7 @@ echo $data['choices'][0]['message']['content'];
 <Tab title=".env File">
 ```bash
 # .env
-ADAPTIVE_API_KEY=your-adaptive-api-key-here
+ADAPTIVE_API_KEY=apk_123456
 
 # Optional: For development vs production
 ADAPTIVE_BASE_URL=https://api.llmadaptive.uk/v1
@@ -171,7 +171,7 @@ ADAPTIVE_BASE_URL=https://api.llmadaptive.uk/v1
 <Tab title="Docker">
 ```dockerfile
 # Dockerfile
-ENV ADAPTIVE_API_KEY=your-adaptive-api-key-here
+ENV ADAPTIVE_API_KEY=apk_123456
 
 # Or use docker-compose.yml:
 # environment:
@@ -188,7 +188,7 @@ metadata:
   name: adaptive-api-key
 type: Opaque
 data:
-  api-key: eW91ci1hZGFwdGl2ZS1hcGkta2V5LWhlcmU= # base64 encoded
+   api-key: YXBrXzEyMzQ1Ng== # base64 encoded "apk_123456"
 
 ---
 # deployment.yaml
@@ -204,7 +204,7 @@ env:
 <Tab title="Cloud Platforms">
 **Vercel**: Add to Environment Variables in dashboard
 **Netlify**: Add to Site Settings > Environment Variables  
-**Heroku**: `heroku config:set ADAPTIVE_API_KEY=your-key`
+**Heroku**: `heroku config:set ADAPTIVE_API_KEY=apk_123456`
 **AWS Lambda**: Add to Lambda function environment variables
 </Tab>
 </Tabs>
