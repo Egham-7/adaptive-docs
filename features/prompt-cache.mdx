@@ -15,7 +15,7 @@ Adaptive implements multi-layer prompt caching combining AI-powered semantic und
 Adaptive checks caches in order of speed:
 
 1. **Provider Cache**: Exact matches at provider infrastructure (microseconds)
-2. **Semantic Cache**: AI-powered similar meaning matches (<100ms)
+2. **Semantic Cache**: AI-powered similar meaning matches (&lt;100ms)
 3. **Fresh Request**: Standard API call when no cache hit
 
 ## Key Benefits
@@ -149,7 +149,7 @@ const result = await model.generateContent({
 | Type | Matching | Speed | Savings |
 |------|----------|-------|---------|
 | **Provider** | Exact prompts only | Microseconds | 90-95% |
-| **Semantic** | Similar meaning | <100ms | 60-90% |
+| **Semantic** | Similar meaning | &lt;100ms | 60-90% |
 | **Combined** | Best available | Automatic | Maximum |
 
 ### Monitoring Provider Cache Hits
@@ -165,7 +165,7 @@ const completion = await client.chat.completions.create({
 });
 
 // Provider cache hits may show:
-// - Extremely fast response times (<50ms)
+// - Extremely fast response times (&lt;50ms)
 // - Lower token counts (reused context)
 // - Provider-specific cache indicators
 console.log(`Response time: ${Date.now() - startTime}ms`);
@@ -199,8 +199,7 @@ class ComprehensiveCacheMonitor {
     const responseTime = Date.now() - startTime;
 
     this.stats.requests++;
-    this.stats.avgResponseTime =
-      (this.stats.avgResponseTime + responseTime) / 2;
+    this.stats.avgResponseTime = (this.stats.avgResponseTime + responseTime) / 2;
 
     const cacheTier = completion.usage.cache_tier;
 
@@ -243,7 +242,7 @@ class ComprehensiveCacheMonitor {
     Provider caches work best with ongoing conversations using the same context
   </Step>
   <Step title="Monitor Response Times">
-    Very fast responses (<50ms) often indicate provider cache hits
+    Very fast responses (&lt;50ms) often indicate provider cache hits
   </Step>
   <Step title="Combine with Semantic Cache">
     Let Adaptive automatically choose the best caching strategy
@@ -326,12 +325,6 @@ const completion = await openai.chat.completions.create({
 - `enabled`: Enable/disable semantic caching (default: true)
 - `threshold`: Similarity threshold 0.0-1.0 (default: 0.85)
 
-    <ParamField body="threshold" type="number">
-      Similarity threshold from 0.0-1.0 (default: 0.85)
-    </ParamField>
-  </Expandable>
-</ParamField>
-
 ## Threshold Guide
 
 - **0.7-0.8**: Loose matching for FAQ/customer support (high hit rate)
@@ -356,10 +349,10 @@ Every response includes cache information:
 
 <CardGroup cols={3}>
   <Card title="semantic_exact" icon="bullseye">
-    **Perfect semantic match**: 90%+ savings, <50ms response
+    **Perfect semantic match**: 90%+ savings, &lt;50ms response
   </Card>
   <Card title="semantic_similar" icon="target">
-    **Similar semantic match**: 60-90% savings, <100ms response
+    **Similar semantic match**: 60-90% savings, &lt;100ms response
   </Card>
   <Card title="provider_cache" icon="server">
     **Provider infrastructure cache**: Microsecond response, high savings
@@ -420,8 +413,8 @@ console.log(`Response time: ${Date.now() - startTime}ms`);
 
 ### Cache Tier Values
 
-- `"semantic_exact"`: Perfect semantic match (90%+ savings, <50ms)
-- `"semantic_similar"`: Similar semantic match (60-90% savings, <100ms)
+- `"semantic_exact"`: Perfect semantic match (90%+ savings, &lt;50ms)
+- `"semantic_similar"`: Similar semantic match (60-90% savings, &lt;100ms)
 - `"provider_cache"`: Provider infrastructure cache (microseconds, high savings)
 - `"none"`: No cache hit (standard costs)
 
