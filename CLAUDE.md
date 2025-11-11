@@ -58,7 +58,7 @@ adaptive-docs/
 ├── features/                      # Feature documentation
 │   ├── intelligent-routing.mdx    # Smart routing explanation
 │   ├── prompt-response-cache.mdx  # Caching documentation
-│   ├── semantic-cache.mdx         # Semantic caching features
+│   ├── prompt-cache.mdx           # Prompt caching features
 │   ├── provider-resiliency.mdx    # Fallback and resilience
 │   └── performance.mdx            # Performance characteristics
 ├── api-reference/                 # API documentation

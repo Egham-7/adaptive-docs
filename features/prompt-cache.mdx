@@ -469,10 +469,390 @@ Track semantic cache performance in your [Adaptive dashboard](https://www.llmada
 
 </Accordion>
 
+## Enhanced Cache Performance Tracking
+
+### Monitoring Cache Effectiveness Across All APIs
+
+Track cache performance in real-time across all supported API formats:
+
+<CodeGroup>
+```javascript OpenAI Chat Completions
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const completion = await client.chat.completions.create({
+  model: '',
+  messages: [{ role: 'user', content: 'How do I reset my password?' }]
+});
+
+// Check cache performance
+console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
+console.log(`Provider: ${completion.provider}`);
+console.log(`Model: ${completion.model}`);
+console.log(`Tokens: ${completion.usage.total_tokens}`);
+```
+
+```javascript Anthropic Messages
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const message = await client.messages.create({
+  model: '',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'How do I reset my password?' }]
+});
+
+// Check cache performance
+console.log(`Cache tier: ${message.cache_tier || 'none'}`);
+console.log(`Provider: ${message.provider}`);
+console.log(`Model: ${message.model}`);
+console.log(`Tokens: ${message.usage.input_tokens + message.usage.output_tokens}`);
+```
+
+```javascript Gemini Generate Content
+import { GoogleGenerativeAI } from '@google/genai';
+
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  httpOptions: {
+    baseUrl: 'https://api.llmadaptive.uk/v1beta'
+  }
+});
+
+const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
+const result = await model.generateContent({
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'How do I reset my password?' }]
+    }
+  ]
+});
+
+// Check cache performance
+const usage = result.response.usageMetadata;
+console.log(`Cache tier: ${usage.cache_tier || 'none'}`);
+console.log(`Provider: ${result.response.provider}`);
+console.log(`Model: ${result.response.modelVersion}`);
+console.log(`Tokens: ${usage.totalTokenCount}`);
+```
+</CodeGroup>
+
+### Cache Tier Values Explained
+
+<ParamField body="cache_tier" type="string">
+  **Adaptive Extension**: Indicates cache performance and cost savings
+
+  - `"semantic_exact"` - Perfect semantic match (90%+ cost savings, <50ms response)
+  - `"semantic_similar"` - Similar semantic match (60-90% cost savings, <100ms response)
+  - `"none"` or omitted - No cache hit (standard costs and latency)
+</ParamField>
+
+### Tracking Cache Hit Rates
+
+Monitor cache effectiveness across multiple requests:
+
+```javascript
+// Example: Track cache performance over multiple requests
+class CacheTracker {
+  constructor(client) {
+    this.client = client;
+    this.stats = {
+      requests: 0,
+      cacheHits: 0,
+      exactHits: 0,
+      similarHits: 0,
+      totalTokens: 0,
+      estimatedSavings: 0
+    };
+  }
+
+  async makeRequest(messages) {
+    const completion = await this.client.chat.completions.create({
+      model: '',
+      messages: messages
+    });
+
+    this.stats.requests++;
+    this.stats.totalTokens += completion.usage.total_tokens;
+
+    const cacheTier = completion.usage.cache_tier;
+    if (cacheTier && cacheTier !== 'none') {
+      this.stats.cacheHits++;
+
+      if (cacheTier === 'semantic_exact') {
+        this.stats.exactHits++;
+        // Estimate 90% savings for exact matches
+        this.stats.estimatedSavings += completion.usage.total_tokens * 0.15 * 0.9;
+      } else if (cacheTier === 'semantic_similar') {
+        this.stats.similarHits++;
+        // Estimate 75% savings for similar matches
+        this.stats.estimatedSavings += completion.usage.total_tokens * 0.15 * 0.75;
+      }
+    }
+
+    return completion;
+  }
+
+  getStats() {
+    const hitRate = (this.stats.cacheHits / this.stats.requests * 100).toFixed(1);
+    const exactRate = (this.stats.exactHits / this.stats.requests * 100).toFixed(1);
+    const similarRate = (this.stats.similarHits / this.stats.requests * 100).toFixed(1);
+
+    return {
+      totalRequests: this.stats.requests,
+      cacheHitRate: `${hitRate}%`,
+      exactMatchRate: `${exactRate}%`,
+      similarMatchRate: `${similarRate}%`,
+      totalTokens: this.stats.totalTokens,
+      estimatedSavings: `$${this.stats.estimatedSavings.toFixed(4)}`
+    };
+  }
+}
+
+// Usage example
+const tracker = new CacheTracker(client);
+
+// Make several requests
+await tracker.makeRequest([{ role: 'user', content: 'How do I reset my password?' }]);
+await tracker.makeRequest([{ role: 'user', content: 'I forgot my password' }]);
+await tracker.makeRequest([{ role: 'user', content: 'Password reset help' }]);
+await tracker.makeRequest([{ role: 'user', content: 'New user registration' }]);
+
+console.log('Cache Performance Stats:', tracker.getStats());
+```
+
+### Streaming with Cache Data
+
+Get cache performance information from streaming responses:
+
+<CodeGroup>
+```javascript OpenAI Streaming
+const stream = await client.chat.completions.create({
+  model: '',
+  messages: [{ role: 'user', content: 'Tell me a story' }],
+  stream: true,
+  stream_options: {
+    include_usage: true  // Request usage data in stream
+  }
+});
+
+let cacheTier = null;
+for await (const chunk of stream) {
+  // Content chunks
+  if (chunk.choices[0]?.delta?.content) {
+    process.stdout.write(chunk.choices[0].delta.content);
+  }
+
+  // Final chunk with usage data
+  if (chunk.usage) {
+    cacheTier = chunk.usage.cache_tier;
+    console.log(`\n\nCache tier: ${cacheTier || 'none'}`);
+    console.log(`Provider: ${chunk.provider}`);
+    console.log(`Model: ${chunk.model}`);
+  }
+}
+```
+
+```javascript Anthropic Streaming
+const stream = await client.messages.create({
+  model: '',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'Tell me a story' }],
+  stream: true
+});
+
+let cacheTier = null;
+for await (const event of stream) {
+  if (event.type === 'content_block_delta') {
+    process.stdout.write(event.delta.text);
+  }
+
+  if (event.type === 'message_stop') {
+    cacheTier = event.message.cache_tier;
+    console.log(`\n\nCache tier: ${cacheTier || 'none'}`);
+    console.log(`Provider: ${event.message.provider}`);
+  }
+}
+```
+</CodeGroup>
+
+### Production Cache Monitoring Middleware
+
+Production-ready middleware for tracking cache performance:
+
+```javascript
+// Production cache monitoring middleware
+class AdaptiveCacheMonitor {
+  constructor(client) {
+    this.client = client;
+    this.metrics = {
+      totalRequests: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
+      exactMatches: 0,
+      similarMatches: 0,
+      totalTokens: 0,
+      estimatedCostSavings: 0,
+      responseTimes: [],
+      lastReset: Date.now()
+    };
+  }
+
+  async chatCompletion(params) {
+    const startTime = Date.now();
+
+    try {
+      const completion = await this.client.chat.completions.create(params);
+      const responseTime = Date.now() - startTime;
+
+      this.metrics.totalRequests++;
+      this.metrics.responseTimes.push(responseTime);
+      this.metrics.totalTokens += completion.usage.total_tokens;
+
+      const cacheTier = completion.usage.cache_tier;
+      if (cacheTier && cacheTier !== 'none') {
+        this.metrics.cacheHits++;
+
+        if (cacheTier === 'semantic_exact') {
+          this.metrics.exactMatches++;
+          // Estimate savings: assume $0.15/1M tokens, 90% savings for exact matches
+          this.metrics.estimatedCostSavings += (completion.usage.total_tokens / 1_000_000) * 0.15 * 0.9;
+        } else if (cacheTier === 'semantic_similar') {
+          this.metrics.similarMatches++;
+          // Estimate savings: 75% savings for similar matches
+          this.metrics.estimatedCostSavings += (completion.usage.total_tokens / 1_000_000) * 0.15 * 0.75;
+        }
+      } else {
+        this.metrics.cacheMisses++;
+      }
+
+      // Log significant cache events
+      if (cacheTier === 'semantic_exact') {
+        console.log(`🔥 Cache EXACT hit: ${responseTime}ms, saved $${((completion.usage.total_tokens / 1_000_000) * 0.15 * 0.9).toFixed(6)}`);
+      } else if (cacheTier === 'semantic_similar') {
+        console.log(`⚡ Cache SIMILAR hit: ${responseTime}ms, saved $${((completion.usage.total_tokens / 1_000_000) * 0.15 * 0.75).toFixed(6)}`);
+      }
+
+      return completion;
+    } catch (error) {
+      console.error('Request failed:', error);
+      throw error;
+    }
+  }
+
+  getMetrics() {
+    const cacheHitRate = (this.metrics.cacheHits / this.metrics.totalRequests * 100).toFixed(1);
+    const avgResponseTime = this.metrics.responseTimes.reduce((a, b) => a + b, 0) / this.metrics.responseTimes.length;
+
+    return {
+      period: `${Math.round((Date.now() - this.metrics.lastReset) / 1000)}s`,
+      totalRequests: this.metrics.totalRequests,
+      cacheHitRate: `${cacheHitRate}%`,
+      exactMatches: this.metrics.exactMatches,
+      similarMatches: this.metrics.similarMatches,
+      cacheMisses: this.metrics.cacheMisses,
+      totalTokens: this.metrics.totalTokens,
+      estimatedSavings: `$${this.metrics.estimatedCostSavings.toFixed(4)}`,
+      avgResponseTime: `${avgResponseTime.toFixed(0)}ms`,
+      p95ResponseTime: `${this.metrics.responseTimes.sort((a,b) => a-b)[Math.floor(this.metrics.responseTimes.length * 0.95)] || 0}ms`
+    };
+  }
+
+  resetMetrics() {
+    this.metrics.lastReset = Date.now();
+    this.metrics.totalRequests = 0;
+    this.metrics.cacheHits = 0;
+    this.metrics.cacheMisses = 0;
+    this.metrics.exactMatches = 0;
+    this.metrics.similarMatches = 0;
+    this.metrics.totalTokens = 0;
+    this.metrics.estimatedCostSavings = 0;
+    this.metrics.responseTimes = [];
+  }
+}
+
+// Usage in production
+const monitor = new AdaptiveCacheMonitor(client);
+
+// Wrap your requests
+const completion = await monitor.chatCompletion({
+  model: '',
+  messages: [{ role: 'user', content: 'How do I reset my password?' }]
+});
+
+// Get metrics every hour
+setInterval(() => {
+  console.log('Cache Metrics:', monitor.getMetrics());
+  monitor.resetMetrics();
+}, 60 * 60 * 1000);
+```
+
+### Cost Savings Calculator
+
+Calculate actual cost savings from cache hits:
+
+```javascript
+// Cost savings calculator
+function calculateCacheSavings(completion) {
+  const tokens = completion.usage.total_tokens;
+  const cacheTier = completion.usage.cache_tier;
+
+  // Base cost: $0.15 per 1M tokens (example rate)
+  const baseCostPerMillion = 0.15;
+  const baseCost = (tokens / 1_000_000) * baseCostPerMillion;
+
+  let actualCost = baseCost;
+  let savings = 0;
+  let savingsPercent = 0;
+
+  if (cacheTier === 'semantic_exact') {
+    // 90% savings for exact matches
+    actualCost = baseCost * 0.1;
+    savings = baseCost * 0.9;
+    savingsPercent = 90;
+  } else if (cacheTier === 'semantic_similar') {
+    // 75% savings for similar matches
+    actualCost = baseCost * 0.25;
+    savings = baseCost * 0.75;
+    savingsPercent = 75;
+  }
+
+  return {
+    tokens,
+    cacheTier: cacheTier || 'none',
+    baseCost: `$${baseCost.toFixed(6)}`,
+    actualCost: `$${actualCost.toFixed(6)}`,
+    savings: `$${savings.toFixed(6)}`,
+    savingsPercent: `${savingsPercent}%`,
+    responseTime: cacheTier ? '<100ms' : 'standard'
+  };
+}
+
+// Example usage
+const completion = await client.chat.completions.create({
+  model: '',
+  messages: [{ role: 'user', content: 'How do I reset my password?' }]
+});
+
+console.log('Cost Analysis:', calculateCacheSavings(completion));
+```
+
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Performance Overview" href="/features/performance" icon="gauge-high">
     Understand all performance optimization features
+  </Card>
+  <Card title="Intelligent Routing" href="/features/intelligent-routing" icon="route">
+    Learn how routing combines with caching for maximum efficiency
   </Card>
 </CardGroup>

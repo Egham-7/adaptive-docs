@@ -25,7 +25,7 @@
           "features/bring-your-own-keys",
           "features/zero-completion-insurance",
           "features/data-privacy-retention",
-          "features/semantic-cache",
+          "features/prompt-cache",
           "features/provider-resiliency",
           "features/performance"
         ]
