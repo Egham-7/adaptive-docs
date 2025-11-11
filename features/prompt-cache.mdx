@@ -1,162 +1,281 @@
 ---
-title: "Semantic Cache"
-description: "Smart caching that understands meaning, not just exact matches"
+title: "Prompt Caching"
+description: "Multi-layer caching combining semantic understanding with provider-level optimization"
 icon: "brain"
 ---
 
-Semantic cache uses AI to understand the meaning of requests, automatically caching responses for similar queries even when they're worded differently. This intelligent caching is enabled by default and can dramatically reduce costs and response times.
+Adaptive implements multi-layer prompt caching combining AI-powered semantic understanding with provider-level infrastructure caching. This automatically optimizes for both similar queries and exact repeats, reducing costs by 60-95%.
 
 <Note>
-**Enabled by Default**: Semantic caching works automatically - no configuration needed for most applications.
+  **Automatic**: Both semantic and provider caching work without configuration for most applications.
 </Note>
 
-## How Semantic Caching Works
+## How It Works
 
-<Steps>
-  <Step title="Request Analysis">
-    Incoming prompts are converted to embeddings that capture their semantic meaning
-  </Step>
-  <Step title="Similarity Search">
-    The system searches for cached responses with similar meaning using AI-powered matching
-  </Step>
-  <Step title="Intelligent Matching">
-    Finds relevant cached responses even when questions are phrased differently
-  </Step>
-  <Step title="Smart Delivery">
-    Returns cached responses in under 100ms with full compatibility
-  </Step>
-</Steps>
+Adaptive checks caches in order of speed:
+
+1. **Provider Cache**: Exact matches at provider infrastructure (microseconds)
+2. **Semantic Cache**: AI-powered similar meaning matches (<100ms)
+3. **Fresh Request**: Standard API call when no cache hit
 
 ## Key Benefits
 
 <CardGroup cols={4}>
   <Card title="Speed" icon="zap">
-    **&lt;100ms**  
-    Response times
+    **Microseconds - 100ms** across cache levels
   </Card>
-  <Card title="Cost Savings" icon="dollar-sign">
-    **60-90%**
-    Reduction for similar queries
+  <Card title="Savings" icon="dollar-sign">
+    **60-95%** cost reduction
   </Card>
   <Card title="Intelligence" icon="brain">
-    **Understands meaning**  
-    Not just exact matches
+    **Exact + semantic** matching
   </Card>
-  <Card title="Reliability" icon="shield-check">
-    **Success-only caching**  
-    Never caches errors
+  <Card title="Integration" icon="server">
+    **Provider native** caching
   </Card>
 </CardGroup>
 
 ## Real-World Examples
 
-### Customer Support Queries
+**Customer Support**: "How do I reset my password?" matches "I forgot my password", "Password reset steps", "Help me recover my account"
 
-<Tabs>
-<Tab title="Password Help">
-**Original Query**: "How do I reset my password?"
+**Technical Docs**: "How to implement JWT authentication" matches "JWT auth implementation guide", "Setting up JSON Web Token auth"
 
-**Semantic Matches** (all return the same cached response):
-- "I forgot my password"
-- "Password reset steps" 
-- "Help me recover my account"
-- "Can't log in - need new password"
-- "Locked out of my account"
-</Tab>
+**FAQ Systems**: "What are your business hours?" matches "When are you open?", "Office hours information"
 
-<Tab title="Technical Questions">
-**Original Query**: "How to implement JWT authentication"
+## Cache Priority
 
-**Semantic Matches**:
-- "JWT auth implementation guide"
-- "Setting up JSON Web Token auth"
-- "JWT authentication tutorial"
-- "How do I add JWT to my app"
-- "JSON Web Token setup steps"
-</Tab>
+1. **Provider Cache**: Exact matches at provider infrastructure
+2. **Semantic Cache**: AI-powered similar meaning matches
+3. **Fresh Request**: Standard API call when no cache hit
 
-<Tab title="General Inquiries">
-**Original Query**: "What are your business hours?"
+## Provider Prompt Caching
 
-**Semantic Matches**:
-- "When are you open?"
-- "Office hours information"
-- "What time do you close?"
-- "Are you open on weekends?"
-- "Store operating hours"
-</Tab>
-</Tabs>
+Adaptive automatically leverages provider-level caching when available. Key providers:
 
-## Cache Priority System
+| Provider | Cache Reads | Configuration | Notes |
+|----------|-------------|---------------|-------|
+| **OpenAI** | 0.25x-0.50x cost | Automatic | 1024+ tokens minimum |
+| **Anthropic** | 0.1x cost | `cache_control` required | 4 breakpoints max, 5min TTL |
+| **Google Gemini** | 0.25x cost | Automatic or explicit | 1028-2048 tokens minimum |
+| **DeepSeek** | 0.1x cost | Automatic | - |
+| **Grok** | 0.25x cost | Automatic | - |
+| **Groq** | Reduced rate | Automatic | Kimi K2 models |
 
-Adaptive checks caches in optimal order for best performance:
+<CodeGroup>
+```javascript Anthropic Cache Control
+const message = await client.messages.create({
+  model: 'claude-sonnet-4-5',
+  messages: [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Based on this document:' },
+        {
+          type: 'text',
+          text: 'LARGE TEXT CONTENT HERE',
+          cache_control: { type: 'ephemeral' }
+        },
+        { type: 'text', text: 'Summarize the key points.' }
+      ]
+    }
+  ]
+});
+```
+
+```javascript Gemini Cache Control
+const result = await model.generateContent({
+  contents: [{
+    role: 'user',
+    parts: [
+      { text: 'Analyze this data:' },
+      {
+        text: 'LARGE TEXT CONTENT HERE',
+        cache_control: { type: 'ephemeral' }
+      },
+      { text: 'What are the main trends?' }
+    ]
+  }]
+});
+```
+</CodeGroup>
+
+### Provider Cache Examples
+
+<CodeGroup>
+```javascript OpenAI Prompt Caching
+// OpenAI automatically caches prompts and reuses context
+const completion = await client.chat.completions.create({
+  model: 'gpt-5-mini',
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Explain quantum computing' }
+  ]
+});
+
+// Provider may cache this exact prompt for future identical requests
+```
+
+```javascript Anthropic Context Caching
+// Anthropic caches conversation context automatically
+const message = await client.messages.create({
+  model: 'claude-sonnet-4-5',
+  system: 'You are an expert software engineer.',
+  messages: [
+    { role: 'user', content: 'Help me debug this React component' }
+  ]
+});
+
+// Provider caches the system prompt + conversation for efficiency
+```
+
+```javascript Gemini Context Caching
+// Gemini supports explicit context caching
+const model = genAI.getGenerativeModel({
+  model: 'gemini-2.5-flash-lite',
+  systemInstruction: 'You are a math tutor.'
+});
+
+const result = await model.generateContent({
+  contents: [{ role: 'user', parts: [{ text: 'Solve 2x + 3 = 7' }] }]
+});
+
+// Provider caches the system instruction for repeated use
+```
+</CodeGroup>
+
+### Provider vs Semantic Cache
+
+| Type | Matching | Speed | Savings |
+|------|----------|-------|---------|
+| **Provider** | Exact prompts only | Microseconds | 90-95% |
+| **Semantic** | Similar meaning | <100ms | 60-90% |
+| **Combined** | Best available | Automatic | Maximum |
+
+### Monitoring Provider Cache Hits
+
+Provider cache hits are indicated differently than semantic cache hits:
+
+<CodeGroup>
+```javascript Provider Cache Detection
+// Check for provider-level caching indicators
+const completion = await client.chat.completions.create({
+  model: '',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+// Provider cache hits may show:
+// - Extremely fast response times (<50ms)
+// - Lower token counts (reused context)
+// - Provider-specific cache indicators
+console.log(`Response time: ${Date.now() - startTime}ms`);
+console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
+console.log(`Provider: ${completion.provider}`);
+
+// For OpenAI: Look for system_fingerprint changes indicating cache use
+console.log(`System fingerprint: ${completion.system_fingerprint}`);
+```
+
+```javascript Combined Cache Monitoring
+// Monitor both provider and semantic cache performance
+class ComprehensiveCacheMonitor {
+  constructor(client) {
+    this.client = client;
+    this.stats = {
+      requests: 0,
+      semanticHits: 0,
+      providerHits: 0, // Inferred from response time/token patterns
+      noCache: 0,
+      avgResponseTime: 0
+    };
+  }
+
+  async makeRequest(messages) {
+    const startTime = Date.now();
+    const completion = await this.client.chat.completions.create({
+      model: '',
+      messages: messages
+    });
+    const responseTime = Date.now() - startTime;
+
+    this.stats.requests++;
+    this.stats.avgResponseTime =
+      (this.stats.avgResponseTime + responseTime) / 2;
+
+    const cacheTier = completion.usage.cache_tier;
+
+    if (cacheTier && cacheTier !== 'none') {
+      this.stats.semanticHits++;
+    } else if (responseTime < 100) {
+      // Likely provider cache hit (very fast response, no semantic cache)
+      this.stats.providerHits++;
+    } else {
+      this.stats.noCache++;
+    }
+
+    return completion;
+  }
+
+  getCacheStats() {
+    return {
+      totalRequests: this.stats.requests,
+      semanticCacheRate: `${((this.stats.semanticHits / this.stats.requests) * 100).toFixed(1)}%`,
+      providerCacheRate: `${((this.stats.providerHits / this.stats.requests) * 100).toFixed(1)}%`,
+      noCacheRate: `${((this.stats.noCache / this.stats.requests) * 100).toFixed(1)}%`,
+      avgResponseTime: `${this.stats.avgResponseTime.toFixed(0)}ms`
+    };
+  }
+}
+```
+</CodeGroup>
+
+### Provider Cache Best Practices
+
+<Warning>
+**Provider caching is automatic** but can be optimized with consistent prompt patterns.
+</Warning>
 
 <Steps>
-  <Step title="L1: Prompt Response Cache">
-    **Microseconds**: Exact matches if explicitly enabled per request
+  <Step title="Use Consistent System Prompts">
+    Keep system messages identical across similar requests for provider cache hits
   </Step>
-  <Step title="L2: Semantic Cache">
-    **Sub-100ms**: Similar meaning matches (enabled by default)
+  <Step title="Maintain Conversation Context">
+    Provider caches work best with ongoing conversations using the same context
   </Step>
-  <Step title="L3: Fresh Request">
-    **Standard latency**: New API call to provider
+  <Step title="Monitor Response Times">
+    Very fast responses (<50ms) often indicate provider cache hits
+  </Step>
+  <Step title="Combine with Semantic Cache">
+    Let Adaptive automatically choose the best caching strategy
   </Step>
 </Steps>
 
 ## SDK Setup
 
-All examples below assume you've configured the OpenAI SDKs to call Adaptive:
-
-<CodeGroup>
-```javascript JavaScript/Node.js
+```javascript
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+const client = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
   baseURL: 'https://api.llmadaptive.uk/v1'
 });
 ```
 
-```python Python
-import os
-from openai import OpenAI
+## Configuration
 
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
+**Default**: Semantic cache enabled automatically - no configuration needed.
+
+**Custom Threshold**:
+```javascript
+// Stricter matching
+model_router: { semantic_cache: { threshold: 0.9 } }
+
+// Looser matching  
+model_router: { semantic_cache: { threshold: 0.75 } }
+
+// Disable for real-time data
+model_router: { semantic_cache: { enabled: false } }
 ```
-</CodeGroup>
-
-## Configuration Options
-
-### Default Behavior (Recommended)
-
-Most applications work perfectly with default settings:
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-// Default - semantic cache enabled automatically
-const completion = await openai.chat.completions.create({
-  model: "",
-  messages: [{ role: "user", content: "How do I reset my password?" }]
-  // Semantic cache works automatically
-});
-
-console.log(`Cache tier: ${completion.usage.cache_tier}`);
-```
-
-```python Python
-# Default - semantic cache enabled automatically  
-completion = client.chat.completions.create(
-    model="",
-    messages=[{"role": "user", "content": "How do I reset my password?"}]
-    # Semantic cache works automatically
-)
-
-print(f"Cache tier: {completion.usage.cache_tier}")
-```
-</CodeGroup>
 
 ### Custom Threshold Settings
 
@@ -175,15 +294,15 @@ const completion = await openai.chat.completions.create({
 ```
 
 ```javascript Loose Matching
-// Lower threshold = broader matching  
+// Lower threshold = broader matching
 const completion = await openai.chat.completions.create({
   model: "",
   messages: [{ role: "user", content: "General help question" }],
   model_router: {
     semantic_cache: {
-      threshold: 0.75  // Lower = more flexible matching
-    }
-  }
+      threshold: 0.75, // Lower = more flexible matching
+    },
+  },
 });
 ```
 
@@ -194,665 +313,197 @@ const completion = await openai.chat.completions.create({
   messages: [{ role: "user", content: "What's the current stock price?" }],
   model_router: {
     semantic_cache: {
-      enabled: false  // Disable for time-sensitive content
-    }
-  }
+      enabled: false, // Disable for time-sensitive content
+    },
+  },
 });
 ```
+
 </CodeGroup>
 
 ## Configuration Parameters
 
-<ParamField body="model_router.semantic_cache" type="object">
-  Configuration for semantic caching behavior
-  
-  <Expandable title="Properties">
-    <ParamField body="enabled" type="boolean">
-      Enable/disable semantic caching (default: true)
-    </ParamField>
-    
+- `enabled`: Enable/disable semantic caching (default: true)
+- `threshold`: Similarity threshold 0.0-1.0 (default: 0.85)
+
     <ParamField body="threshold" type="number">
       Similarity threshold from 0.0-1.0 (default: 0.85)
     </ParamField>
   </Expandable>
 </ParamField>
 
-## Similarity Threshold Guide
+## Threshold Guide
 
-Choose the right threshold for your use case:
-
-<CardGroup cols={3}>
-  <Card title="Loose Matching" icon="arrows-left-right-to-line">
-    **0.7 - 0.8**  
-    FAQ systems, customer support, general inquiries
-  </Card>
-  <Card title="Balanced Matching" icon="balance-scale">
-    **0.8 - 0.9** (Default)  
-    Most applications, mixed content types
-  </Card>
-  <Card title="Strict Matching" icon="bullseye">
-    **0.9+**  
-    Technical docs, legal content, precise requirements
-  </Card>
-</CardGroup>
-
-### Threshold Examples
-
-<Tabs>
-<Tab title="0.75 - Loose">
-**Good for**: Customer support, FAQ systems
-
-```javascript
-"How do I cancel my subscription?" 
-// Matches: "cancel membership", "stop billing", "end service"
-```
-
-**Pros**: High cache hit rate, good for varied user language  
-**Cons**: May occasionally match unrelated queries
-</Tab>
-
-<Tab title="0.85 - Balanced">
-**Good for**: Most applications (default setting)
-
-```javascript
-"How to implement user authentication?"
-// Matches: "user login setup", "authentication guide", "sign-in system"
-```
-
-**Pros**: Good balance of accuracy and coverage  
-**Cons**: May miss some loosely related queries
-</Tab>
-
-<Tab title="0.95 - Strict">
-**Good for**: Technical documentation, legal content
-
-```javascript
-"JWT token validation in Node.js"
-// Matches: "Node.js JWT validation", "validating JWT tokens Node"
-```
-
-**Pros**: Very precise matching, no false positives  
-**Cons**: Lower cache hit rate, may miss paraphrases
-</Tab>
-</Tabs>
+- **0.7-0.8**: Loose matching for FAQ/customer support (high hit rate)
+- **0.8-0.9**: Balanced (default) for most applications
+- **0.9+**: Strict matching for technical/legal content (high precision)
 
 ## Cache Performance Tracking
 
-### Response Metadata
-
-Every response includes cache performance information:
+Every response includes cache information:
 
 ```json
 {
-  "id": "chatcmpl-abc123",
-  "choices": [{"message": {"content": "To reset your password..."}}],
   "usage": {
-    "prompt_tokens": 15,
-    "completion_tokens": 25,
-    "total_tokens": 40,
-    "cache_tier": "semantic_similar"  // Cache performance indicator
+    "cache_tier": "semantic_similar",
+    "total_tokens": 40
   },
-  "provider": "cached",
-  "model": "cached-response"
+  "provider": "cached"
 }
 ```
 
 ### Cache Tier Values
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="semantic_exact" icon="bullseye">
-    **Perfect match**: Identical semantic meaning found
+    **Perfect semantic match**: 90%+ savings, <50ms response
   </Card>
   <Card title="semantic_similar" icon="target">
-    **Similar match**: Semantically related content found
+    **Similar semantic match**: 60-90% savings, <100ms response
   </Card>
-  <Card title="undefined" icon="x">
-    **No cache**: Fresh response from API provider
+  <Card title="provider_cache" icon="server">
+    **Provider infrastructure cache**: Microsecond response, high savings
+  </Card>
+  <Card title="none" icon="x">
+    **No cache hit**: Standard latency and costs
   </Card>
 </CardGroup>
 
 ## Performance Characteristics
 
-<CardGroup cols={4}>
-  <Card title="Hit Latency" icon="zap">
-    **50-100ms**  
-    Including embedding computation
-  </Card>
-  <Card title="Miss Overhead" icon="plus">
-    **10-20ms**  
-    Added for similarity analysis
-  </Card>
-  <Card title="Hit Rate" icon="percent">
-    **40-60%**  
-    Typical applications
-  </Card>
-  <Card title="Storage" icon="database">
-    **AI-powered**  
-    Embedding-based indexing
-  </Card>
-</CardGroup>
+**Performance**: Microseconds-100ms latency, 60-80% hit rate, 60-95% cost savings
 
-## Ideal Use Cases
+## Use Cases
 
-### Perfect Fits
+**Perfect for**: Customer support, FAQ systems, documentation search, educational content
 
-<CardGroup cols={2}>
-  <Card title="Customer Support" icon="headset">
-    **High hit rate**: Users ask similar questions in many different ways
-  </Card>
-  <Card title="Documentation Search" icon="book">
-    **Consistent responses**: Same explanations for similar concepts
-  </Card>
-  <Card title="FAQ Systems" icon="question-circle">
-    **Multiple phrasings**: Various ways to ask the same questions
-  </Card>
-  <Card title="Educational Content" icon="graduation-cap">
-    **Concept explanations**: Similar topics with consistent answers
-  </Card>
-</CardGroup>
-
-### When to Disable
-
-<Warning>
-Consider disabling semantic cache for time-sensitive or highly personalized content.
-</Warning>
-
-<CardGroup cols={2}>
-  <Card title="Real-time Data" icon="clock">
-    **Examples**: Stock prices, live sports scores, current weather
-  </Card>
-  <Card title="Personalized Content" icon="user">
-    **Examples**: User-specific data, account information, personal history
-  </Card>
-  <Card title="Time-sensitive Info" icon="calendar">
-    **Examples**: Breaking news, current events, recent updates
-  </Card>
-  <Card title="High-precision Content" icon="crosshairs">
-    **Examples**: Legal advice, medical information, financial guidance
-  </Card>
-</CardGroup>
+**Avoid for**: Real-time data, personalized content, time-sensitive information
 
 ## Best Practices
 
-### For Maximum Effectiveness
+- Use default settings (0.85 threshold) for most applications
+- Monitor `cache_tier` in responses to track effectiveness
+- Lower thresholds for FAQ systems, higher for technical content
+- Group similar content to maximize cache hits
 
-<Steps>
-  <Step title="Use Default Settings">
-    The 0.85 threshold works well for most applications
-  </Step>
-  <Step title="Monitor Hit Rates">
-    Track `cache_tier` values to measure effectiveness
-  </Step>
-  <Step title="Adjust by Use Case">
-    Lower thresholds for FAQ systems, higher for technical content
-  </Step>
-  <Step title="Test Different Thresholds">
-    Experiment to find optimal settings for your specific use case
-  </Step>
-</Steps>
+## Error Handling
 
-### Optimization Tips
+Cache failures automatically fallback to fresh API calls. No interruption to your requests.
 
-<CardGroup cols={2}>
-  <Card title="Content Strategy" icon="lightbulb">
-    **Group similar topics**: Organize content to maximize cache hits
-  </Card>
-  <Card title="Threshold Tuning" icon="sliders">
-    **Start with defaults**: Adjust based on hit rate and accuracy needs
-  </Card>
-  <Card title="Performance Monitoring" icon="chart-line">
-    **Track metrics**: Monitor cache efficiency and response times
-  </Card>
-  <Card title="User Patterns" icon="users">
-    **Analyze queries**: Understand common user question patterns
-  </Card>
-</CardGroup>
+## Monitoring
 
-## Error Handling and Reliability
+Track cache performance in your Adaptive dashboard: hit rates, cost savings, and response times.
 
-<Note>
-**Graceful Degradation**: Semantic cache failures never interrupt your requests - they automatically fallback to fresh API calls.
-</Note>
+## Technical Details
 
-### Failure Scenarios
-
-<CardGroup cols={2}>
-  <Card title="Embedding Service Issues" icon="brain">
-    **Automatic fallback** to fresh requests without semantic matching
-  </Card>
-  <Card title="Cache Storage Problems" icon="database">
-    **Transparent handling** - requests proceed normally
-  </Card>
-  <Card title="Similarity Computation Errors" icon="calculator">
-    **Skip matching** and proceed with standard routing
-  </Card>
-  <Card title="Network Issues" icon="wifi">
-    **Retry logic** with fallback to direct API calls
-  </Card>
-</CardGroup>
-
-## Monitoring and Analytics
-
-Track semantic cache performance in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard):
-
-- **Cache hit rates** and trends over time
-- **Similarity threshold effectiveness** for your content
-- **Cost savings** achieved through semantic matching
-- **Response time improvements** from cached responses
-- **Cache efficiency** by content type and user patterns
-
-## Technical Implementation
-
-### Under the Hood
-
-<Accordion title="Technical Details">
-
-**Embedding Generation**
-- Uses state-of-the-art sentence transformers
-- Generates high-dimensional semantic representations
-- Optimized for speed and accuracy
-
-**Similarity Computation**  
-- Cosine similarity between embedding vectors
-- Configurable threshold-based matching
-- Fast vector operations for real-time performance
-
-**Storage & Retrieval**
-- Efficient vector indexing and search
-- Deferred caching after successful responses
-- Automatic cache warming and optimization
-
-**Error Resilience**
-- Multiple fallback layers for reliability
-- Success-only caching prevents error propagation
-- Graceful degradation under any failure scenario
-
-</Accordion>
+- **Multi-layer**: Provider infrastructure + AI semantic caching
+- **Embeddings**: Sentence transformers for semantic matching
+- **Similarity**: Cosine similarity with configurable thresholds
+- **Storage**: Dual systems with automatic fallback
 
 ## Enhanced Cache Performance Tracking
 
-### Monitoring Cache Effectiveness Across All APIs
+### Monitoring Cache Effectiveness
 
-Track cache performance in real-time across all supported API formats:
+Check cache performance in API responses:
 
-<CodeGroup>
-```javascript OpenAI Chat Completions
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY,
-  baseURL: 'https://api.llmadaptive.uk/v1'
+```javascript
+const completion = await client.chat.completions.create({
+  model: '',
+  messages: [{ role: 'user', content: 'How do I reset my password?' }]
 });
+
+console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
+console.log(`Provider: ${completion.provider}`);
+console.log(`Response time: ${Date.now() - startTime}ms`);
+```
+
+### Cache Tier Values
+
+- `"semantic_exact"`: Perfect semantic match (90%+ savings, <50ms)
+- `"semantic_similar"`: Similar semantic match (60-90% savings, <100ms)
+- `"provider_cache"`: Provider infrastructure cache (microseconds, high savings)
+- `"none"`: No cache hit (standard costs)
+
+### Tracking Cache Hit Rates
+
+Calculate cache effectiveness:
+
+```javascript
+let totalRequests = 0;
+let cacheHits = 0;
 
 const completion = await client.chat.completions.create({
   model: '',
   messages: [{ role: 'user', content: 'How do I reset my password?' }]
 });
 
-// Check cache performance
-console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
-console.log(`Provider: ${completion.provider}`);
-console.log(`Model: ${completion.model}`);
-console.log(`Tokens: ${completion.usage.total_tokens}`);
-```
-
-```javascript Anthropic Messages
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: process.env.ADAPTIVE_API_KEY,
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-
-const message = await client.messages.create({
-  model: '',
-  max_tokens: 1000,
-  messages: [{ role: 'user', content: 'How do I reset my password?' }]
-});
-
-// Check cache performance
-console.log(`Cache tier: ${message.cache_tier || 'none'}`);
-console.log(`Provider: ${message.provider}`);
-console.log(`Model: ${message.model}`);
-console.log(`Tokens: ${message.usage.input_tokens + message.usage.output_tokens}`);
-```
-
-```javascript Gemini Generate Content
-import { GoogleGenerativeAI } from '@google/genai';
-
-const genAI = new GoogleGenerativeAI({
-  apiKey: process.env.ADAPTIVE_API_KEY,
-  httpOptions: {
-    baseUrl: 'https://api.llmadaptive.uk/v1beta'
-  }
-});
-
-const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
-const result = await model.generateContent({
-  contents: [
-    {
-      role: 'user',
-      parts: [{ text: 'How do I reset my password?' }]
-    }
-  ]
-});
-
-// Check cache performance
-const usage = result.response.usageMetadata;
-console.log(`Cache tier: ${usage.cache_tier || 'none'}`);
-console.log(`Provider: ${result.response.provider}`);
-console.log(`Model: ${result.response.modelVersion}`);
-console.log(`Tokens: ${usage.totalTokenCount}`);
-```
-</CodeGroup>
-
-### Cache Tier Values Explained
-
-<ParamField body="cache_tier" type="string">
-  **Adaptive Extension**: Indicates cache performance and cost savings
-
-  - `"semantic_exact"` - Perfect semantic match (90%+ cost savings, <50ms response)
-  - `"semantic_similar"` - Similar semantic match (60-90% cost savings, <100ms response)
-  - `"none"` or omitted - No cache hit (standard costs and latency)
-</ParamField>
-
-### Tracking Cache Hit Rates
-
-Monitor cache effectiveness across multiple requests:
-
-```javascript
-// Example: Track cache performance over multiple requests
-class CacheTracker {
-  constructor(client) {
-    this.client = client;
-    this.stats = {
-      requests: 0,
-      cacheHits: 0,
-      exactHits: 0,
-      similarHits: 0,
-      totalTokens: 0,
-      estimatedSavings: 0
-    };
-  }
-
-  async makeRequest(messages) {
-    const completion = await this.client.chat.completions.create({
-      model: '',
-      messages: messages
-    });
-
-    this.stats.requests++;
-    this.stats.totalTokens += completion.usage.total_tokens;
-
-    const cacheTier = completion.usage.cache_tier;
-    if (cacheTier && cacheTier !== 'none') {
-      this.stats.cacheHits++;
-
-      if (cacheTier === 'semantic_exact') {
-        this.stats.exactHits++;
-        // Estimate 90% savings for exact matches
-        this.stats.estimatedSavings += completion.usage.total_tokens * 0.15 * 0.9;
-      } else if (cacheTier === 'semantic_similar') {
-        this.stats.similarHits++;
-        // Estimate 75% savings for similar matches
-        this.stats.estimatedSavings += completion.usage.total_tokens * 0.15 * 0.75;
-      }
-    }
-
-    return completion;
-  }
-
-  getStats() {
-    const hitRate = (this.stats.cacheHits / this.stats.requests * 100).toFixed(1);
-    const exactRate = (this.stats.exactHits / this.stats.requests * 100).toFixed(1);
-    const similarRate = (this.stats.similarHits / this.stats.requests * 100).toFixed(1);
-
-    return {
-      totalRequests: this.stats.requests,
-      cacheHitRate: `${hitRate}%`,
-      exactMatchRate: `${exactRate}%`,
-      similarMatchRate: `${similarRate}%`,
-      totalTokens: this.stats.totalTokens,
-      estimatedSavings: `$${this.stats.estimatedSavings.toFixed(4)}`
-    };
-  }
+totalRequests++;
+if (completion.usage.cache_tier && completion.usage.cache_tier !== 'none') {
+  cacheHits++;
 }
 
-// Usage example
-const tracker = new CacheTracker(client);
-
-// Make several requests
-await tracker.makeRequest([{ role: 'user', content: 'How do I reset my password?' }]);
-await tracker.makeRequest([{ role: 'user', content: 'I forgot my password' }]);
-await tracker.makeRequest([{ role: 'user', content: 'Password reset help' }]);
-await tracker.makeRequest([{ role: 'user', content: 'New user registration' }]);
-
-console.log('Cache Performance Stats:', tracker.getStats());
+const hitRate = ((cacheHits / totalRequests) * 100).toFixed(1);
+console.log(`Cache hit rate: ${hitRate}%`);
 ```
 
 ### Streaming with Cache Data
 
-Get cache performance information from streaming responses:
+Cache information is available in streaming responses:
 
-<CodeGroup>
-```javascript OpenAI Streaming
+```javascript
 const stream = await client.chat.completions.create({
   model: '',
   messages: [{ role: 'user', content: 'Tell me a story' }],
   stream: true,
-  stream_options: {
-    include_usage: true  // Request usage data in stream
-  }
+  stream_options: { include_usage: true }
 });
 
-let cacheTier = null;
 for await (const chunk of stream) {
-  // Content chunks
-  if (chunk.choices[0]?.delta?.content) {
-    process.stdout.write(chunk.choices[0].delta.content);
-  }
-
-  // Final chunk with usage data
   if (chunk.usage) {
-    cacheTier = chunk.usage.cache_tier;
-    console.log(`\n\nCache tier: ${cacheTier || 'none'}`);
-    console.log(`Provider: ${chunk.provider}`);
-    console.log(`Model: ${chunk.model}`);
+    console.log(`Cache tier: ${chunk.usage.cache_tier || 'none'}`);
   }
 }
 ```
 
-```javascript Anthropic Streaming
-const stream = await client.messages.create({
-  model: '',
-  max_tokens: 1000,
-  messages: [{ role: 'user', content: 'Tell me a story' }],
-  stream: true
-});
+### Production Cache Monitoring
 
-let cacheTier = null;
-for await (const event of stream) {
-  if (event.type === 'content_block_delta') {
-    process.stdout.write(event.delta.text);
-  }
-
-  if (event.type === 'message_stop') {
-    cacheTier = event.message.cache_tier;
-    console.log(`\n\nCache tier: ${cacheTier || 'none'}`);
-    console.log(`Provider: ${event.message.provider}`);
-  }
-}
-```
-</CodeGroup>
-
-### Production Cache Monitoring Middleware
-
-Production-ready middleware for tracking cache performance:
+Simple cache tracking for production:
 
 ```javascript
-// Production cache monitoring middleware
-class AdaptiveCacheMonitor {
-  constructor(client) {
-    this.client = client;
-    this.metrics = {
-      totalRequests: 0,
-      cacheHits: 0,
-      cacheMisses: 0,
-      exactMatches: 0,
-      similarMatches: 0,
-      totalTokens: 0,
-      estimatedCostSavings: 0,
-      responseTimes: [],
-      lastReset: Date.now()
-    };
+class CacheMonitor {
+  constructor() {
+    this.requests = 0;
+    this.hits = 0;
   }
 
-  async chatCompletion(params) {
-    const startTime = Date.now();
-
-    try {
-      const completion = await this.client.chat.completions.create(params);
-      const responseTime = Date.now() - startTime;
-
-      this.metrics.totalRequests++;
-      this.metrics.responseTimes.push(responseTime);
-      this.metrics.totalTokens += completion.usage.total_tokens;
-
-      const cacheTier = completion.usage.cache_tier;
-      if (cacheTier && cacheTier !== 'none') {
-        this.metrics.cacheHits++;
-
-        if (cacheTier === 'semantic_exact') {
-          this.metrics.exactMatches++;
-          // Estimate savings: assume $0.15/1M tokens, 90% savings for exact matches
-          this.metrics.estimatedCostSavings += (completion.usage.total_tokens / 1_000_000) * 0.15 * 0.9;
-        } else if (cacheTier === 'semantic_similar') {
-          this.metrics.similarMatches++;
-          // Estimate savings: 75% savings for similar matches
-          this.metrics.estimatedCostSavings += (completion.usage.total_tokens / 1_000_000) * 0.15 * 0.75;
-        }
-      } else {
-        this.metrics.cacheMisses++;
-      }
-
-      // Log significant cache events
-      if (cacheTier === 'semantic_exact') {
-        console.log(`🔥 Cache EXACT hit: ${responseTime}ms, saved $${((completion.usage.total_tokens / 1_000_000) * 0.15 * 0.9).toFixed(6)}`);
-      } else if (cacheTier === 'semantic_similar') {
-        console.log(`⚡ Cache SIMILAR hit: ${responseTime}ms, saved $${((completion.usage.total_tokens / 1_000_000) * 0.15 * 0.75).toFixed(6)}`);
-      }
-
-      return completion;
-    } catch (error) {
-      console.error('Request failed:', error);
-      throw error;
+  track(completion) {
+    this.requests++;
+    if (completion.usage.cache_tier !== 'none') {
+      this.hits++;
     }
   }
 
-  getMetrics() {
-    const cacheHitRate = (this.metrics.cacheHits / this.metrics.totalRequests * 100).toFixed(1);
-    const avgResponseTime = this.metrics.responseTimes.reduce((a, b) => a + b, 0) / this.metrics.responseTimes.length;
-
-    return {
-      period: `${Math.round((Date.now() - this.metrics.lastReset) / 1000)}s`,
-      totalRequests: this.metrics.totalRequests,
-      cacheHitRate: `${cacheHitRate}%`,
-      exactMatches: this.metrics.exactMatches,
-      similarMatches: this.metrics.similarMatches,
-      cacheMisses: this.metrics.cacheMisses,
-      totalTokens: this.metrics.totalTokens,
-      estimatedSavings: `$${this.metrics.estimatedCostSavings.toFixed(4)}`,
-      avgResponseTime: `${avgResponseTime.toFixed(0)}ms`,
-      p95ResponseTime: `${this.metrics.responseTimes.sort((a,b) => a-b)[Math.floor(this.metrics.responseTimes.length * 0.95)] || 0}ms`
-    };
-  }
-
-  resetMetrics() {
-    this.metrics.lastReset = Date.now();
-    this.metrics.totalRequests = 0;
-    this.metrics.cacheHits = 0;
-    this.metrics.cacheMisses = 0;
-    this.metrics.exactMatches = 0;
-    this.metrics.similarMatches = 0;
-    this.metrics.totalTokens = 0;
-    this.metrics.estimatedCostSavings = 0;
-    this.metrics.responseTimes = [];
+  getHitRate() {
+    return ((this.hits / this.requests) * 100).toFixed(1) + '%';
   }
 }
-
-// Usage in production
-const monitor = new AdaptiveCacheMonitor(client);
-
-// Wrap your requests
-const completion = await monitor.chatCompletion({
-  model: '',
-  messages: [{ role: 'user', content: 'How do I reset my password?' }]
-});
-
-// Get metrics every hour
-setInterval(() => {
-  console.log('Cache Metrics:', monitor.getMetrics());
-  monitor.resetMetrics();
-}, 60 * 60 * 1000);
 ```
 
 ### Cost Savings Calculator
 
-Calculate actual cost savings from cache hits:
-
 ```javascript
-// Cost savings calculator
-function calculateCacheSavings(completion) {
+function calculateSavings(completion) {
   const tokens = completion.usage.total_tokens;
-  const cacheTier = completion.usage.cache_tier;
-
-  // Base cost: $0.15 per 1M tokens (example rate)
-  const baseCostPerMillion = 0.15;
-  const baseCost = (tokens / 1_000_000) * baseCostPerMillion;
-
-  let actualCost = baseCost;
-  let savings = 0;
-  let savingsPercent = 0;
-
-  if (cacheTier === 'semantic_exact') {
-    // 90% savings for exact matches
-    actualCost = baseCost * 0.1;
-    savings = baseCost * 0.9;
-    savingsPercent = 90;
-  } else if (cacheTier === 'semantic_similar') {
-    // 75% savings for similar matches
-    actualCost = baseCost * 0.25;
-    savings = baseCost * 0.75;
-    savingsPercent = 75;
-  }
-
-  return {
-    tokens,
-    cacheTier: cacheTier || 'none',
-    baseCost: `$${baseCost.toFixed(6)}`,
-    actualCost: `$${actualCost.toFixed(6)}`,
-    savings: `$${savings.toFixed(6)}`,
-    savingsPercent: `${savingsPercent}%`,
-    responseTime: cacheTier ? '<100ms' : 'standard'
-  };
+  const tier = completion.usage.cache_tier;
+  
+  if (tier === 'semantic_exact') return { savings: '90%', cost: tokens * 0.15 * 0.1 };
+  if (tier === 'semantic_similar') return { savings: '75%', cost: tokens * 0.15 * 0.25 };
+  return { savings: '0%', cost: tokens * 0.15 };
 }
-
-// Example usage
-const completion = await client.chat.completions.create({
-  model: '',
-  messages: [{ role: 'user', content: 'How do I reset my password?' }]
-});
-
-console.log('Cost Analysis:', calculateCacheSavings(completion));
 ```
 
 ## Next Steps
 
-<CardGroup cols={2}>
-  <Card title="Performance Overview" href="/features/performance" icon="gauge-high">
-    Understand all performance optimization features
-  </Card>
-  <Card title="Intelligent Routing" href="/features/intelligent-routing" icon="route">
-    Learn how routing combines with caching for maximum efficiency
-  </Card>
-</CardGroup>
+- [Performance Overview](/features/performance) - All optimization features
+- [Intelligent Routing](/features/intelligent-routing) - Routing + caching
