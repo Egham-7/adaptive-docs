@@ -1,0 +1,96 @@
+---
+title: "Provider Routing"
+description: "Steer routing behavior per request with provider controls"
+icon: "route"
+---
+
+Adaptive Proxy now supports provider controls so you can steer routing behavior per request without giving up our intelligent model router. The `provider` object is accepted on **Chat Completions**, **Anthropic Messages**, and **Gemini Generate** requests and is enforced consistently across non-streaming and streaming executions (including fallback paths).
+
+## Request Shape
+
+<CodeGroup>
+```json JSON
+POST /v1/chat/completions
+{
+  "model": "meta-llama/llama-3.1-70b-instruct",
+  "messages": [{ "role": "user", "content": "Summarize this thread." }],
+  "provider": {
+    "order": ["anthropic", "groq"],
+    "only": ["anthropic", "groq"],
+    "ignore": ["deepinfra"],
+    "sort": "price",              // price | throughput | latency
+    "quantizations": ["fp8"],
+    "require_parameters": true,
+    "data_collection": "deny",    // allow | deny
+    "zdr": true,
+    "enforce_distillable_text": false,
+    "allow_fallbacks": false,
+    "max_price": {
+      "prompt": 1.2,              // USD per million tokens
+      "completion": 2.0,
+      "request": 0.10
+    }
+  },
+  "fallback": {
+    "enabled": true,
+    "mode": "race",
+    "timeout_ms": 20000
+  }
+}
+```
+</CodeGroup>
+
+<Note>
+  `provider.allow_fallbacks` simply toggles the new `fallback.enabled` flag. Use the `fallback` object when you need finer control over mode, retries, or circuit breakers.
+</Note>
+
+## Field Reference
+
+- `order`: Explicit list of provider tags to try first. When omitted, Adaptive's heuristics determine the initial ordering.
+- `only`: Whitelist of providers/endpoint tags. Requests are rejected if no allowed provider remains.
+- `ignore`: Blacklist of providers/endpoint tags to skip even when the router selects them.
+- `sort`: Secondary ordering when `order` is absent. `price`, `throughput`, and `latency` map to cost, capacity, and responsiveness heuristics.
+- `quantizations`: Require specific quantization levels (e.g., `["int8","fp8"]`). Endpoint metadata is used; models lacking the requested format are filtered out.
+- `require_parameters`: When true, the model must advertise support for every parameter implied by the request (tools, response_format, etc.).
+- `data_collection`: `allow` (default) or `deny`. When `deny`, only providers marked as non-retentive in the registry remain. (Falls back to current metadata; future registry updates will make this stricter.)
+- `zdr`: Restrict routing to Zero Data Retention endpoints.
+- `enforce_distillable_text`: Filter to models whose publishers have opted into distillable outputs.
+- `allow_fallbacks`: Convenience flag that maps to `fallback.enabled`. Set to `false` to disable provider retries entirely.
+- `max_price`: Ceilings for prompt/completion/request/image pricing. Providers lacking explicit pricing are treated as exceeding the cap.
+
+## Intelligent Routing + Provider Constraints
+
+1. **Logical model selection** still happens through the Adaptive router (unless you hard-code `model`).
+2. **Provider constraints** (order/only/quantization/price/etc.) are applied when building the physical execution plan.
+3. **Fallback** now respects `fallback.enabled`. When disabled, the first provider failure surfaces directly.
+
+Because constraints are enforced during provider selection, both primary execution and fallback candidates adhere to the same rules. For example, if you pin `quantizations: ["fp8"]`, every provider in the execution plan satisfies that requirement.
+
+## Nitro / Floor Shortcuts
+
+Suffix shortcuts work out of the box:
+
+- Append `:nitro` to any model slug to imply `provider.sort = "throughput"`.
+- Append `:floor` to imply `provider.sort = "price"`.
+
+These hints are recognized even when you specify `model` directly (e.g., `meta-llama/llama-3.1-70b-instruct:nitro`).
+
+## Endpoint Coverage
+
+| Endpoint               | Support                                    |
+|------------------------|---------------------------------------------|
+| `/v1/chat/completions` | Full provider object + `fallback.enabled`   |
+| `/v1/messages`         | Same provider fields + fallback toggle      |
+| `/v1/models/:generate` | Same provider fields + fallback toggle      |
+
+<Note>
+  The Gemini streaming API now builds the same provider execution plan as the non-streaming route, so ordering and filtering are consistent everywhere.
+</Note>
+
+## Migration Tips
+
+- **Existing code:** No changes required unless you want to leverage the new controls. Previous behavior (no `provider` object) is unchanged.
+- **Fallback:** If you relied on "unset mode = disabled," switch to `fallback.enabled=false` (or `provider.allow_fallbacks=false`).
+- **Registry metadata:** Some filters (data collection, ZDR, distillable text) depend on registry tags. They currently act as "best effort" switches and will grow stricter as the registry schema expands.
+
+Use these controls to enforce routing policies, enforce compliance requirements, and keep Adaptive's intelligent planner as the safety net. Whatever combination you choose, the planner guarantees all executed providers match the constraints you set.
