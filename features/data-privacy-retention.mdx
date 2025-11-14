@@ -6,31 +6,6 @@ icon: "shield-check"
 
 Understanding how your data is processed, stored, and protected throughout the Adaptive platform, including what data is retained and your control over data handling.
 
-## SDK Setup
-
-Privacy configuration examples use the OpenAI SDK with Adaptive overrides:
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
-```
-</CodeGroup>
-
 ## Data Processing Architecture
 
 Adaptive processes data across three services with different data handling characteristics:
@@ -279,8 +254,7 @@ When using Adaptive, your requests are forwarded to AI providers. Each provider 
 
 ### Provider Selection for Privacy
 
-<CodeGroup>
-```javascript Privacy-First Routing
+```javascript
 const completion = await openai.chat.completions.create({
   model: "",  // Enable intelligent routing
   messages: [{ role: "user", content: "Sensitive data analysis" }],
@@ -294,21 +268,6 @@ const completion = await openai.chat.completions.create({
   }
 });
 ```
-
-```python Zero Retention Focus
-completion = client.chat.completions.create(
-    model="",
-    messages=[{"role": "user", "content": "Confidential analysis"}],
-    model_router={
-      "models": [
-        "z-ai/glm-4.6",              // Zero retention
-        "anthropic/claude-haiku-4-5", // Strict privacy guarantees
-        "gemini/gemini-2.5-flash-lite" // Regional deployment controls
-      ]
-    }
-)
-```
-</CodeGroup>
 
 ## Compliance and Transparency
 
