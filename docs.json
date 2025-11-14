@@ -21,7 +21,7 @@
         "group": "Key Features",
         "pages": [
           "supported-models",
-          "features/intelligent-routing",
+          "features/model-routing",
           "features/provider-routing",
           "features/bring-your-own-keys",
           "features/zero-completion-insurance",

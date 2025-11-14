@@ -1,6 +1,6 @@
 ---
-title: "Intelligent Routing"
-description: "Automatic model selection for optimal cost and performance"
+title: 'Model Routing'
+description: 'Automatic model selection for optimal cost and performance'
 icon: "route"
 ---
 
@@ -53,12 +53,12 @@ client = OpenAI(
 
 ## Quick Start
 
-Simply leave the model field empty to enable intelligent routing:
+Simply leave the model field empty to enable model routing:
 
 <CodeGroup>
 ```javascript JavaScript/Node.js
 const completion = await openai.chat.completions.create({
-  model: "", // Empty enables intelligent routing
+  model: "", // Empty enables model routing
   messages: [{ role: "user", content: "Hello!" }]
 });
 
@@ -68,7 +68,7 @@ console.log(`Used provider: ${completion.provider}`);
 
 ```python Python
 completion = client.chat.completions.create(
-    model="", # Empty enables intelligent routing
+    model="", # Empty enables model routing
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
@@ -333,7 +333,7 @@ Every response includes provider information:
 
 <CardGroup cols={2}>
   <Card title="Enterprise Optimization" icon="building">
-    **Custom provider contracts**: Use intelligent routing with your own API
+    **Custom provider contracts**: Use model routing with your own API
     keys and enterprise pricing
   </Card>
   <Card title="Local Deployment" icon="server">
