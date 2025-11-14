@@ -14,10 +14,18 @@ icon: "/images/logos/vercel.svg"
 ### Installation
 
 ```bash
-npm install ai @ai-sdk/openai
+npm install ai @ai-sdk/openai zod
 ```
 
-### Basic Usage
+### Configure API Key
+
+Create a `.env.local` file and add your Adaptive API key:
+
+```env
+ADAPTIVE_API_KEY=your-api-key-here
+```
+
+## Basic Usage
 
 ```javascript
 import { openai } from '@ai-sdk/openai';
@@ -36,43 +44,144 @@ const { text } = await generateText({
 console.log(text);
 ```
 
-## Streaming Example
+## Next.js App Router Example
 
-```javascript
-import { streamText } from 'ai';
+### Route Handler (app/api/chat/route.ts)
 
-const { textStream } = await streamText({
-  model: adaptiveOpenAI(''),
-  prompt: 'Write a short story about AI',
-});
+```typescript
+import { openai } from '@ai-sdk/openai';
+import { streamText, UIMessage, convertToModelMessages } from 'ai';
 
-for await (const delta of textStream) {
-  process.stdout.write(delta);
+export const maxDuration = 30;
+
+export async function POST(req: Request) {
+  const { messages }: { messages: UIMessage[] } = await req.json();
+
+  const result = streamText({
+    model: openai({
+      apiKey: process.env.ADAPTIVE_API_KEY,
+      baseURL: 'https://api.llmadaptive.uk/v1'
+    })(''), // Empty string enables routing
+    messages: convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
 }
 ```
 
-## React Chat Component
+### UI Component (app/page.tsx)
 
-```javascript
-import { useChat } from 'ai/react';
+```typescript
+'use client';
+
+import { useChat } from '@ai-sdk/react';
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat', // Your API route using Adaptive
-  });
+  const { messages, input, handleInputChange, handleSubmit } = useChat();
 
   return (
-    <div>
-      {messages.map(m => (
-        <div key={m.id}>
-          <strong>{m.role}: </strong>
-          {m.content}
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {messages.map(message => (
+        <div key={message.id} className="whitespace-pre-wrap">
+          {message.role === 'user' ? 'User: ' : 'AI: '}
+          {message.parts.map((part, i) => {
+            switch (part.type) {
+              case 'text':
+                return <div key={`${message.id}-${i}`}>{part.text}</div>;
+            }
+          })}
         </div>
       ))}
-      
+
       <form onSubmit={handleSubmit}>
-        <input value={input} onChange={handleInputChange} />
-        <button type="submit">Send</button>
+        <input
+          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-zinc-300 rounded shadow-xl"
+          value={input}
+          placeholder="Say something..."
+          onChange={handleInputChange}
+        />
+      </form>
+    </div>
+  );
+}
+```
+
+## Tool Calling with Adaptive
+
+### Route Handler with Tools
+
+```typescript
+import { openai } from '@ai-sdk/openai';
+import { streamText, UIMessage, convertToModelMessages, tool } from 'ai';
+import { z } from 'zod';
+
+export async function POST(req: Request) {
+  const { messages }: { messages: UIMessage[] } = await req.json();
+
+  const result = streamText({
+    model: openai({
+      apiKey: process.env.ADAPTIVE_API_KEY,
+      baseURL: 'https://api.llmadaptive.uk/v1'
+    })(''),
+    messages: convertToModelMessages(messages),
+    tools: {
+      weather: tool({
+        description: 'Get the weather in a location',
+        inputSchema: z.object({
+          location: z.string().describe('The location to get the weather for'),
+        }),
+        execute: async ({ location }) => {
+          // Your weather API call here
+          return {
+            location,
+            temperature: 72,
+            condition: 'Sunny'
+          };
+        },
+      }),
+    },
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+### UI with Tool Results
+
+```typescript
+'use client';
+
+import { useChat } from '@ai-sdk/react';
+
+export default function Chat() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat();
+
+  return (
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {messages.map(message => (
+        <div key={message.id} className="whitespace-pre-wrap">
+          {message.role === 'user' ? 'User: ' : 'AI: '}
+          {message.parts.map((part, i) => {
+            switch (part.type) {
+              case 'text':
+                return <div key={`${message.id}-${i}`}>{part.text}</div>;
+              case 'tool-weather':
+                return (
+                  <pre key={`${message.id}-${i}`}>
+                    {JSON.stringify(part, null, 2)}
+                  </pre>
+                );
+            }
+          })}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          value={input}
+          placeholder="Ask about weather..."
+          onChange={handleInputChange}
+        />
       </form>
     </div>
   );
@@ -93,17 +202,6 @@ export default function Chat() {
   </Card>
   <Card title="Provider Transparency" icon="eye">
     See which AI provider was used for each request
-  </Card>
-</CardGroup>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="More Examples" href="/examples/streaming-chat" icon="code">
-    See complete working examples
-  </Card>
-  <Card title="API Reference" href="/api-reference/chat-completions" icon="book">
-    Explore all available options and parameters
   </Card>
 </CardGroup>
 
