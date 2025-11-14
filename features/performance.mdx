@@ -6,29 +6,6 @@ icon: "gauge-high"
 
 Adaptive delivers industry-leading performance through optimized Go architecture, intelligent caching, and purpose-built ML algorithms designed for speed.
 
-## SDK Setup
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
-```
-</CodeGroup>
-
 ## Performance Highlights
 
 <CardGroup cols={4}>
@@ -188,7 +165,7 @@ Benchmarks run on identical hardware (4 CPU cores, 8GB RAM) with 1000 concurrent
 
 ### Cache Warming
 
-Adaptive automatically pre-loads cache with common patterns. You can also manually warm caches:
+Adaptive automatically pre-loads cache with common patterns. Manual warming:
 
 ```javascript
 const patterns = ["Hello, how are you?", "Explain this concept:", "Write a summary of:"];
@@ -223,7 +200,7 @@ Track performance in your [Adaptive dashboard](https://www.llmadaptive.uk/dashbo
     Multiple Adaptive instances can be load-balanced for higher throughput
   </Step>
   <Step title="Cache Sharing">
-    Distributed cache layers maintain efficiency across instances  
+    Distributed cache layers maintain efficiency across instances
   </Step>
   <Step title="Auto-scaling">
     Automatic instance scaling based on request volume and latency
