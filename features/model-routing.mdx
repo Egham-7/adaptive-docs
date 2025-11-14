@@ -21,9 +21,13 @@ Adaptive's model routing is powered by a sophisticated evaluation system that an
     When a prompt arrives, we embed it to find its cluster match, then select the best-performing model for that cluster
   </Step>
   <Step title="Continuous Learning">
-    The system continuously updates profiles as new models and benchmarks become available
+    The system continuously updates profiles as new models and benchmarks become available. Benchmarks are updated based on production workloads, and models are continuously evaluated to guard against performance degradation.
   </Step>
 </Steps>
+
+<Note>
+  **Coming Soon**: Custom evaluations for each user, allowing you to define your own benchmarks and evaluation criteria for personalized model routing.
+</Note>
 
 ## SDK Setup
 
