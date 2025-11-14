@@ -17,52 +17,19 @@ Get started with Adaptive by changing one line of code. No complex setup require
   </Step>
 </Steps>
 
-## Step 2: Install SDK (Optional)
+## Step 2: Install SDK
 
-<Tabs>
-<Tab title="JavaScript/Node.js">
 <CodeGroup>
 ```bash npm
 npm install openai
 ```
 
-```bash yarn
-yarn add openai
-```
-
-```bash pnpm
-pnpm add openai
-```
-</CodeGroup>
-</Tab>
-
-<Tab title="Python">
-<CodeGroup>
 ```bash pip
 pip install openai
 ```
-
-```bash poetry
-poetry add openai
-```
-
-```bash conda
-conda install openai
-```
 </CodeGroup>
-</Tab>
-
-<Tab title="cURL">
-No installation required - cURL is available on most systems.
-</Tab>
-</Tabs>
 
 ## Step 3: Make Your First Request
-
-Choose your preferred language and framework:
-
-<Tabs>
-<Tab title="OpenAI SDK">
 
 <CodeGroup>
 ```javascript JavaScript/Node.js
@@ -108,192 +75,20 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
 ```
 </CodeGroup>
 
-</Tab>
-
-<Tab title="Anthropic SDK">
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-
-const response = await client.messages.create({
-  model: '', // Leave empty for intelligent routing
-  max_tokens: 1000,
-  messages: [{ role: 'user', content: 'Hello!' }]
-});
-
-console.log(response.content[0].text);
-```
-
-```python Python
-import anthropic
-
-client = anthropic.Anthropic(
-    api_key="your-adaptive-api-key",
-    base_url="https://api.llmadaptive.uk/v1"
-)
-
-response = client.messages.create(
-    model="", # Leave empty for intelligent routing
-    max_tokens=1000,
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-
-print(response.content[0].text)
-```
-
-```bash cURL
-curl https://api.llmadaptive.uk/v1/messages \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: your-adaptive-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -d '{
-    "model": "",
-    "max_tokens": 1000,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-</CodeGroup>
-
-</Tab>
-
-<Tab title="Vercel AI SDK">
-
-<CodeGroup>
-```javascript Basic Text Generation
-import { openai } from '@ai-sdk/openai';
-import { generateText } from 'ai';
-
-const { text } = await generateText({
-  model: openai('', {
-    baseURL: 'https://api.llmadaptive.uk/v1',
-    apiKey: 'your-adaptive-api-key'
-  }),
-  prompt: 'Hello!'
-});
-
-console.log(text);
-```
-
-```javascript Streaming
-import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
-
-const { textStream } = await streamText({
-  model: openai('', {
-    baseURL: 'https://api.llmadaptive.uk/v1',
-    apiKey: 'your-adaptive-api-key'
-  }),
-  prompt: 'Write a story about AI'
-});
-
-for await (const delta of textStream) {
-  process.stdout.write(delta);
-}
-```
-
-```javascript React Components
-import { useChat } from 'ai/react';
-
-export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat', // Your API route
-    initialMessages: [{ role: 'system', content: 'Hello!' }]
-  });
-
-  return (
-    <div>
-      {messages.map(m => (
-        <div key={m.id}>
-          {m.role}: {m.content}
-        </div>
-      ))}
-      <form onSubmit={handleSubmit}>
-        <input value={input} onChange={handleInputChange} />
-      </form>
-    </div>
-  );
-}
-```
-</CodeGroup>
-
-</Tab>
-
-<Tab title="LangChain">
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import { ChatOpenAI } from '@langchain/openai';
-
-const model = new ChatOpenAI({
-  openAIApiKey: 'your-adaptive-api-key',
-  configuration: {
-    baseURL: 'https://api.llmadaptive.uk/v1'
-  },
-  modelName: '' // Leave empty for intelligent routing
-});
-
-const response = await model.invoke('Hello!');
-console.log(response.content);
-```
-
-```python Python
-from langchain_openai import ChatOpenAI
-
-model = ChatOpenAI(
-    openai_api_key="your-adaptive-api-key",
-    openai_api_base="https://api.llmadaptive.uk/v1",
-    model_name="" # Leave empty for intelligent routing
-)
-
-response = model.invoke("Hello!")
-print(response.content)
-```
-
-```python Chains
-from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-
-model = ChatOpenAI(
-    openai_api_key="your-adaptive-api-key",
-    openai_api_base="https://api.llmadaptive.uk/v1",
-    model_name=""
-)
-
-prompt = PromptTemplate(
-    input_variables=["topic"],
-    template="Write a brief summary about {topic}"
-)
-
-chain = LLMChain(llm=model, prompt=prompt)
-result = chain.run(topic="artificial intelligence")
-print(result)
-```
-</CodeGroup>
-
-</Tab>
-</Tabs>
-
 ## Key Features
 
 <CardGroup cols={2}>
   <Card title="Intelligent Routing" icon="brain">
-    Leave `model` empty and let our AI choose the optimal provider for your request
+    Leave `model` empty for automatic provider selection
   </Card>
   <Card title="Cost Savings" icon="dollar-sign">
-    Save 60-90% on AI costs with automatic model selection
+    Save 60-90% with smart model routing
+  </Card>
+  <Card title="Drop-in Replacement" icon="plug">
+    Works with existing OpenAI SDK code
   </Card>
   <Card title="6+ Providers" icon="network-wired">
     Access OpenAI, Anthropic, Google, Groq, DeepSeek, and Grok
-  </Card>
-  <Card title="Drop-in Replacement" icon="plug">
-    Works with existing OpenAI and Anthropic SDK code
   </Card>
 </CardGroup>
 
@@ -362,27 +157,16 @@ Adaptive returns standard OpenAI or Anthropic-compatible responses with addition
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Advanced Features" href="/features/intelligent-routing" icon="lightbulb">
-    Learn about intelligent routing and semantic caching
+  <Card title="API Reference" href="/api-reference/chat-completions" icon="terminal">
+    Complete API documentation
   </Card>
   <Card title="Integration Guides" href="/integrations/openai-sdk" icon="book">
-    Detailed guides for each SDK and framework
+    Detailed SDK guides
   </Card>
-  <Card title="API Reference" href="/api-reference/chat-completions" icon="terminal">
-    Complete API documentation with all parameters
+  <Card title="Examples" href="/examples/basic-chat" icon="code">
+    Working code examples
   </Card>
-  <Card title="Code Examples" href="/examples/basic-chat" icon="code">
-    Working examples for common use cases
-  </Card>
-</CardGroup>
-
-## Need Help?
-
-<CardGroup cols={2}>
   <Card title="Troubleshooting" href="/troubleshooting" icon="wrench">
-    Common issues and their solutions
-  </Card>
-  <Card title="Support" href="https://www.llmadaptive.uk/support" icon="life-ring">
-    Get help from our team
+    Common issues and solutions
   </Card>
 </CardGroup>
