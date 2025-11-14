@@ -8,21 +8,20 @@ Adaptive's AI-powered routing engine analyzes every request and automatically se
 
 ## How It Works
 
+Adaptive's model routing is powered by a sophisticated evaluation system that analyzes model performance across diverse benchmarks:
+
 <Steps>
-  <Step title="Request Analysis">
-    Our ML models analyze your prompt's complexity, length, task type, and
-    function calling requirements in real-time
+  <Step title="Benchmark Clustering">
+    We take top benchmarks and cluster questions by embedding each one, creating semantic clusters that group similar tasks together
   </Step>
-  <Step title="Provider Selection">
-    The routing engine considers available providers, costs, performance
-    metrics, and function calling support
+  <Step title="Model Evaluation">
+    Each LLM is evaluated on every cluster, generating performance profiles that show which models excel at specific types of tasks
   </Step>
-  <Step title="Optimal Match">
-    The best model is selected and your request is routed automatically
+  <Step title="Inference Routing">
+    When a prompt arrives, we embed it to find its cluster match, then select the best-performing model for that cluster
   </Step>
-  <Step title="Response Delivery">
-    You receive a standard response with provider information showing which
-    model was used
+  <Step title="Continuous Learning">
+    The system continuously updates profiles as new models and benchmarks become available
   </Step>
 </Steps>
 
