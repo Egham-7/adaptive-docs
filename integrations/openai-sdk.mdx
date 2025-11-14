@@ -107,7 +107,7 @@ for chunk in stream:
 
 ## Response Format
 
-Adaptive returns standard OpenAI responses with one extra field:
+Adaptive returns standard OpenAI responses:
 
 ```json
 {
@@ -115,217 +115,36 @@ Adaptive returns standard OpenAI responses with one extra field:
   "choices": [{
     "message": {"content": "Hello! How can I help you?"}
   }],
-  "usage": {"total_tokens": 21},
-  "provider": "gemini"  // ← Shows which provider was used
+  "usage": {"total_tokens": 21}
 }
 ```
 
 ## Error Handling
 
-Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+Handle common errors gracefully:
 
-```typescript
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: "your-adaptive-api-key",
-  baseURL: "https://api.llmadaptive.uk/v1",
-});
-
+```javascript
 try {
-  const response = await client.chat.completions.create({
-    model: "", // Intelligent routing with automatic retries
-    messages: [{ role: "user", content: "Hello!" }],
+  const completion = await openai.chat.completions.create({
+    model: '',
+    messages: [{ role: 'user', content: 'Hello!' }]
   });
-  console.log(response.choices[0].message.content);
-} catch (error: any) {
-  console.error("Request failed:", error.message);
-  // Adaptive has already tried multiple providers
-}
-```
-
-### Streaming Error Recovery
-
-```typescript
-async function streamWithErrorRecovery(messages: any[]) {
-  try {
-    const stream = await client.chat.completions.create({
-      model: "",
-      messages,
-      stream: true,
-    });
-
-    let buffer = "";
-    let errorCount = 0;
-    const maxErrors = 3;
-
-    for await (const chunk of stream) {
-      try {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          buffer += content;
-          process.stdout.write(content);
-        }
-
-        // Reset error count on successful chunk
-        errorCount = 0;
-
-      } catch (chunkError) {
-        errorCount++;
-        console.warn(`Chunk processing error ${errorCount}:`, chunkError);
-
-        if (errorCount >= maxErrors) {
-          console.error("Too many streaming errors, aborting...");
-          break;
-        }
-
-        // Continue processing other chunks
-        continue;
-      }
-    }
-
-    return buffer;
-
-  } catch (streamError: any) {
-    console.error("Streaming failed:", streamError);
-
-    // Fallback to non-streaming request
-    console.log("Falling back to non-streaming request...");
-    return await client.chat.completions.create({
-      model: "",
-      messages,
-      stream: false,
-    });
+  console.log(completion.choices[0].message.content);
+} catch (error) {
+  if (error.status === 401) {
+    console.error('Invalid API key');
+  } else if (error.status === 429) {
+    console.error('Rate limit exceeded - try again later');
+  } else {
+    console.error('API error:', error.message);
   }
 }
 ```
 
-### Circuit Breaker Pattern
-
-```typescript
-class CircuitBreaker {
-  private failures = 0;
-  private lastFailureTime = 0;
-  private state: 'closed' | 'open' | 'half-open' = 'closed';
-
-  constructor(
-    private failureThreshold = 5,
-    private recoveryTimeout = 60000 // 1 minute
-  ) {}
-
-  async execute<T>(operation: () => Promise<T>): Promise<T> {
-    if (this.state === 'open') {
-      if (Date.now() - this.lastFailureTime > this.recoveryTimeout) {
-        this.state = 'half-open';
-      } else {
-        throw new Error('Circuit breaker is open');
-      }
-    }
-
-    try {
-      const result = await operation();
-      this.onSuccess();
-      return result;
-    } catch (error) {
-      this.onFailure();
-      throw error;
-    }
-  }
-
-  private onSuccess() {
-    this.failures = 0;
-    this.state = 'closed';
-  }
-
-  private onFailure() {
-    this.failures++;
-    this.lastFailureTime = Date.now();
-
-    if (this.failures >= this.failureThreshold) {
-      this.state = 'open';
-    }
-  }
-}
-
-// Usage
-const circuitBreaker = new CircuitBreaker();
-
-async function safeApiCall(messages: any[]) {
-  return circuitBreaker.execute(async () => {
-    return await client.chat.completions.create({
-      model: "",
-      messages,
-    });
-  });
-}
-```
-
-### Batch Processing with Error Isolation
-
-```typescript
-async function processBatchWithIsolation(items: any[], batchSize = 10) {
-  const results = [];
-  const errors = [];
-
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const batchPromises = batch.map(async (item, index) => {
-      try {
-        const response = await client.chat.completions.create({
-          model: "",
-          messages: [{ role: "user", content: item.prompt }],
-        });
-        return {
-          index: i + index,
-          success: true,
-          result: response.choices[0].message.content,
-        };
-      } catch (error: any) {
-        return {
-          index: i + index,
-          success: false,
-          error: error.message,
-          item,
-        };
-      }
-    });
-
-    const batchResults = await Promise.allSettled(batchPromises);
-
-    batchResults.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        if (result.value.success) {
-          results.push(result.value);
-        } else {
-          errors.push(result.value);
-        }
-      } else {
-        errors.push({
-          index: -1,
-          success: false,
-          error: result.reason.message,
-        });
-      }
-    });
-  }
-
-  return { results, errors };
-}
-
-// Usage
-const items = [
-  { prompt: "Summarize AI trends" },
-  { prompt: "Explain machine learning" },
-  // ... more items
-];
-
-const { results, errors } = await processBatchWithIsolation(items);
-
-console.log(`Processed ${results.length} items successfully`);
-console.log(`Encountered ${errors.length} errors`);
-```
-
----
+**Common Issues:**
+- **401**: Check your Adaptive API key
+- **429**: Rate limit exceeded - implement retry logic
+- **400**: Invalid request parameters
 
 ## Need More Control?
 

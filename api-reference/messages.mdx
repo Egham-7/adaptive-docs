@@ -20,9 +20,14 @@ POST https://api.llmadaptive.uk/v1/messages
 <CodeGroup>
 ```bash Bearer Token
 curl https://api.llmadaptive.uk/v1/messages \
-  -H "Authorization: Bearer apk_123456" \
+  -H "Authorization: Bearer your-adaptive-key" \
   -H "Content-Type: application/json"
 ```
+
+```bash Anthropic Style
+curl https://api.llmadaptive.uk/v1/messages \
+  -H "x-api-key: your-adaptive-key" \
+  -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01"
 ```
 </CodeGroup>
@@ -70,7 +75,7 @@ print(message.content[0].text)
 
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/messages \
-  -H "Authorization: Bearer apk_123456" \
+  -H "x-api-key: your-adaptive-key" \
   -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
@@ -144,7 +149,7 @@ These additional parameters control Adaptive's intelligent routing:
     </ParamField>
     
     <ParamField body="models" type="array">
-      Array of allowed provider:model strings for this request.
+      Array of allowed providers/models for this request.
     </ParamField>
   </Expandable>
 </ParamField>
@@ -163,6 +168,90 @@ These additional parameters control Adaptive's intelligent routing:
   </Expandable>
 </ParamField>
 
+## Example with Intelligent Routing
+
+<CodeGroup>
+```javascript Advanced Configuration
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  apiKey: 'your-adaptive-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const message = await anthropic.messages.create({
+  model: '',
+  max_tokens: 1000,
+  system: 'You are a helpful AI assistant focused on clear, concise answers.',
+  messages: [
+    { 
+      role: 'user', 
+      content: 'Explain machine learning in simple terms' 
+    }
+  ],
+  temperature: 0.7,
+  
+  // Adaptive intelligent routing
+  model_router: {
+    cost_bias: 0.3, // Favor cost savings
+    models: [
+      { provider: 'anthropic' },
+      { provider: 'openai' },
+      { provider: 'deepseek' }
+    ]
+  },
+  
+  // Fallback configuration
+  fallback: {
+    enabled: true,
+    mode: 'race'
+  }
+});
+
+console.log(message.content[0].text);
+```
+
+```python Advanced Configuration  
+import anthropic
+
+client = anthropic.Anthropic(
+    api_key="your-adaptive-key",
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+message = client.messages.create(
+    model="",
+    max_tokens=1000,
+    system="You are a helpful AI assistant focused on clear, concise answers.",
+    messages=[
+        {
+            "role": "user",
+            "content": "Explain machine learning in simple terms"
+        }
+    ],
+    temperature=0.7,
+    
+    # Adaptive intelligent routing
+    model_router={
+        "cost_bias": 0.3,  # Favor cost savings
+        "models": [
+            {"provider": "anthropic"},
+            {"provider": "openai"},
+            {"provider": "deepseek"}
+        ]
+    },
+    
+    # Fallback configuration
+    fallback={
+        "enabled": True,
+        "mode": "race"
+    }
+)
+
+print(message.content[0].text)
+```
+</CodeGroup>
+
 ## Response Format
 
 ```json
@@ -176,14 +265,12 @@ These additional parameters control Adaptive's intelligent routing:
       "text": "Machine learning is a method of teaching computers to learn patterns from data..."
     }
   ],
-  "model": "claude-3-5-haiku",
+   "model": "anthropic/claude-4-5-sonnet",
   "stop_reason": "end_turn",
-  "usage": {
-    "input_tokens": 25,
-    "output_tokens": 150
-  },
-  "provider": "anthropic",      // Which provider was used
-  "cache_tier": "none"          // Cache performance info
+   "usage": {
+     "input_tokens": 25,
+     "output_tokens": 150
+   }
 }
 ```
 
@@ -224,15 +311,7 @@ These additional parameters control Adaptive's intelligent routing:
     <ResponseField name="output_tokens" type="integer">
       Number of tokens in the output.
     </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="provider" type="string">
-  **Adaptive Extension**: Which AI provider was selected for this request.
-</ResponseField>
-
-<ResponseField name="cache_tier" type="string">
-  **Adaptive Extension**: Cache performance information.
+   </Expandable>
 </ResponseField>
 
 ## Streaming
@@ -296,7 +375,7 @@ import anthropic
 client = anthropic.Anthropic(api_key="sk-ant-your-key")
 
 message = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-3-sonnet-20240229",
     max_tokens=1000,
     messages=[{"role": "user", "content": "Hello"}]
 )
@@ -308,7 +387,7 @@ import requests
 response = requests.post(
     'https://api.llmadaptive.uk/v1/messages',  # ← Changed URL
     headers={
-        'Authorization': 'Bearer apk_123456',  # ← Adaptive key
+        'Authorization': 'Bearer your-adaptive-key',  # ← Adaptive key
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01'
     },
@@ -323,24 +402,8 @@ response = requests.post(
 
 ## Error Handling
 
-Adaptive returns detailed error information to help you diagnose and resolve issues quickly. While compatible with Anthropic's error format, Adaptive provides additional error types and context.
+The endpoint returns standard Anthropic-compatible error responses:
 
-### Common Errors
-
-See the [complete error reference](/api-reference/errors) for all error types and detailed troubleshooting.
-
-**Authentication (401)**
-```json
-{
-  "type": "error",
-  "error": {
-    "type": "authentication_error",
-    "message": "Invalid API key"
-  }
-}
-```
-
-**Validation (400)**
 ```json
 {
   "type": "error",
@@ -350,54 +413,6 @@ See the [complete error reference](/api-reference/errors) for all error types an
   }
 }
 ```
-
-**Fallback Failed (503)** - Unique to Adaptive
-```json
-{
-  "type": "error",
-  "error": {
-    "type": "fallback_failed",
-    "message": "all 2 providers failed (race mode)",
-    "details": {
-      "mode": "race",
-      "attempts": 2,
-      "failures": [
-        {
-          "provider": "anthropic",
-          "model": "claude-3-sonnet",
-          "error": "Rate limit exceeded",
-          "duration_ms": 850
-        },
-        {
-          "provider": "anthropic",
-          "model": "claude-3-haiku",
-          "error": "Service temporarily unavailable",
-          "duration_ms": 1200
-        }
-      ]
-    }
-  }
-}
-```
-
-### Error Response Structure
-
-All errors follow this consistent format:
-
-```json
-{
-  "type": "error",
-  "error": {
-    "type": "error_type",
-    "message": "Human-readable description",
-    "details": {  // Optional - Adaptive-specific context
-      // Error-specific information
-    }
-  }
-}
-```
-
-For Anthropic-specific error handling, see [Error Handling Best Practices](/guides/error-handling).
 
 ## Next Steps
 

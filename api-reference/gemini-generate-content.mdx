@@ -1,7 +1,7 @@
 ---
 title: "Gemini Generate Content"
 description: "Generate content using Google's Gemini API format with Adaptive's intelligent routing"
-api: "POST /api/v1beta/models/{model}:generateContent"
+api: "POST /api/v1beta/models/{model}/generateContent"
 icon: "/images/logos/google.svg"
 ---
 
@@ -16,27 +16,20 @@ This endpoint is **fully compatible** with Google's Gemini API, allowing you to 
 ## Authentication
 
 <ParamField header="x-goog-api-key" type="string" required>
-  Your Adaptive API key. Use `Authorization: Bearer apk_123456` header.
+  Your Adaptive API key. Also supports `Authorization: Bearer`, `X-API-Key`, or `api-key` headers.
 </ParamField>
 
 ## Path Parameters
 
 <ParamField path="model" type="string" required>
-  Model identifier for the route. Use:
-  - `intelligent-routing` to enable Adaptive's multi-provider routing with a Gemini-compatible request
-  - `provider:model_name` (e.g. `gemini:gemini-2.5-flash-lite`) to force a specific provider/model
+  The model to use for generation. Supports Gemini model names and Adaptive's intelligent routing.
 
   **Examples:**
-  - `intelligent-routing` – Adaptive picks the best provider/model automatically
-  - `gemini:gemini-2.5-flash-lite` – Force Google Gemini Flash Lite
-  - `anthropic:claude-haiku-4-5` – Route Gemini prompts to Anthropic
-  - Custom aliases configured in Adaptive must also follow `provider:model`
+  - `gemini-2.5-pro` - Latest Gemini Pro model
+  - `gemini-2.5-flash` - Fast Gemini Flash model
+  - `gemini-1.5-pro` - Gemini 1.5 Pro
+  - Custom model aliases configured in Adaptive
 </ParamField>
-
-<Tip>
-**Smart routing:** When calling the v1beta Gemini-compatible paths, set `{model}=intelligent-routing` to engage Adaptive's router. Alternatively, call `POST /api/v1/generate` (or `/api/v1/generate/stream`) and send `"model": ""` in the body.
-Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('gemini:gemini-2.5-flash')`) before inserting it into the path.
-</Tip>
 
 ## Request Body
 
@@ -57,94 +50,87 @@ Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('ge
   ```
 </ParamField>
 
-<ParamField body="generation_config" type="object">
-  Generation configuration parameters. Matches Google's `GenerateContentConfig`.
+<ParamField body="config" type="object">
+  Generation configuration parameters.
 
   <Expandable title="Configuration Properties">
-    <ParamField body="generation_config.temperature" type="number">
+    <ParamField body="config.temperature" type="number">
       Controls randomness in generation (0.0 to 2.0). Default: 1.0
     </ParamField>
 
-    <ParamField body="generation_config.topP" type="number">
+    <ParamField body="config.topP" type="number">
       Nucleus sampling parameter (0.0 to 1.0). Default: 0.95
     </ParamField>
 
-    <ParamField body="generation_config.topK" type="number">
+    <ParamField body="config.topK" type="number">
       Top-K sampling parameter. Default: 40
     </ParamField>
 
-    <ParamField body="generation_config.maxOutputTokens" type="number">
+    <ParamField body="config.maxOutputTokens" type="number">
       Maximum tokens to generate. Default: 8192
     </ParamField>
 
-    <ParamField body="generation_config.stopSequences" type="array">
+    <ParamField body="config.stopSequences" type="array">
       Sequences that stop generation when encountered.
     </ParamField>
 
-    <ParamField body="generation_config.candidateCount" type="number">
+    <ParamField body="config.candidateCount" type="number">
       Number of response candidates to generate. Default: 1
     </ParamField>
   </Expandable>
 </ParamField>
 
-<ParamField body="tools" type="array">
-  Gemini tool definitions (function declarations). Use Google Gen AI SDK structures.
-</ParamField>
-
-<ParamField body="tool_config" type="object">
-  Tool configuration controlling how tools are executed.
-</ParamField>
-
-<ParamField body="safety_settings" type="array">
-  Safety setting overrides for Gemini responses.
-</ParamField>
-
-<ParamField body="system_instruction" type="object">
-  Optional system instruction injected ahead of user content.
-</ParamField>
-
 <ParamField body="provider_configs" type="object">
-  **Adaptive Extension**: Override provider API keys or base URLs at request time.
+  **Adaptive Extension**: Provider-specific configuration overrides.
 
   ```json
   "provider_configs": {
-    "gemini": {
-      "base_url": "https://my-private-gemini-proxy",
-      "api_key": "gemini-key"
-    },
     "anthropic": {
-      "api_key": "anthropic-key"
+      "temperature": 0.7
+    },
+    "openai": {
+      "temperature": 0.8
     }
   }
   ```
 </ParamField>
 
 <ParamField body="model_router" type="object">
-  **Adaptive Extension**: Intelligent routing controls.
+  **Adaptive Extension**: Control intelligent routing behavior.
 
   <Expandable title="Router Options">
-    <ParamField body="model_router.cost_bias" type="number">
-      Balance cost vs performance (0 = cheapest, 1 = best quality). Default: inherited from workspace config.
+    <ParamField body="model_router.enabled" type="boolean">
+      Enable/disable intelligent routing. Default: true
     </ParamField>
 
-    <ParamField body="model_router.models" type="array">
-      Restrict routing to specific `author/model` identifiers (e.g. `"gemini/gemini-2.5-flash-lite"`).
+    <ParamField body="model_router.fallback_models" type="array">
+      List of fallback models if primary model fails.
     </ParamField>
 
-    <ParamField body="model_router.cache" type="object">
-      Cache configuration (capacity, time-to-live, semantic thresholds).
+    <ParamField body="model_router.cost_optimization" type="boolean">
+      Enable cost-based model selection. Default: true
     </ParamField>
   </Expandable>
 </ParamField>
 
+<ParamField body="semantic_cache" type="object">
+  **Adaptive Extension**: Semantic caching configuration.
+
+  ```json
+  "semantic_cache": {
+    "enabled": true,
+    "similarity_threshold": 0.95
+  }
+  ```
+</ParamField>
+
 <ParamField body="fallback" type="object">
-  **Adaptive Extension**: Provider fallback settings when the primary model fails.
+  **Adaptive Extension**: Fallback configuration for provider failures.
 
   ```json
   "fallback": {
-    "mode": "sequential",
-    "max_retries": 2,
-    "timeout_ms": 15000
+    "enabled": true,
+    "max_retries": 3
   }
   ```
 </ParamField>
@@ -199,97 +185,202 @@ Wrap any provider-prefixed value with URL encoding (e.g. `encodeURIComponent('ge
     <ResponseField name="totalTokenCount" type="number">
       Total tokens used (prompt + completion).
     </ResponseField>
-
-    <ResponseField name="cache_tier" type="string">
-      **Adaptive Extension**: Cache tier used (`none`, `semantic`)
-    </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseField name="modelVersion" type="string">
-  The actual model version used for generation.
+   The actual model version used for generation.
 </ResponseField>
 
-<ResponseField name="provider" type="string">
-  **Adaptive Extension**: The provider that handled the request (e.g., `google`, `anthropic`, `openai`)
-</ResponseField>
-
-## SDK Examples
+## Code Examples
 
 <CodeGroup>
-```javascript Node.js
-import { GoogleGenerativeAI } from '@google/genai';
+```typescript TypeScript (Google Gen AI SDK)
+import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenerativeAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
   httpOptions: {
     baseUrl: 'https://api.llmadaptive.uk/v1beta'
   }
 });
 
-const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
-
-const result = await model.generateContent({
+const response = await ai.models.generateContent({
+  model: 'gemini-2.5-pro',
   contents: [
     {
       role: 'user',
-      parts: [{ text: 'Explain quantum computing in simple terms.' }]
+      parts: [
+        { text: 'Explain quantum computing in simple terms' }
+      ]
     }
   ],
-  generationConfig: {
-    maxOutputTokens: 1024,
-    temperature: 0.7
+  config: {
+    temperature: 0.7,
+    maxOutputTokens: 1024
   }
 });
 
-console.log(result.response.text());
+console.log(response.candidates[0].content.parts[0].text);
+console.log('Tokens used:', response.usageMetadata.totalTokenCount);
 ```
 
 ```python Python
-import os
-import google.generativeai as genai
+import requests
 
-genai.configure(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    transport="rest",
-    client_options={"api_endpoint": "https://api.llmadaptive.uk/v1beta"}
-)
-
-model = genai.GenerativeModel("intelligent-routing")
-
-response = model.generate_content(
-    "Explain quantum computing in simple terms.",
-    generation_config={
-        "max_output_tokens": 1024,
-        "temperature": 0.7
+response = requests.post(
+    'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+    headers={
+        'x-goog-api-key': 'your-adaptive-api-key',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'contents': [
+            {
+                'role': 'user',
+                'parts': [
+                    {'text': 'Explain quantum computing in simple terms'}
+                ]
+            }
+        ],
+        'config': {
+            'temperature': 0.7,
+            'maxOutputTokens': 1024
+        }
     }
 )
 
-print(response.text)
+data = response.json()
+print(data['candidates'][0]['content']['parts'][0]['text'])
+print(f"Tokens: {data['usageMetadata']['totalTokenCount']}")
 ```
 
 ```bash cURL
-curl https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent \
+curl -X POST https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent \
+  -H "x-goog-api-key: your-adaptive-api-key" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer apk_123456" \
   -d '{
     "contents": [
       {
         "role": "user",
-        "parts": [{"text": "Explain quantum computing in simple terms."}]
+        "parts": [
+          {
+            "text": "Explain quantum computing in simple terms"
+          }
+        ]
       }
     ],
-    "generationConfig": {
-      "maxOutputTokens": 1024,
-      "temperature": 0.7
+    "config": {
+      "temperature": 0.7,
+      "maxOutputTokens": 1024
     }
   }'
 ```
+
+```javascript JavaScript (Fetch)
+const response = await fetch(
+  'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+  {
+    method: 'POST',
+    headers: {
+      'x-goog-api-key': 'your-adaptive-api-key',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Explain quantum computing in simple terms' }
+          ]
+        }
+      ],
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 1024
+      }
+    })
+  }
+);
+
+const data = await response.json();
+console.log(data.candidates[0].content.parts[0].text);
+console.log('Tokens:', data.usageMetadata.totalTokenCount);
+```
 </CodeGroup>
 
-<Note>
-Prefer environment variables? Set `GOOGLE_GEMINI_BASE_URL=https://api.llmadaptive.uk/v1beta` so any Gemini-compatible SDK automatically points to Adaptive's endpoint.
-</Note>
+## Advanced Examples
+
+### Multi-Turn Conversation
+
+<CodeGroup>
+```typescript Multi-Turn Chat
+const response = await ai.models.generateContent({
+  model: 'gemini-2.5-pro',
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'What is the capital of France?' }]
+    },
+    {
+      role: 'model',
+      parts: [{ text: 'The capital of France is Paris.' }]
+    },
+    {
+      role: 'user',
+      parts: [{ text: 'What is its population?' }]
+    }
+  ]
+});
+```
+
+```python Multi-Turn Chat
+response = requests.post(
+    'https://api.llmadaptive.uk/v1beta/models/gemini-2.5-pro/generateContent',
+    headers={'x-goog-api-key': api_key},
+    json={
+        'contents': [
+            {'role': 'user', 'parts': [{'text': 'What is the capital of France?'}]},
+            {'role': 'model', 'parts': [{'text': 'The capital of France is Paris.'}]},
+            {'role': 'user', 'parts': [{'text': 'What is its population?'}]}
+        ]
+    }
+)
+```
+</CodeGroup>
+
+### With Adaptive Extensions
+
+<CodeGroup>
+```typescript Adaptive Features
+const response = await ai.models.generateContent({
+  model: 'gemini-2.5-pro',
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'Write a sorting algorithm in Python' }]
+    }
+  ],
+  config: {
+    temperature: 0.3,
+    maxOutputTokens: 2048
+  },
+  // Adaptive-specific features
+  semantic_cache: {
+    enabled: true,
+    similarity_threshold: 0.95
+  },
+  fallback: {
+    enabled: true,
+    max_retries: 3
+  },
+  model_router: {
+    cost_optimization: true,
+    fallback_models: ['claude-sonnet-4-20250514', 'gpt-4o']
+  }
+});
+```
+</CodeGroup>
 
 ## Error Responses
 
@@ -319,12 +410,12 @@ Prefer environment variables? Set `GOOGLE_GEMINI_BASE_URL=https://api.llmadaptiv
 {
   "error": {
     "code": 401,
-    "message": "API key required. Provide it via Authorization: Bearer header",
+    "message": "API key required. Provide it via x-goog-api-key, Authorization: Bearer, X-API-Key, or api-key header",
     "status": "UNAUTHENTICATED"
   }
 }
 ```
-**Solution**: Provide a valid API key in the `Authorization: Bearer` header.
+**Solution**: Provide a valid API key in the `x-goog-api-key` header or other supported header formats.
 </Accordion>
 
 <Accordion title="400 INVALID_ARGUMENT">
@@ -353,68 +444,19 @@ Prefer environment variables? Set `GOOGLE_GEMINI_BASE_URL=https://api.llmadaptiv
 **Solution**: Reduce request rate or upgrade your plan for higher limits. Adaptive's load balancing helps distribute requests across providers.
 </Accordion>
 
- <Accordion title="500 INTERNAL">
- ```json
- {
-   "error": {
-     "code": 500,
-     "message": "Internal server error",
-     "status": "INTERNAL"
-   }
- }
- ```
- **Solution**: Temporary server issue. Adaptive's fallback system will automatically retry with alternative providers.
- </Accordion>
-
- <Accordion title="503 UNAVAILABLE - All Providers Failed">
- ```json
- {
-   "error": {
-     "code": 503,
-     "message": "All 3 providers failed (sequential fallback mode)",
-     "status": "UNAVAILABLE",
-     "details": {
-       "mode": "sequential",
-       "attempts": 3,
-       "failures": [
-         {
-           "provider": "gemini",
-           "model": "gemini-2.5-flash",
-           "error": "Rate limit exceeded",
-           "duration_ms": 234
-         },
-         {
-           "provider": "anthropic",
-           "model": "claude-3-5-haiku",
-           "error": "Service unavailable",
-           "duration_ms": 156
-         },
-         {
-           "provider": "openai",
-           "model": "gpt-5-mini",
-           "error": "Timeout after 15000ms",
-           "duration_ms": 15023
-         }
-       ]
-     }
-   }
- }
- ```
-
- **Solution**: This occurs when all configured fallback providers fail. Adaptive provides structured error details showing:
- - Which providers were attempted
- - The specific error from each provider
- - How long each attempt took
- - The fallback mode used (sequential/race)
-
- **Actions**:
- 1. Check the `details.failures` array to diagnose which providers failed and why
- 2. Configure alternative providers in your fallback settings
- 3. Increase `timeout_ms` if providers are timing out
- 4. Enable caching to reduce dependency on real-time provider availability
- 5. Review [Provider Resiliency](/features/provider-resiliency) for best practices
- </Accordion>
- </AccordionGroup>
+<Accordion title="500 INTERNAL">
+```json
+{
+  "error": {
+    "code": 500,
+    "message": "Internal server error",
+    "status": "INTERNAL"
+  }
+}
+```
+**Solution**: Temporary server issue. Adaptive's fallback system will automatically retry with alternative providers.
+</Accordion>
+</AccordionGroup>
 
 ## Features & Benefits
 

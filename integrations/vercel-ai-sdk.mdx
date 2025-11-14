@@ -269,8 +269,8 @@ await generateText({
       // Intelligent routing configuration
       model_router: {
         models: [
-          "anthropic/claude-sonnet-4-5", // Specific Anthropic model
-          "openai/gpt-5-mini" // Specific OpenAI model
+          { provider: "anthropic" }, // All Anthropic models
+          { provider: "openai", model_name: "gpt-5.1" } // Specific OpenAI model
         ],
         cost_bias: 0.3, // 0 = cheapest, 1 = best performance
         complexity_threshold: 0.5, // Override complexity detection
@@ -319,9 +319,9 @@ await generateText({
 <Accordion title="model_router - Intelligent Model Selection">
 Controls intelligent model selection:
 
-- **`models`**: Array of allowed author/model strings
-  - `"anthropic/claude-sonnet-4-5"` - Specific model
-  - `"openai/gpt-5-mini"` - Specific model
+- **`models`**: Array of allowed providers/models
+  - `{ provider: "openai" }` - All models from provider
+  - `{ provider: "anthropic", model_name: "claude-4-5-sonnet" }` - Specific model
 - **`cost_bias`**: Balance cost vs performance (0-1)
   - `0` = Always choose cheapest option
   - `0.5` = Balanced cost and performance  
@@ -352,9 +352,7 @@ Improves performance by caching similar requests:
 
 ## Custom Providers
 
-<Info>
-Custom providers are no longer supported. All models must be specified using the `provider:model_name` string format for models available in the registry.
-</Info>
+Configure custom providers alongside standard ones using the Adaptive provider:
 
 ```javascript Custom Provider Configuration
 await generateText({
@@ -362,13 +360,36 @@ await generateText({
   prompt: "Explain machine learning concepts",
   providerOptions: {
     adaptive: {
-      // Include registry models in model list
+      // Include custom provider in model list
       model_router: {
         models: [
-          "openai/gpt-5-mini", // Standard provider
-          "anthropic/claude-3-5-haiku"
+          { provider: "openai" }, // Standard provider
+          {
+            provider: "my-custom-llm", // Custom provider
+            model_name: "custom-model-v1",
+            cost_per_1m_input_tokens: 2.0,
+            cost_per_1m_output_tokens: 6.0,
+            max_context_tokens: 16000,
+            max_output_tokens: 4000,
+            supports_function_calling: true,
+            task_type: "Text Generation",
+            complexity: "medium"
+          }
         ],
         cost_bias: 0.5
+      },
+      
+      // Configure each custom provider
+      provider_configs: {
+        "my-custom-llm": {
+          base_url: "https://api.mycustom.com/v1",
+          api_key: "sk-custom-api-key-here",
+          auth_type: "bearer",
+          headers: {
+            "X-Custom-Header": "value"
+          },
+          timeout_ms: 45000
+        }
       }
     }
   }
@@ -436,9 +457,8 @@ const result = await generateText({
   prompt: "Hello world",
 });
 
-// Check cache tier
-console.log(result.usage?.cache_tier);
-// "semantic" | undefined
+// Check result
+console.log(result.text);
 ```
 
 ---
@@ -448,38 +468,6 @@ console.log(result.usage?.cache_tier);
 ```bash Environment Setup
 # .env.local
 ADAPTIVE_API_KEY=your-adaptive-api-key
-```
-
----
-
-## Error Handling
-
-Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
-
-```typescript
-import { useChat } from 'ai/react';
-
-export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit, error, reload } = useChat({
-    api: '/api/chat',
-    onError: (error) => {
-      console.error('Adaptive chat error:', error);
-      // Adaptive has already tried multiple providers
-    },
-  });
-
-  return (
-    <div>
-      {/* Your chat UI */}
-      {error && (
-        <div className="error">
-          {error.message}
-          <button onClick={() => reload()}>Retry</button>
-        </div>
-      )}
-    </div>
-  );
-}
 ```
 
 ---
