@@ -1,10 +1,10 @@
 ---
-title: "Provider Routing"
-description: "Steer routing behavior per request with provider controls"
+title: 'Provider Routing'
+description: 'Control how Adaptive routes requests to different AI providers with granular provider constraints'
 icon: "route"
 ---
 
-Adaptive Proxy now supports provider controls so you can steer routing behavior per request without giving up our intelligent model router. The `provider` object is accepted on **Chat Completions**, **Anthropic Messages**, and **Gemini Generate** requests and is enforced consistently across non-streaming and streaming executions (including fallback paths).
+Adaptive Proxy exposes granular provider controls so you can steer routing per request without sacrificing the intelligent model router. The `provider` object is accepted on **Chat Completions**, **Anthropic Messages**, and **Gemini Generate** requests and is enforced consistently across non-streaming and streaming executions (including fallback paths).
 
 ## Request Shape
 
@@ -44,19 +44,63 @@ POST /v1/chat/completions
   `provider.allow_fallbacks` simply toggles the new `fallback.enabled` flag. Use the `fallback` object when you need finer control over mode, retries, or circuit breakers.
 </Note>
 
-## Field Reference
+## Provider Parameters
 
-- `order`: Explicit list of provider tags to try first. When omitted, Adaptive's heuristics determine the initial ordering.
-- `only`: Whitelist of providers/endpoint tags. Requests are rejected if no allowed provider remains.
-- `ignore`: Blacklist of providers/endpoint tags to skip even when the router selects them.
-- `sort`: Secondary ordering when `order` is absent. `price`, `throughput`, and `latency` map to cost, capacity, and responsiveness heuristics.
-- `quantizations`: Require specific quantization levels (e.g., `["int8","fp8"]`). Endpoint metadata is used; models lacking the requested format are filtered out.
-- `require_parameters`: When true, the model must advertise support for every parameter implied by the request (tools, response_format, etc.).
-- `data_collection`: `allow` (default) or `deny`. When `deny`, only providers marked as non-retentive in the registry remain. (Falls back to current metadata; future registry updates will make this stricter.)
-- `zdr`: Restrict routing to Zero Data Retention endpoints.
-- `enforce_distillable_text`: Filter to models whose publishers have opted into distillable outputs.
-- `allow_fallbacks`: Convenience flag that maps to `fallback.enabled`. Set to `false` to disable provider retries entirely.
-- `max_price`: Ceilings for prompt/completion/request/image pricing. Providers lacking explicit pricing are treated as exceeding the cap.
+<ParamField body="order" type="array">
+  Explicit list of provider tags to try first. When omitted, Adaptive's heuristics determine the initial ordering.
+</ParamField>
+
+<ParamField body="only" type="array">
+  Whitelist of providers/endpoint tags. Requests are rejected if no allowed provider remains.
+</ParamField>
+
+<ParamField body="ignore" type="array">
+  Blacklist of providers/endpoint tags to skip even when the router selects them.
+</ParamField>
+
+<ParamField body="sort" type="string">
+  Secondary ordering when `order` is absent. Options: `price`, `throughput`, and `latency` map to cost, capacity, and responsiveness heuristics.
+</ParamField>
+
+<ParamField body="quantizations" type="array">
+  Require specific quantization levels (e.g., `["int8","fp8"]`). Endpoint metadata is used; models lacking the requested format are filtered out.
+</ParamField>
+
+<ParamField body="require_parameters" type="boolean">
+  When true, the model must advertise support for every parameter implied by the request (tools, response_format, etc.).
+</ParamField>
+
+<ParamField body="data_collection" type="string">
+  `allow` (default) or `deny`. When `deny`, only providers marked as non-retentive in the registry remain. (Falls back to current metadata; future registry updates will make this stricter.)
+</ParamField>
+
+<ParamField body="zdr" type="boolean">
+  Restrict routing to Zero Data Retention endpoints.
+</ParamField>
+
+<ParamField body="enforce_distillable_text" type="boolean">
+  Filter to models whose publishers have opted into distillable outputs.
+</ParamField>
+
+<ParamField body="allow_fallbacks" type="boolean">
+  Convenience flag that maps to `fallback.enabled`. Set to `false` to disable provider retries entirely.
+</ParamField>
+
+<ParamField body="max_price" type="object">
+  Ceilings for prompt/completion/request/image pricing. Providers lacking explicit pricing are treated as exceeding the cap.
+
+  <ParamField body="max_price.prompt" type="number">
+    Maximum price for prompt tokens (USD per million tokens).
+  </ParamField>
+
+  <ParamField body="max_price.completion" type="number">
+    Maximum price for completion tokens (USD per million tokens).
+  </ParamField>
+
+  <ParamField body="max_price.request" type="number">
+    Maximum price per request (USD).
+  </ParamField>
+</ParamField>
 
 ## Intelligent Routing + Provider Constraints
 
@@ -67,8 +111,6 @@ POST /v1/chat/completions
 Because constraints are enforced during provider selection, both primary execution and fallback candidates adhere to the same rules. For example, if you pin `quantizations: ["fp8"]`, every provider in the execution plan satisfies that requirement.
 
 ## Nitro / Floor Shortcuts
-
-Suffix shortcuts work out of the box:
 
 - Append `:nitro` to any model slug to imply `provider.sort = "throughput"`.
 - Append `:floor` to imply `provider.sort = "price"`.
@@ -93,4 +135,13 @@ These hints are recognized even when you specify `model` directly (e.g., `meta-l
 - **Fallback:** If you relied on "unset mode = disabled," switch to `fallback.enabled=false` (or `provider.allow_fallbacks=false`).
 - **Registry metadata:** Some filters (data collection, ZDR, distillable text) depend on registry tags. They currently act as "best effort" switches and will grow stricter as the registry schema expands.
 
-Use these controls to enforce routing policies, enforce compliance requirements, and keep Adaptive's intelligent planner as the safety net. Whatever combination you choose, the planner guarantees all executed providers match the constraints you set.
+Use these controls to emulate the routing policies your apps expect, enforce compliance requirements, and keep Adaptive's intelligent planner as the safety net. Whatever combination you choose, the planner guarantees all executed providers match the constraints you set.
+
+<CardGroup cols={2}>
+  <Card title="API Reference" href="/api-reference/chat-completions" icon="book">
+    Learn about all available parameters
+  </Card>
+  <Card title="Intelligent Routing" href="/features/intelligent-routing" icon="brain">
+    Understand how Adaptive selects providers
+  </Card>
+</CardGroup>
