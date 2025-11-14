@@ -132,8 +132,7 @@ completion = client.chat.completions.create(
 
 Fallback disabled for cost control:
 
-<CodeGroup>
-```javascript Default Behavior
+```javascript
 const completion = await openai.chat.completions.create({
   model: "",
   messages: [{ role: "user", content: "Hello!" }]
@@ -141,20 +140,7 @@ const completion = await openai.chat.completions.create({
 });
 ```
 
-```javascript Explicitly Disabled
-const completion = await openai.chat.completions.create({
-  model: "",
-  messages: [{ role: "user", content: "Hello!" }],
-  fallback: {
-    mode: "" // Explicitly disabled
-  }
-});
-```
-</CodeGroup>
-
 ## Circuit Breaker Patterns
-
-### Automatic Circuit Breaking
 
 Adaptive implements intelligent circuit breakers to prevent cascading failures:
 
@@ -215,8 +201,6 @@ Adaptive implements intelligent circuit breakers to prevent cascading failures:
 
 ## Configuration Options
 
-### Basic Fallback Configuration
-
 <ParamField body="fallback" type="object">
   Configuration for provider fallback behavior
   
@@ -266,8 +250,6 @@ completion = client.chat.completions.create(
 </CodeGroup>
 
 ## Error Handling
-
-### Comprehensive Error Management
 
 <CodeGroup>
 ```javascript Error Handling
@@ -345,8 +327,6 @@ except Exception as error:
 
 ## Monitoring and Observability
 
-### Real-time Metrics
-
 Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard):
 
 <CardGroup cols={2}>
@@ -363,8 +343,6 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
     **Reliability metrics**: Success rates with and without fallback enabled
   </Card>
 </CardGroup>
-
-### Alerts and Notifications
 
 <Steps>
   <Step title="Provider Outages">
@@ -419,7 +397,7 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
 
 ## Performance Impact
 
-### Race Mode Performance
+### Race Mode
 
 <CardGroup cols={3}>
   <Card title="Latency" icon="zap">
@@ -436,7 +414,7 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
   </Card>
 </CardGroup>
 
-### Sequential Mode Performance
+### Sequential Mode
 
 <CardGroup cols={3}>
   <Card title="Latency" icon="clock">
@@ -455,10 +433,7 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
 
 ## Troubleshooting
 
-### Common Issues
-
 <Accordion title="All Providers Failing">
-
 **Symptoms**: Consistent `all_providers_failed` errors
 
 **Possible Causes**:
@@ -472,11 +447,9 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
 - Verify API keys and quotas for all providers
 - Check provider status pages for outages
 - Review request format and parameters
-
 </Accordion>
 
 <Accordion title="High Latency with Sequential Mode">
-
 **Symptoms**: Slow responses when fallback is enabled
 
 **Possible Causes**:
@@ -489,11 +462,9 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
 - Reduce timeout_ms for faster failover
 - Consider switching to race mode for critical requests
 - Check provider selection order
-
 </Accordion>
 
 <Accordion title="Unexpected Costs">
-
 **Symptoms**: Higher than expected API costs
 
 **Possible Causes**:
@@ -506,7 +477,6 @@ Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptiv
 - Monitor provider health to identify problematic providers
 - Consider sequential mode for cost optimization
 - Set appropriate timeout values
-
 </Accordion>
 
 ## Next Steps

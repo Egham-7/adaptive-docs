@@ -4,8 +4,6 @@ description: 'Use your own provider API keys for maximum cost savings and contro
 icon: "key"
 ---
 
-# Bring Your Own Keys (BYOK)
-
 Bring Your Own Keys (BYOK) allows you to connect your own API keys from providers like OpenAI, Anthropic, Google, and others to Adaptive. This gives you maximum cost savings while still benefiting from Adaptive's intelligent routing, caching, and reliability features.
 
 ## How BYOK Works
@@ -14,7 +12,7 @@ When you provide your own provider API keys, Adaptive uses them to make requests
 
 <CardGroup cols={2}>
   <Card title="Pay Only Overhead" icon="dollar-sign">
-    You only pay Adaptive's overhead fee, not the underlying model costs. Your provider bills you directly for the model usage.
+    You only pay Adaptive's overhead fee ($0.10/1M input + $0.20/1M output), not the underlying model costs. Your provider bills you directly.
   </Card>
   <Card title="Full Routing Control" icon="brain">
     Continue to benefit from intelligent routing, semantic caching, fallback mechanisms, and all other Adaptive features.
@@ -29,58 +27,33 @@ When you provide your own provider API keys, Adaptive uses them to make requests
 
 ## Pricing with BYOK
 
-### Overhead-Only Pricing
-
 When using your own API keys, you only pay Adaptive's overhead:
-
 - **Input tokens**: $0.10 per 1M tokens
 - **Output tokens**: $0.20 per 1M tokens
-- **Semantic cache hits**: 50% off (half the normal overhead)
+- **Semantic cache hits**: 50% off
 - **Prompt cache hits**: Free
 
-**You do NOT pay Adaptive for the underlying model costs** - those are billed directly by your provider (OpenAI, Anthropic, Google, etc.).
+**You do NOT pay Adaptive for the underlying model costs** - those are billed directly by your provider.
 
 ### Cost Example
-
-Let's say you make a request that uses:
-- 100,000 input tokens
-- 50,000 output tokens
-
-**Without BYOK** (using Adaptive's provider keys):
-- Provider model cost (e.g., GPT-4): ~$1.25 (input) + ~$3.75 (output) = $5.00
-- Adaptive overhead: $0.01 (input) + $0.01 (output) = $0.02
-- **Total charged by Adaptive**: $5.02
-
-**With BYOK** (using your own OpenAI key):
-- Provider model cost: ~$5.00 (billed directly by OpenAI to you)
-- Adaptive overhead: $0.01 (input) + $0.01 (output) = $0.02
-- **Total charged by Adaptive**: $0.02
-- **Total charged by OpenAI**: $5.00
+A request with 100K input + 50K output tokens:
+- **Without BYOK**: ~$5.02 total (model costs + $0.02 overhead)
+- **With BYOK**: $0.02 overhead (model costs billed directly by provider)
 
 ## Benefits of BYOK
 
 ### Maximum Cost Savings
-
-By paying only the overhead fee to Adaptive, you can save significantly on high-volume workloads. This is especially valuable for:
-
-- High-traffic production applications
-- Large-scale batch processing
-- Development and testing environments
-- Cost-sensitive projects
+Save significantly on high-volume workloads by paying only the overhead fee to Adaptive.
 
 ### Complete Control
-
-When you use your own keys:
-
-- **Billing control**: Direct relationship with providers for billing and invoicing
-- **Usage limits**: Set your own rate limits and spending caps at the provider level
-- **Account isolation**: Separate environments for dev, staging, and production
-- **Compliance**: Meet specific compliance requirements that require direct provider relationships
+- Direct billing relationship with providers
+- Set your own rate limits and spending caps
+- Separate environments for dev/staging/production
+- Meet specific compliance requirements
 
 ### Privacy and Data Governance
-
-- Your requests are authenticated with your own credentials
-- No request pooling with other Adaptive users
+- Requests authenticated with your own credentials
+- No request pooling with other users
 - Direct audit trail with your provider
 - Easier compliance with data residency requirements
 
@@ -88,29 +61,16 @@ When you use your own keys:
 
 <Steps>
   <Step title="Get Provider API Keys">
-    Obtain API keys from the providers you want to use:
-    - [OpenAI Platform](https://platform.openai.com/api-keys)
-    - [Anthropic Console](https://console.anthropic.com/)
-    - [Google AI Studio](https://makersuite.google.com/app/apikey)
-    - [Groq Console](https://console.groq.com/)
+    Obtain API keys from providers you want to use (OpenAI, Anthropic, Google, Groq, etc.)
   </Step>
   <Step title="Add Keys to Adaptive">
-    In your Adaptive dashboard:
-    1. Navigate to your project settings
-    2. Go to "Custom API Keys" or "Provider Configurations"
-    3. Add your provider API keys securely
-    4. Keys are encrypted and stored securely
+    In your Adaptive dashboard, navigate to project settings and add your provider API keys securely
   </Step>
   <Step title="Enable BYOK for Project">
-    Configure your project to use custom keys:
-    - Set priority for which providers to use
-    - Configure fallback behavior
-    - Test the configuration with sample requests
+    Configure your project to use custom keys with priority settings and fallback behavior
   </Step>
   <Step title="Monitor Usage">
-    Track your usage across both:
-    - Adaptive dashboard (overhead costs, routing decisions)
-    - Provider dashboards (model costs, quotas)
+    Track usage across both Adaptive dashboard (overhead costs) and provider dashboards (model costs)
   </Step>
 </Steps>
 
@@ -141,8 +101,6 @@ BYOK is currently supported for:
 
 ## Security and Best Practices
 
-### Key Security
-
 <Warning>
 Never share your API keys or commit them to version control. Adaptive stores your keys encrypted at rest and in transit.
 </Warning>
@@ -154,42 +112,27 @@ Best practices:
 - Set spending limits at the provider level
 - Revoke unused or compromised keys immediately
 
-### Monitoring and Alerts
-
-Set up monitoring for:
-- Unexpected usage spikes
-- Provider quota exhaustion
-- Failed authentication attempts
-- Cost threshold alerts
-
 ## Routing with Custom Keys
 
 Even with BYOK enabled, Adaptive's intelligent routing continues to work:
 
 1. **Model Selection**: Adaptive analyzes your request complexity
-2. **Provider Selection**: Routes to the optimal provider based on:
-   - Your available custom keys
-   - Model capabilities and performance
-   - Current provider availability
-   - Cost optimization
-3. **Fallback**: If your custom key fails or hits quota, Adaptive can:
-   - Fall back to other custom keys you've configured
-   - Fall back to Adaptive's pooled keys (at standard pricing)
-   - Return graceful errors based on your configuration
+2. **Provider Selection**: Routes to the optimal provider based on your available custom keys, model capabilities, and cost optimization
+3. **Fallback**: If your custom key fails or hits quota, Adaptive can fall back to other configured keys or pooled keys
 
 ## Frequently Asked Questions
 
 <AccordionGroup>
   <Accordion title="Do I need custom keys for all providers?">
-    No, you can mix and match. Use custom keys for some providers and let Adaptive use its pooled keys for others. Adaptive will route intelligently based on what's available and most cost-effective.
+    No, you can mix and match. Use custom keys for some providers and let Adaptive use its pooled keys for others.
   </Accordion>
 
   <Accordion title="What happens if my custom key reaches its quota?">
-    Adaptive can automatically fall back to other configured keys or its own pooled keys, depending on your fallback configuration. You can also configure strict mode to fail the request instead.
+    Adaptive can automatically fall back to other configured keys or its own pooled keys, depending on your fallback configuration.
   </Accordion>
 
   <Accordion title="Can I see which key was used for each request?">
-    Yes, Adaptive's dashboard shows detailed request logs including which provider and which key (yours vs pooled) was used for each request.
+    Yes, Adaptive's dashboard shows detailed request logs including which provider and which key (yours vs pooled) was used.
   </Accordion>
 
   <Accordion title="Is BYOK available on all plans?">
@@ -199,19 +142,6 @@ Even with BYOK enabled, Adaptive's intelligent routing continues to work:
 
 ## Getting Started
 
-Ready to set up BYOK?
-
 <Card title="Configure Custom API Keys" icon="rocket" href="https://www.api.llmadaptive.uk/platform">
   Go to your project settings to add your provider API keys and start saving on overhead costs
 </Card>
-
-## Need Help?
-
-<CardGroup cols={2}>
-  <Card title="Documentation" href="/features/intelligent-routing" icon="book">
-    Learn more about how routing works with custom keys
-  </Card>
-  <Card title="Support" href="https://www.llmadaptive.uk/support" icon="life-ring">
-    Contact our team for help setting up BYOK
-  </Card>
-</CardGroup>

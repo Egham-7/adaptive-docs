@@ -55,12 +55,12 @@ Zero completion insurance automatically applies when responses meet **either** o
 <CardGroup cols={2}>
   <Card title="Zero Output + Blank Finish" icon="circle-xmark">
     **Response has zero completion tokens** AND **finish reason is blank/null**
-    
+
     Common scenarios: Provider timeouts, processing errors, system failures
   </Card>
   <Card title="Error Finish Reason" icon="exclamation-triangle">
     **Response has an error finish reason** regardless of token count
-    
+
     Common scenarios: Content policy violations, rate limits, service unavailable
   </Card>
 </CardGroup>
@@ -116,7 +116,6 @@ These response types are automatically covered at no cost:
 <CodeGroup>
 ```json Empty Response
 {
-  "id": "chatcmpl-abc123",
   "choices": [{
     "message": {"content": ""},
     "finish_reason": null
@@ -132,7 +131,6 @@ These response types are automatically covered at no cost:
 
 ```json Error Response
 {
-  "id": "chatcmpl-def456", 
   "choices": [{
     "message": {"content": "Request failed due to rate limiting"},
     "finish_reason": "rate_limit_exceeded"  // Error finish reason
@@ -154,7 +152,6 @@ These responses are billed normally as they contain successful completions:
 <CodeGroup>
 ```json Successful Response
 {
-  "id": "chatcmpl-ghi789",
   "choices": [{
     "message": {"content": "Hello! How can I help you today?"},
     "finish_reason": "stop"  // Normal completion
@@ -163,22 +160,6 @@ These responses are billed normally as they contain successful completions:
     "prompt_tokens": 9,
     "completion_tokens": 12,  // Has output tokens
     "total_tokens": 21
-  }
-}
-// Cost: Normal billing applies
-```
-
-```json Partial Response
-{
-  "id": "chatcmpl-jkl012",
-  "choices": [{
-    "message": {"content": "This response was cut off due to"},
-    "finish_reason": "length"  // Length limit, but has content
-  }],
-  "usage": {
-    "prompt_tokens": 20,
-    "completion_tokens": 8,   // Has output tokens
-    "total_tokens": 28
   }
 }
 // Cost: Normal billing applies
@@ -198,12 +179,6 @@ In your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard), protected re
   <Card title="Protection Badge" icon="shield">
     **Visual Indicator**: Protected requests display insurance badge
   </Card>
-  <Card title="Reason Details" icon="info">
-    **Protection Reason**: Shows why request was protected (error type, empty response)
-  </Card>
-  <Card title="Provider Costs" icon="chart-bar">
-    **Transparency**: View actual provider charges that were absorbed
-  </Card>
 </CardGroup>
 
 ### Response Metadata
@@ -212,9 +187,6 @@ Protected requests include additional metadata in the response:
 
 ```json
 {
-  "id": "chatcmpl-protected",
-  "choices": [{"message": {"content": ""}}],
-  "usage": {"prompt_tokens": 12, "completion_tokens": 0},
   "insurance": {
     "protected": true,           // Request was protected
     "reason": "zero_completion", // Why it was protected
@@ -238,20 +210,6 @@ Protected requests include additional metadata in the response:
   </Card>
   <Card title="Development Safety" icon="code">
     **Safe debugging** - test requests without unexpected costs
-  </Card>
-</CardGroup>
-
-## Insurance Statistics
-
-<CardGroup cols={3}>
-  <Card title="Coverage Rate" icon="percentage">
-    **5-15%** of requests typically qualify for protection
-  </Card>
-  <Card title="Average Savings" icon="piggy-bank">
-    **$0.05-0.20** per protected request depending on prompt complexity
-  </Card>
-  <Card title="Detection Speed" icon="zap">
-    **Instant** protection applied automatically without delays
   </Card>
 </CardGroup>
 
@@ -283,14 +241,6 @@ During widespread provider outages, all requests that fail due to service unavai
 No, insurance cannot be disabled as it only benefits users by preventing unwanted charges. There are no downsides to having this protection always active.
 </Accordion>
 
-<Accordion title="How quickly is protection applied?">
-Protection is applied instantly when responses are received. Credit deductions are prevented in real-time, so you never see charges that are later refunded.
-</Accordion>
-
-<Accordion title="Does this work with custom models?">
-Yes, zero completion insurance works with all models available through Adaptive.
-</Accordion>
-
 ## Best Practices
 
 <CardGroup cols={2}>
@@ -299,12 +249,6 @@ Yes, zero completion insurance works with all models available through Adaptive.
   </Card>
   <Card title="Monitor Usage" icon="chart-line">
     **Track protection rates** in your dashboard to understand request patterns
-  </Card>
-  <Card title="Handle Errors Gracefully" icon="code">
-    **Implement proper error handling** for protected requests in your application
-  </Card>
-  <Card title="Use for Development" icon="wrench">
-    **Safe development environment** - test edge cases without cost concerns
   </Card>
 </CardGroup>
 
@@ -336,19 +280,6 @@ completion = client.chat.completions.create(
 # Check if request was protected
 if hasattr(completion, 'insurance') and completion.insurance.get('protected'):
     print(f"Saved ${completion.insurance['savings']} on failed request")
-```
-
-```bash cURL
-# Normal request - insurance automatically active
-curl https://api.llmadaptive.uk/v1/chat/completions \
-  -H "Authorization: Bearer apk_123456" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-
-# Check insurance field in response JSON
 ```
 </CodeGroup>
 

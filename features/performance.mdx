@@ -8,8 +8,6 @@ Adaptive delivers industry-leading performance through optimized Go architecture
 
 ## SDK Setup
 
-Performance examples reuse a standard OpenAI-compatible client configured to point at Adaptive:
-
 <CodeGroup>
 ```javascript JavaScript/Node.js
 import OpenAI from 'openai';
@@ -70,39 +68,24 @@ client = OpenAI(
 
 ### Multi-Tier Caching System
 
-<Accordion title="Caching Layers">
-
-**L1: Prompt-Response Cache**
-- **Speed**: Microsecond responses
-- **Use case**: Identical requests
-- **Hit rate**: 40-60%
-
-**L2: Semantic Cache**  
-- **Speed**: 1-2ms responses
-- **Use case**: Similar meaning requests
-- **Hit rate**: 20-30%
-
-**L3: Router Cache**
-- **Speed**: 5-10ms responses  
-- **Use case**: Provider health and routing decisions
-- **Hit rate**: Nearly 100%
-
-</Accordion>
+**L1: Prompt-Response Cache** - Microsecond responses for identical requests (40-60% hit rate)  
+**L2: Semantic Cache** - 1-2ms responses for similar meaning requests (20-30% hit rate)  
+**L3: Router Cache** - 5-10ms responses for provider health decisions (nearly 100% hit rate)
 
 ### Go-Powered Backend
 
 <CardGroup cols={2}>
   <Card title="Native Performance" icon="rocket">
-    Compiled binary with no runtime overhead or interpretation layers
+    Compiled binary with no runtime overhead
   </Card>
   <Card title="Massive Concurrency" icon="users">
     Handle thousands of simultaneous requests with goroutines
   </Card>
   <Card title="Memory Efficient" icon="cpu">
-    Minimal garbage collection impact and optimized memory usage
+    Minimal garbage collection impact
   </Card>
   <Card title="Fast Startup" icon="play">
-    Sub-second cold start times for instant scaling
+    Sub-second cold start times
   </Card>
 </CardGroup>
 
@@ -188,8 +171,6 @@ Benchmarks run on identical hardware (4 CPU cores, 8GB RAM) with 1000 concurrent
 
 ### Hit Rate Optimization
 
-Different request patterns achieve different cache performance:
-
 <CardGroup cols={3}>
   <Card title="Repeated Queries" icon="repeat">
     **90%+ hit rate**  
@@ -205,26 +186,12 @@ Different request patterns achieve different cache performance:
   </Card>
 </CardGroup>
 
-### Cache Warming Strategies
+### Cache Warming
 
-<Tabs>
-<Tab title="Automatic Warming">
-Adaptive automatically pre-loads cache with common patterns:
-- Popular request types
-- Frequently used prompts  
-- High-traffic user patterns
-</Tab>
+Adaptive automatically pre-loads cache with common patterns. You can also manually warm caches:
 
-<Tab title="Manual Pre-loading">
-You can warm caches by sending representative requests:
 ```javascript
-// Pre-warm cache with common patterns
-const patterns = [
-  "Hello, how are you?",
-  "Explain this concept:",
-  "Write a summary of:"
-];
-
+const patterns = ["Hello, how are you?", "Explain this concept:", "Write a summary of:"];
 for (const pattern of patterns) {
   await openai.chat.completions.create({
     model: "",
@@ -232,31 +199,10 @@ for (const pattern of patterns) {
   });
 }
 ```
-</Tab>
-</Tabs>
 
 ## Monitoring and Observability
 
-### Built-in Metrics
-
-<CardGroup cols={2}>
-  <Card title="Latency Percentiles" icon="chart-bar">
-    Track P50, P95, P99 response times across all endpoints
-  </Card>
-  <Card title="Cache Analytics" icon="pie-chart">
-    Monitor hit rates, cache efficiency, and performance gains
-  </Card>
-  <Card title="Provider Health" icon="heart-pulse">
-    Real-time status and response time monitoring for all providers
-  </Card>
-  <Card title="Error Tracking" icon="exclamation-triangle">
-    Detailed error rates, types, and recovery statistics
-  </Card>
-</CardGroup>
-
-### Dashboard Insights
-
-Access real-time performance data in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard):
+Track performance in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard):
 
 - Request latency trends and percentiles
 - Cache hit rates across all tiers
