@@ -10,31 +10,6 @@ Adaptive's provider resiliency system ensures your applications stay online even
 **Cost Consideration**: Fallback is disabled by default to control costs. Enable it when you need maximum reliability and can handle potential higher costs from multiple provider calls.
 </Warning>
 
-## SDK Setup
-
-These resiliency examples rely on the standard OpenAI SDK configured to talk to Adaptive:
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
-```
-</CodeGroup>
-
 ## How Resiliency Works
 
 <Steps>
@@ -58,27 +33,13 @@ client = OpenAI(
 
 Send requests to multiple providers simultaneously and use the first successful response:
 
-<CodeGroup>
-```javascript JavaScript/Node.js
+```javascript
 const completion = await openai.chat.completions.create({
   model: "",
   messages: [{ role: "user", content: "Hello!" }],
-  fallback: {
-    mode: "race" // Try multiple providers simultaneously
-  }
+  fallback: { mode: "race" }
 });
 ```
-
-```python Python
-completion = client.chat.completions.create(
-    model="",
-    messages=[{"role": "user", "content": "Hello!"}],
-    fallback={
-        "mode": "race"  # Try multiple providers simultaneously
-    }
-)
-```
-</CodeGroup>
 
 <CardGroup cols={2}>
   <Card title="Benefits" icon="check-circle">
@@ -88,6 +49,336 @@ completion = client.chat.completions.create(
   <Card title="Trade-offs" icon="exclamation-triangle">
     **Higher costs**: Multiple API calls are made simultaneously  
     **Resource usage**: Increased bandwidth and compute utilization
+  </Card>
+</CardGroup>
+
+### Sequential Mode (Cost-Effective)
+
+Try providers one after another until one succeeds:
+
+```javascript
+const completion = await openai.chat.completions.create({
+  model: "",
+  messages: [{ role: "user", content: "Hello!" }],
+  fallback: { mode: "sequential" }
+});
+```
+
+<CardGroup cols={2}>
+  <Card title="Benefits" icon="check-circle">
+    **Lower costs**: Only pay for successful requests  
+    **Predictable**: Clear understanding of provider order and costs
+  </Card>
+  <Card title="Trade-offs" icon="exclamation-triangle">
+    **Higher latency**: Additional delay when primary provider fails  
+    **Sequential delays**: Each failed attempt adds to total response time
+  </Card>
+</CardGroup>
+
+### Disabled (Default)
+
+Fallback disabled for cost control - no fallback configuration needed.
+
+## Circuit Breaker Patterns
+
+Adaptive implements intelligent circuit breakers to prevent cascading failures:
+
+<CardGroup cols={3}>
+  <Card title="Failure Threshold" icon="exclamation-circle">
+    **5 failures** within 60 seconds triggers circuit breaker activation
+  </Card>
+  <Card title="Recovery Time" icon="clock">
+    **30 seconds** cooldown before attempting to use the provider again
+  </Card>
+  <Card title="Health Checks" icon="heart-pulse">
+    **Continuous monitoring** to detect when providers recover
+  </Card>
+</CardGroup>
+
+### Circuit Breaker States
+
+<Tabs>
+<Tab title="Closed (Normal)">
+**State**: All requests flow through normally  
+**Condition**: Provider is healthy and responding successfully  
+**Behavior**: No restrictions on request routing
+</Tab>
+
+<Tab title="Open (Blocked)">
+**State**: Provider is temporarily blocked from receiving requests  
+**Condition**: Failure threshold exceeded (5 failures in 60 seconds)  
+**Behavior**: Requests automatically route to backup providers
+</Tab>
+
+<Tab title="Half-Open (Testing)">
+**State**: Limited requests sent to test provider recovery  
+**Condition**: After cooldown period (30 seconds)  
+**Behavior**: Gradual re-integration if test requests succeed
+</Tab>
+</Tabs>
+
+## Reliability Metrics
+
+<CardGroup cols={4}>
+  <Card title="Uptime" icon="shield-check">
+    **99.95%**  
+    Across all providers
+  </Card>
+  <Card title="Failover Speed" icon="zap">
+    **&lt;500ms**  
+    Detection and switch time
+  </Card>
+  <Card title="Recovery Time" icon="refresh">
+    **&lt;30s**  
+    Provider re-integration
+  </Card>
+  <Card title="Success Rate" icon="target">
+    **99.9%**  
+    With fallback enabled
+  </Card>
+</CardGroup>
+
+## Configuration Options
+
+<ParamField body="fallback" type="object">
+  Configuration for provider fallback behavior
+  
+  <Expandable title="Properties">
+    <ParamField body="mode" type="string" required>
+      Fallback strategy: "race", "sequential", or "" (disabled)
+    </ParamField>
+    
+    <ParamField body="providers" type="array">
+      Custom list of providers to use for fallback (optional)
+    </ParamField>
+    
+    <ParamField body="timeout_ms" type="integer">
+      Request timeout in milliseconds (default: 30000)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Advanced Configuration
+
+```javascript
+const completion = await openai.chat.completions.create({
+  model: "",
+  messages: [{ role: "user", content: "Critical business request" }],
+  fallback: {
+    mode: "sequential",
+    providers: ["openai", "anthropic", "deepseek"],
+    timeout_ms: 45000,
+    max_retries: 3
+  }
+});
+```
+
+## Error Handling
+
+```javascript
+try {
+  const completion = await openai.chat.completions.create({
+    model: "",
+    messages: [{ role: "user", content: "Hello!" }],
+    fallback: { mode: "sequential" }
+  });
+  
+  console.log(`Used provider: ${completion.provider}`);
+  
+} catch (error) {
+  if (error.code === 'all_providers_failed') {
+    console.error('All configured providers are currently unavailable');
+  } else if (error.code === 'timeout') {
+    console.error('Request timed out across all providers');
+  } else {
+    console.error('Unexpected error:', error.message);
+  }
+}
+```
+
+### Error Codes
+
+<CardGroup cols={2}>
+  <Card title="all_providers_failed" icon="x-circle">
+    **Description**: All configured providers returned errors or are unavailable  
+    **Action**: Implement application-level fallback (cached responses, error messages)
+  </Card>
+  <Card title="timeout" icon="clock">
+    **Description**: Request timed out across all attempted providers  
+    **Action**: Consider increasing timeout_ms or checking network connectivity
+  </Card>
+  <Card title="rate_limit_exceeded" icon="ban">
+    **Description**: Rate limits hit across all providers simultaneously  
+    **Action**: Implement request queuing or backoff strategies
+  </Card>
+  <Card title="insufficient_quota" icon="credit-card">
+    **Description**: Credit/quota exhausted across all providers  
+    **Action**: Check billing and quota limits on provider accounts
+  </Card>
+</CardGroup>
+
+## Monitoring and Observability
+
+Track resiliency performance in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard):
+
+<CardGroup cols={2}>
+  <Card title="Provider Health" icon="heart-pulse">
+    **Real-time status**: Availability, response times, and error rates for each provider
+  </Card>
+  <Card title="Failover Events" icon="arrows-rotate">
+    **Event tracking**: When, why, and how often failovers occur
+  </Card>
+  <Card title="Circuit Breaker Status" icon="toggle-on">
+    **State monitoring**: Current state and history of circuit breakers
+  </Card>
+  <Card title="Success Rates" icon="chart-line">
+    **Reliability metrics**: Success rates with and without fallback enabled
+  </Card>
+</CardGroup>
+
+<Steps>
+  <Step title="Provider Outages">
+    Automatic alerts when providers go down or experience degraded performance
+  </Step>
+  <Step title="Failover Events">
+    Notifications when automatic failover is triggered for your requests
+  </Step>
+  <Step title="Recovery Events">
+    Updates when providers recover and are re-integrated into rotation
+  </Step>
+  <Step title="Quota Warnings">
+    Proactive alerts before hitting rate limits or quota exhaustion
+  </Step>
+</Steps>
+
+## Best Practices
+
+### When to Enable Fallback
+
+<CardGroup cols={2}>
+  <Card title="Critical Applications" icon="star">
+    **High-availability needs**: Customer-facing applications, real-time systems
+  </Card>
+  <Card title="Production Workloads" icon="building">
+    **Business-critical**: Revenue-generating applications, SLA requirements
+  </Card>
+  <Card title="Batch Processing" icon="layers">
+    **Large-scale operations**: Long-running jobs that can't afford to fail
+  </Card>
+  <Card title="Emergency Systems" icon="ambulance">
+    **Zero-downtime requirements**: Safety-critical or emergency response systems
+  </Card>
+</CardGroup>
+
+### When to Keep Disabled
+
+<CardGroup cols={2}>
+  <Card title="Cost-Sensitive Apps" icon="dollar-sign">
+    **Budget constraints**: Development environments, cost-optimized applications
+  </Card>
+  <Card title="Non-Critical Workloads" icon="flask">
+    **Testing environments**: Experimental features, internal tools
+  </Card>
+  <Card title="Batch Jobs" icon="clock">
+    **Delay-tolerant**: Operations that can retry later without business impact
+  </Card>
+  <Card title="Development" icon="code">
+    **Local development**: Testing and debugging scenarios
+  </Card>
+</CardGroup>
+
+## Performance Impact
+
+### Race Mode
+
+<CardGroup cols={3}>
+  <Card title="Latency" icon="zap">
+    **Best case**: 50ms faster than single provider  
+    **Worst case**: Same as slowest provider
+  </Card>
+  <Card title="Cost" icon="dollar-sign">
+    **Typical**: 2-3x single provider cost  
+    **Maximum**: N providers × base cost
+  </Card>
+  <Card title="Reliability" icon="shield">
+    **Failure rate**: Exponentially decreased  
+    **Uptime**: 99.99%+ effective availability
+  </Card>
+</CardGroup>
+
+### Sequential Mode
+
+<CardGroup cols={3}>
+  <Card title="Latency" icon="clock">
+    **Best case**: Same as single provider  
+    **Worst case**: Sum of all timeouts
+  </Card>
+  <Card title="Cost" icon="coins">
+    **Typical**: 1.1-1.3x single provider  
+    **Maximum**: Same as race mode on full failures
+  </Card>
+  <Card title="Reliability" icon="check">
+    **Failure rate**: Significantly decreased  
+    **Uptime**: 99.9%+ effective availability
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="All Providers Failing">
+**Symptoms**: Consistent `all_providers_failed` errors
+
+**Possible Causes**:
+- Network connectivity issues
+- API key problems across multiple providers
+- Widespread provider outages
+- Request format issues
+
+**Solutions**:
+- Check network connectivity and DNS resolution
+- Verify API keys and quotas for all providers
+- Check provider status pages for outages
+- Review request format and parameters
+</Accordion>
+
+<Accordion title="High Latency with Sequential Mode">
+**Symptoms**: Slow responses when fallback is enabled
+
+**Possible Causes**:
+- Primary provider consistently failing
+- Long timeout values
+- Network latency to backup providers
+
+**Solutions**:
+- Review provider health metrics
+- Reduce timeout_ms for faster failover
+- Consider switching to race mode for critical requests
+- Check provider selection order
+</Accordion>
+
+<Accordion title="Unexpected Costs">
+**Symptoms**: Higher than expected API costs
+
+**Possible Causes**:
+- Race mode calling multiple providers
+- Frequent failovers due to provider issues
+- Misconfigured fallback settings
+
+**Solutions**:
+- Review fallback mode configuration
+- Monitor provider health to identify problematic providers
+- Consider sequential mode for cost optimization
+- Set appropriate timeout values
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Performance Features" href="/features/performance" icon="gauge-high">
+    Learn about performance optimizations and caching
+  </Card>
+  <Card title="Model Routing" href="/features/model-routing" icon="route">
+    Understand how requests are routed to optimal providers
   </Card>
 </CardGroup>
 
