@@ -6,43 +6,271 @@ icon: "route"
 
 Adaptive Proxy exposes granular provider controls so you can steer routing per request without sacrificing the intelligent model router. The `provider` object is accepted on **Chat Completions**, **Anthropic Messages**, and **Gemini Generate** requests and is enforced consistently across non-streaming and streaming executions (including fallback paths).
 
-## Request Shape
+## SDK Setup
+
+All examples below assume you've configured the official OpenAI SDKs to point at Adaptive:
 
 <CodeGroup>
-```json JSON
-POST /v1/chat/completions
-{
-  "model": "meta-llama/llama-3.1-70b-instruct",
-  "messages": [{ "role": "user", "content": "Summarize this thread." }],
-  "provider": {
-    "order": ["anthropic", "groq"],
-    "only": ["anthropic", "groq"],
-    "ignore": ["deepinfra"],
-    "sort": "price",              // price | throughput | latency
-    "quantizations": ["fp8"],
-    "require_parameters": true,
-    "data_collection": "deny",    // allow | deny
-    "zdr": true,
-    "enforce_distillable_text": false,
-    "allow_fallbacks": false,
-    "max_price": {
-      "prompt": 1.2,              // USD per million tokens
-      "completion": 2.0,
-      "request": 0.10
+```javascript JavaScript/Node.js
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
+
+## Quick Start
+
+Use the `provider` object to control routing behavior per request:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+const completion = await openai.chat.completions.create({
+  model: "meta-llama/llama-3.1-70b-instruct",
+  messages: [{ role: "user", content: "Summarize this thread." }],
+  provider: {
+    order: ["anthropic", "openrouter/groq"],
+    only: ["anthropic", "openrouter/groq"],
+    ignore: ["deepinfra"],
+    sort: "price",
+    quantizations: ["fp8"],
+    require_parameters: true,
+    data_collection: "deny",
+    zdr: true,
+    enforce_distillable_text: false,
+    allow_fallbacks: false,
+    max_price: {
+      prompt: 1.2,
+      completion: 2.0,
+      request: 0.10
     }
-  },
-  "fallback": {
-    "enabled": true,
-    "mode": "race",
-    "timeout_ms": 20000
   }
-}
+});
+
+console.log(`Used provider: ${completion.provider}`);
+```
+
+```python Python
+completion = client.chat.completions.create(
+    model="meta-llama/llama-3.1-70b-instruct",
+    messages=[{"role": "user", "content": "Summarize this thread."}],
+    provider={
+        "order": ["anthropic", "openrouter/groq"],
+        "only": ["anthropic", "openrouter/groq"],
+        "ignore": ["deepinfra"],
+        "sort": "price",
+        "quantizations": ["fp8"],
+        "require_parameters": True,
+        "data_collection": "deny",
+        "zdr": True,
+        "enforce_distillable_text": False,
+        "allow_fallbacks": False,
+        "max_price": {
+            "prompt": 1.2,
+            "completion": 2.0,
+            "request": 0.10
+        }
+    }
+)
+
+print(f"Used provider: {completion.provider}")
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1/chat/completions \
+  -H "Authorization: Bearer apk_123456" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/llama-3.1-70b-instruct",
+    "messages": [{"role": "user", "content": "Summarize this thread."}],
+    "provider": {
+      "order": ["anthropic", "openrouter/groq"],
+      "only": ["anthropic", "openrouter/groq"],
+      "ignore": ["deepinfra"],
+      "sort": "price",
+      "quantizations": ["fp8"],
+      "require_parameters": true,
+      "data_collection": "deny",
+      "zdr": true,
+      "enforce_distillable_text": false,
+      "allow_fallbacks": false,
+      "max_price": {
+        "prompt": 1.2,
+        "completion": 2.0,
+        "request": 0.10
+      }
+    }
+  }'
 ```
 </CodeGroup>
 
 <Note>
   `provider.allow_fallbacks` simply toggles the new `fallback.enabled` flag. Use the `fallback` object when you need finer control over mode, retries, or circuit breakers.
 </Note>
+
+## Real Examples
+
+<CardGroup cols={2}>
+  <Card title="Cost Control" icon="dollar-sign">
+    **"Set maximum prices for all requests"**
+
+    Use `max_price` to enforce budget limits and prevent unexpected costs.
+
+    ```javascript
+    provider: {
+      max_price: { prompt: 1.0, completion: 1.5 }
+    }
+    ```
+
+  </Card>
+  <Card title="Compliance" icon="shield-check">
+    **"Only use zero data retention providers"**
+
+    Enforce data privacy requirements with `zdr` and `data_collection` filters.
+
+    ```javascript
+    provider: {
+      zdr: true,
+      data_collection: "deny"
+    }
+    ```
+
+  </Card>
+  <Card title="Performance" icon="zap">
+    **"Prioritize throughput for batch jobs"**
+
+    Use `sort: "throughput"` or `:nitro` shortcuts for high-volume processing.
+
+    ```javascript
+    provider: {
+      sort: "throughput",
+      quantizations: ["fp8"]
+    }
+    ```
+
+  </Card>
+  <Card title="Reliability" icon="lock">
+    **"Restrict to trusted providers"**
+
+    Use `only` to whitelist specific providers for critical applications.
+
+    ```javascript
+    provider: {
+      only: ["anthropic", "openai"],
+      allow_fallbacks: false
+    }
+    ```
+
+  </Card>
+</CardGroup>
+
+## Configuration Options
+
+### Provider Ordering
+
+Control which providers are tried first:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+// Try Anthropic first, then OpenRouter
+const completion = await openai.chat.completions.create({
+  model: "claude-3-5-sonnet-20241022",
+  messages: [{ role: "user", content: "Hello!" }],
+  provider: {
+    order: ["anthropic", "openrouter"]
+  }
+});
+```
+
+```python Python
+# Try Anthropic first, then OpenRouter
+completion = client.chat.completions.create(
+    model="claude-3-5-sonnet-20241022",
+    messages=[{"role": "user", "content": "Hello!"}],
+    provider={
+        "order": ["anthropic", "openrouter"]
+    }
+)
+```
+</CodeGroup>
+
+### Cost Optimization
+
+Set maximum prices to control spending:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+const completion = await openai.chat.completions.create({
+  model: "",
+  messages: [{ role: "user", content: "Write a summary" }],
+  provider: {
+    sort: "price",
+    max_price: {
+      prompt: 0.5,      // $0.50 per million prompt tokens
+      completion: 1.0,  // $1.00 per million completion tokens
+      request: 0.05     // $0.05 per request
+    }
+  }
+});
+```
+
+```python Python
+completion = client.chat.completions.create(
+    model="",
+    messages=[{"role": "user", "content": "Write a summary"}],
+    provider={
+        "sort": "price",
+        "max_price": {
+            "prompt": 0.5,
+            "completion": 1.0,
+            "request": 0.05
+        }
+    }
+)
+```
+</CodeGroup>
+
+### Compliance & Security
+
+Enforce data privacy and security requirements:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+const completion = await openai.chat.completions.create({
+  model: "",
+  messages: [{ role: "user", content: "Analyze sensitive data" }],
+  provider: {
+    data_collection: "deny",  // Only non-retentive providers
+    zdr: true,                // Zero Data Retention only
+    only: ["anthropic", "openai"]  // Trusted providers only
+  }
+});
+```
+
+```python Python
+completion = client.chat.completions.create(
+    model="",
+    messages=[{"role": "user", "content": "Analyze sensitive data"}],
+    provider={
+        "data_collection": "deny",
+        "zdr": True,
+        "only": ["anthropic", "openai"]
+    }
+)
+```
+</CodeGroup>
 
 ## Provider Parameters
 
