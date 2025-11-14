@@ -6,31 +6,6 @@ icon: "shield-check"
 
 Adaptive's zero completion insurance automatically protects you from being charged for failed requests or responses with no output tokens. When responses are empty or encounter errors, you pay nothing - even if underlying providers charge for processing.
 
-## SDK Setup
-
-All implementation examples assume the OpenAI SDK is configured to call Adaptive:
-
-<CodeGroup>
-```javascript JavaScript/Node.js
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
-```
-</CodeGroup>
-
 ## How It Works
 
 <Steps>
@@ -256,8 +231,7 @@ No, insurance cannot be disabled as it only benefits users by preventing unwante
 
 Zero completion insurance requires no code changes - it works automatically with your existing integrations:
 
-<CodeGroup>
-```javascript JavaScript/Node.js
+```javascript
 // Normal request - insurance automatically active
 const completion = await openai.chat.completions.create({
   model: "gpt-4",
@@ -269,19 +243,6 @@ if (completion.insurance?.protected) {
   console.log(`Saved $${completion.insurance.savings} on failed request`);
 }
 ```
-
-```python Python
-# Normal request - insurance automatically active
-completion = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-
-# Check if request was protected
-if hasattr(completion, 'insurance') and completion.insurance.get('protected'):
-    print(f"Saved ${completion.insurance['savings']} on failed request")
-```
-</CodeGroup>
 
 ## Next Steps
 
