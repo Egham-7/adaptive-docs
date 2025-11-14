@@ -43,15 +43,9 @@ Adaptive checks caches in order of speed:
 
 **FAQ Systems**: "What are your business hours?" matches "When are you open?", "Office hours information"
 
-## Cache Priority
-
-1. **Provider Cache**: Exact matches at provider infrastructure
-2. **Semantic Cache**: AI-powered similar meaning matches
-3. **Fresh Request**: Standard API call when no cache hit
-
 ## Provider Prompt Caching
 
-Adaptive automatically leverages provider-level caching when available. Key providers:
+Adaptive automatically leverages provider-level caching when available:
 
 | Provider | Cache Reads | Configuration | Notes |
 |----------|-------------|---------------|-------|
@@ -66,20 +60,14 @@ Adaptive automatically leverages provider-level caching when available. Key prov
 ```javascript Anthropic Cache Control
 const message = await client.messages.create({
   model: 'claude-sonnet-4-5',
-  messages: [
-    {
-      role: 'user',
-      content: [
-        { type: 'text', text: 'Based on this document:' },
-        {
-          type: 'text',
-          text: 'LARGE TEXT CONTENT HERE',
-          cache_control: { type: 'ephemeral' }
-        },
-        { type: 'text', text: 'Summarize the key points.' }
-      ]
-    }
-  ]
+  messages: [{
+    role: 'user',
+    content: [
+      { type: 'text', text: 'Based on this document:' },
+      { type: 'text', text: 'LARGE TEXT CONTENT HERE', cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: 'Summarize the key points.' }
+    ]
+  }]
 });
 ```
 
@@ -89,58 +77,11 @@ const result = await model.generateContent({
     role: 'user',
     parts: [
       { text: 'Analyze this data:' },
-      {
-        text: 'LARGE TEXT CONTENT HERE',
-        cache_control: { type: 'ephemeral' }
-      },
+      { text: 'LARGE TEXT CONTENT HERE', cache_control: { type: 'ephemeral' } },
       { text: 'What are the main trends?' }
     ]
   }]
 });
-```
-</CodeGroup>
-
-### Provider Cache Examples
-
-<CodeGroup>
-```javascript OpenAI Prompt Caching
-// OpenAI automatically caches prompts and reuses context
-const completion = await client.chat.completions.create({
-  model: 'gpt-5-mini',
-  messages: [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Explain quantum computing' }
-  ]
-});
-
-// Provider may cache this exact prompt for future identical requests
-```
-
-```javascript Anthropic Context Caching
-// Anthropic caches conversation context automatically
-const message = await client.messages.create({
-  model: 'claude-sonnet-4-5',
-  system: 'You are an expert software engineer.',
-  messages: [
-    { role: 'user', content: 'Help me debug this React component' }
-  ]
-});
-
-// Provider caches the system prompt + conversation for efficiency
-```
-
-```javascript Gemini Context Caching
-// Gemini supports explicit context caching
-const model = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash-lite',
-  systemInstruction: 'You are a math tutor.'
-});
-
-const result = await model.generateContent({
-  contents: [{ role: 'user', parts: [{ text: 'Solve 2x + 3 = 7' }] }]
-});
-
-// Provider caches the system instruction for repeated use
 ```
 </CodeGroup>
 
@@ -156,77 +97,19 @@ const result = await model.generateContent({
 
 Provider cache hits are indicated differently than semantic cache hits:
 
-<CodeGroup>
 ```javascript Provider Cache Detection
-// Check for provider-level caching indicators
 const completion = await client.chat.completions.create({
   model: '',
   messages: [{ role: 'user', content: 'Hello!' }]
 });
 
 // Provider cache hits may show:
-// - Extremely fast response times (&lt;50ms)
+// - Extremely fast response times (<50ms)
 // - Lower token counts (reused context)
-// - Provider-specific cache indicators
 console.log(`Response time: ${Date.now() - startTime}ms`);
 console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
 console.log(`Provider: ${completion.provider}`);
-
-// For OpenAI: Look for system_fingerprint changes indicating cache use
-console.log(`System fingerprint: ${completion.system_fingerprint}`);
 ```
-
-```javascript Combined Cache Monitoring
-// Monitor both provider and semantic cache performance
-class ComprehensiveCacheMonitor {
-  constructor(client) {
-    this.client = client;
-    this.stats = {
-      requests: 0,
-      semanticHits: 0,
-      providerHits: 0, // Inferred from response time/token patterns
-      noCache: 0,
-      avgResponseTime: 0
-    };
-  }
-
-  async makeRequest(messages) {
-    const startTime = Date.now();
-    const completion = await this.client.chat.completions.create({
-      model: '',
-      messages: messages
-    });
-    const responseTime = Date.now() - startTime;
-
-    this.stats.requests++;
-    this.stats.avgResponseTime = (this.stats.avgResponseTime + responseTime) / 2;
-
-    const cacheTier = completion.usage.cache_tier;
-
-    if (cacheTier && cacheTier !== 'none') {
-      this.stats.semanticHits++;
-    } else if (responseTime < 100) {
-      // Likely provider cache hit (very fast response, no semantic cache)
-      this.stats.providerHits++;
-    } else {
-      this.stats.noCache++;
-    }
-
-    return completion;
-  }
-
-  getCacheStats() {
-    return {
-      totalRequests: this.stats.requests,
-      semanticCacheRate: `${((this.stats.semanticHits / this.stats.requests) * 100).toFixed(1)}%`,
-      providerCacheRate: `${((this.stats.providerHits / this.stats.requests) * 100).toFixed(1)}%`,
-      noCacheRate: `${((this.stats.noCache / this.stats.requests) * 100).toFixed(1)}%`,
-      avgResponseTime: `${this.stats.avgResponseTime.toFixed(0)}ms`
-    };
-  }
-}
-```
-</CodeGroup>
 
 ### Provider Cache Best Practices
 
@@ -276,51 +159,7 @@ model_router: { semantic_cache: { threshold: 0.75 } }
 model_router: { semantic_cache: { enabled: false } }
 ```
 
-### Custom Threshold Settings
-
-<CodeGroup>
-```javascript Strict Matching
-// Higher threshold = stricter matching
-const completion = await openai.chat.completions.create({
-  model: "",
-  messages: [{ role: "user", content: "Technical implementation question" }],
-  model_router: {
-    semantic_cache: {
-      threshold: 0.9  // Higher = more precise matching
-    }
-  }
-});
-```
-
-```javascript Loose Matching
-// Lower threshold = broader matching
-const completion = await openai.chat.completions.create({
-  model: "",
-  messages: [{ role: "user", content: "General help question" }],
-  model_router: {
-    semantic_cache: {
-      threshold: 0.75, // Lower = more flexible matching
-    },
-  },
-});
-```
-
-```javascript Disable Caching
-// Disable for real-time data
-const completion = await openai.chat.completions.create({
-  model: "",
-  messages: [{ role: "user", content: "What's the current stock price?" }],
-  model_router: {
-    semantic_cache: {
-      enabled: false, // Disable for time-sensitive content
-    },
-  },
-});
-```
-
-</CodeGroup>
-
-## Configuration Parameters
+### Configuration Parameters
 
 - `enabled`: Enable/disable semantic caching (default: true)
 - `threshold`: Similarity threshold 0.0-1.0 (default: 0.85)
@@ -393,108 +232,6 @@ Track cache performance in your Adaptive dashboard: hit rates, cost savings, and
 - **Embeddings**: Sentence transformers for semantic matching
 - **Similarity**: Cosine similarity with configurable thresholds
 - **Storage**: Dual systems with automatic fallback
-
-## Enhanced Cache Performance Tracking
-
-### Monitoring Cache Effectiveness
-
-Check cache performance in API responses:
-
-```javascript
-const completion = await client.chat.completions.create({
-  model: '',
-  messages: [{ role: 'user', content: 'How do I reset my password?' }]
-});
-
-console.log(`Cache tier: ${completion.usage.cache_tier || 'none'}`);
-console.log(`Provider: ${completion.provider}`);
-console.log(`Response time: ${Date.now() - startTime}ms`);
-```
-
-### Cache Tier Values
-
-- `"semantic_exact"`: Perfect semantic match (90%+ savings, &lt;50ms)
-- `"semantic_similar"`: Similar semantic match (60-90% savings, &lt;100ms)
-- `"provider_cache"`: Provider infrastructure cache (microseconds, high savings)
-- `"none"`: No cache hit (standard costs)
-
-### Tracking Cache Hit Rates
-
-Calculate cache effectiveness:
-
-```javascript
-let totalRequests = 0;
-let cacheHits = 0;
-
-const completion = await client.chat.completions.create({
-  model: '',
-  messages: [{ role: 'user', content: 'How do I reset my password?' }]
-});
-
-totalRequests++;
-if (completion.usage.cache_tier && completion.usage.cache_tier !== 'none') {
-  cacheHits++;
-}
-
-const hitRate = ((cacheHits / totalRequests) * 100).toFixed(1);
-console.log(`Cache hit rate: ${hitRate}%`);
-```
-
-### Streaming with Cache Data
-
-Cache information is available in streaming responses:
-
-```javascript
-const stream = await client.chat.completions.create({
-  model: '',
-  messages: [{ role: 'user', content: 'Tell me a story' }],
-  stream: true,
-  stream_options: { include_usage: true }
-});
-
-for await (const chunk of stream) {
-  if (chunk.usage) {
-    console.log(`Cache tier: ${chunk.usage.cache_tier || 'none'}`);
-  }
-}
-```
-
-### Production Cache Monitoring
-
-Simple cache tracking for production:
-
-```javascript
-class CacheMonitor {
-  constructor() {
-    this.requests = 0;
-    this.hits = 0;
-  }
-
-  track(completion) {
-    this.requests++;
-    if (completion.usage.cache_tier !== 'none') {
-      this.hits++;
-    }
-  }
-
-  getHitRate() {
-    return ((this.hits / this.requests) * 100).toFixed(1) + '%';
-  }
-}
-```
-
-### Cost Savings Calculator
-
-```javascript
-function calculateSavings(completion) {
-  const tokens = completion.usage.total_tokens;
-  const tier = completion.usage.cache_tier;
-  
-  if (tier === 'semantic_exact') return { savings: '90%', cost: tokens * 0.15 * 0.1 };
-  if (tier === 'semantic_similar') return { savings: '75%', cost: tokens * 0.15 * 0.25 };
-  return { savings: '0%', cost: tokens * 0.15 };
-}
-```
 
 ## Next Steps
 

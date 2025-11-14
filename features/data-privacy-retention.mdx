@@ -133,12 +133,10 @@ Adaptive processes data across three services with different data handling chara
 
 **Configuration**: Disabled by default, must be explicitly enabled
 ```yaml
-# Backend config.yaml
 model_router:
   semantic_cache:
     enabled: true          # Disabled by default
     threshold: 0.95        # 95% similarity required
-    redis_url: "redis://localhost:6379"
 ```
 </Accordion>
 
@@ -359,83 +357,6 @@ completion = client.chat.completions.create(
 - Analytics data processed under legitimate interests
 </Tab>
 </Tabs>
-
-## Implementation Details
-
-### Database Schema Privacy Features
-
-Based on actual Prisma schema:
-
-<CodeGroup>
-```sql Soft Deletion Implementation
--- Conversations support soft deletion
-model Conversation {
-  id        Int       @id @default(autoincrement())
-  title     String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? -- Soft deletion support
-  userId    String    -- User isolation
-
-  messages Message[]
-  @@index([deletedAt]) -- Efficient deletion queries
-}
-
--- Messages also support soft deletion  
-model Message {
-  id        String    @id @default(cuid())
-  role      String
-  parts     Json      -- Message content
-  createdAt DateTime  @default(now())
-  deletedAt DateTime? -- Soft deletion support
-  
-  @@index([deletedAt])
-}
-```
-
-```sql Usage Metadata Only
--- Usage tracking stores metadata only
-model ApiUsage {
-  id           String      @id @default(cuid())
-  apiKeyId     String?
-  provider     String?     -- Provider used
-  model        String?     -- Model selected
-  inputTokens  Int         -- Token counts only
-  outputTokens Int
-  cost         Decimal     -- Cost information
-  timestamp    DateTime    -- When request occurred
-  metadata     Json?       -- Technical metadata only
-  
-  -- NO prompt or response content fields
-}
-```
-</CodeGroup>
-
-### Cache Implementation Details
-
-<CodeGroup>
-```python AI Service Caching (In-Memory)
-# From classification_result_embedding_cache.py
-class EmbeddingCache:
-    def __init__(self, max_size: int = 1000):
-        self.vectorstore = InMemoryVectorStore()  # In-memory only
-        self.max_size = max_size
-        self._cached_size = 0
-    
-    def add_to_cache(self, classification_result, orchestrator_response):
-        # Only stores classification results, not raw prompts
-        json_string = self._classification_result_to_json_string(classification_result)
-        # Automatic LRU eviction when max_size reached
-```
-
-```yaml Backend Cache Configuration
-# From config.yaml
-model_router:
-  semantic_cache:
-    enabled: true                   # Embeddings only, not content
-    threshold: 0.95                 # 95% similarity required
-```
-</CodeGroup>
 
 ## Data Deletion and User Rights
 
