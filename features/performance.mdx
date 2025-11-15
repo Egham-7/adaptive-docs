@@ -171,7 +171,7 @@ Adaptive automatically pre-loads cache with common patterns. Manual warming:
 const patterns = ["Hello, how are you?", "Explain this concept:", "Write a summary of:"];
 for (const pattern of patterns) {
   await openai.chat.completions.create({
-    model: "",
+    model: "adaptive/auto",
     messages: [{ role: "user", content: pattern }]
   });
 }

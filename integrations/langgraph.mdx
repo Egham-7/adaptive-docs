@@ -8,9 +8,20 @@ icon: "/images/logos/langgraph.svg"
 
 [Sign up here](https://www.llmadaptive.uk/sign-up?redirect_url=/api-platform/orgs) to create an account and generate your API key.
 
-## Quick Setup
+## Overview
 
-### Installation
+LangGraph is a low-level orchestration framework for building stateful, multi-actor applications with LLMs. By integrating Adaptive with LangGraph's `ChatOpenAI`, you get intelligent model routing while building complex agent workflows with graphs, state management, and tool integration.
+
+## Key Benefits
+
+- **Keep existing workflows** - No changes to your LangGraph graph structure
+- **Intelligent routing** - Automatic model selection for each agent interaction
+- **Cost optimization** - 30-70% cost reduction across agent executions
+- **Stateful agents** - Works seamlessly with LangGraph's state management
+- **Tool support** - Adaptive selects function-calling capable models automatically
+- **Streaming support** - Real-time responses in agent workflows
+
+## Installation
 
 <CodeGroup>
 ```bash Python
@@ -20,21 +31,27 @@ pip install langgraph langchain-openai
 ```bash JavaScript/TypeScript
 npm install @langchain/core @langchain/langgraph @langchain/openai
 ```
+
 </CodeGroup>
 
-### Basic Integration
+## Basic Usage
+
+### Initialize ChatOpenAI with Adaptive
+
+The only change needed is to point LangGraph's `ChatOpenAI` to Adaptive's endpoint:
 
 <CodeGroup>
 ```python Python
 from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
-    api_key="your-adaptive-api-key",
-    base_url="https://api.llmadaptive.uk/v1",
-    model="", # Empty string enables intelligent routing
-    temperature=0,
+api_key="your-adaptive-api-key",
+base_url="https://api.llmadaptive.uk/v1",
+model="adaptive/auto", # Empty string enables intelligent routing
+temperature=0,
 )
-```
+
+````
 
 ```typescript TypeScript
 import { ChatOpenAI } from "@langchain/openai";
@@ -42,56 +59,555 @@ import { ChatOpenAI } from "@langchain/openai";
 const model = new ChatOpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   configuration: {
-    baseURL: "https://api.llmadaptive.uk/v1",
+    baseURL: "https://api.llmadaptive.uk/v1", // Adaptive's endpoint
   },
-  modelName: "", // Empty string enables intelligent routing
+  modelName: "adaptive/auto", // Empty string enables intelligent routing
   temperature: 0,
 });
-```
+````
+
 </CodeGroup>
 
-## Simple Chatbot Example
+### Simple Chatbot with StateGraph
 
 <CodeGroup>
 ```python Python
 from langgraph.graph import StateGraph, MessagesState, START, END
+from langchain_openai import ChatOpenAI
 
 # Initialize model with Adaptive
+
 model = ChatOpenAI(
-    api_key="your-adaptive-api-key",
-    base_url="https://api.llmadaptive.uk/v1",
-    model="",
-    temperature=0,
+api_key="your-adaptive-api-key",
+base_url="https://api.llmadaptive.uk/v1",
+model="adaptive/auto",
+temperature=0,
 )
 
+# Define the chatbot function
+
 def call_model(state: MessagesState):
-    response = model.invoke(state["messages"])
-    return {"messages": [response]}
+response = model.invoke(state["messages"])
+return {"messages": [response]}
 
 # Create the graph
+
 workflow = StateGraph(MessagesState)
 workflow.add_node("agent", call_model)
 workflow.add_edge(START, "agent")
 workflow.add_edge("agent", END)
 
 app = workflow.compile()
-```
+
+# Use the chatbot
+
+result = app.invoke({
+"messages": [{"role": "user", "content": "What is LangGraph?"}]
+})
+
+print(result["messages"][-1].content)
+
+````
+
+```typescript TypeScript
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+
+// Initialize model with Adaptive
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0,
+});
+
+// Define the chatbot function
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+// Create the graph
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
+
+const app = workflow.compile();
+
+// Use the chatbot
+const result = await app.invoke({
+  messages: [{ role: "user", content: "What is LangGraph?" }],
+});
+
+console.log(result.messages[result.messages.length - 1].content);
+````
+
 </CodeGroup>
 
-## Key Benefits
+## Advanced Examples
 
-- **Intelligent routing** - Automatic model selection for each agent interaction
-- **Stateful workflows** - Works seamlessly with LangGraph's state management
-- **Tool support** - Adaptive selects function-calling capable models automatically
-- **Cost optimization** - 30-70% cost reduction across agent executions
+### Agent with Tools
+
+Adaptive automatically selects models that support function calling when tools are detected:
+
+<CodeGroup>
+```python Python
+from langgraph.graph import StateGraph, MessagesState, START, END
+from langgraph.prebuilt import ToolNode
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+
+# Define tools
+
+@tool
+def get_weather(location: str) -> str:
+"""Get the current weather for a location.""" # Weather API call
+return f"Weather in {location}: 72°F, sunny"
+
+tools = [get_weather]
+
+# Initialize model with tools
+
+model = ChatOpenAI(
+api_key="your-adaptive-api-key",
+base_url="https://api.llmadaptive.uk/v1",
+model="adaptive/auto",
+temperature=0,
+).bind_tools(tools)
+
+# Define the agent function
+
+def call_model(state: MessagesState):
+response = model.invoke(state["messages"])
+return {"messages": [response]}
+
+# Routing function
+
+def should_continue(state: MessagesState):
+messages = state["messages"]
+last_message = messages[-1]
+if last_message.tool_calls:
+return "tools"
+return END
+
+# Create the graph
+
+workflow = StateGraph(MessagesState)
+workflow.add_node("agent", call_model)
+workflow.add_node("tools", ToolNode(tools))
+workflow.add_edge(START, "agent")
+workflow.add_conditional_edges("agent", should_continue, ["tools", END])
+workflow.add_edge("tools", "agent")
+
+app = workflow.compile()
+
+# Use the agent
+
+result = app.invoke({
+"messages": [{"role": "user", "content": "What's the weather in San Francisco?"}]
+})
+
+````
+
+```typescript TypeScript
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { ChatOpenAI } from "@langchain/openai";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+
+// Define tools
+const weatherTool = tool(
+  async ({ location }) => {
+    // Weather API call
+    return `Weather in ${location}: 72°F, sunny`;
+  },
+  {
+    name: "get_weather",
+    description: "Get the current weather for a location",
+    schema: z.object({
+      location: z.string().describe("The city name"),
+    }),
+  }
+);
+
+const tools = [weatherTool];
+
+// Initialize model with tools
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0,
+}).bindTools(tools);
+
+// Define the agent function
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+// Routing function
+function shouldContinue(state: typeof MessagesAnnotation.State) {
+  const messages = state.messages;
+  const lastMessage = messages[messages.length - 1];
+
+  if (
+    lastMessage &&
+    typeof lastMessage === "object" &&
+    "tool_calls" in lastMessage &&
+    Array.isArray(lastMessage.tool_calls) &&
+    lastMessage.tool_calls.length > 0
+  ) {
+    return "tools";
+  }
+  return "__end__";
+}
+
+// Create the graph
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addNode("tools", new ToolNode(tools))
+  .addEdge("__start__", "agent")
+  .addConditionalEdges("agent", shouldContinue)
+  .addEdge("tools", "agent");
+
+const app = workflow.compile();
+
+// Use the agent
+const result = await app.invoke({
+  messages: [{ role: "user", content: "What's the weather in San Francisco?" }],
+});
+````
+
+</CodeGroup>
+
+### Streaming Agent Responses
+
+```typescript
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0,
+});
+
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
+
+const app = workflow.compile();
+
+// Stream the agent's responses
+const stream = await app.stream({
+  messages: [{ role: "user", content: "Write a short poem about AI" }],
+});
+
+for await (const chunk of stream) {
+  if (chunk.agent && chunk.agent.messages) {
+    const message = chunk.agent.messages[0];
+    if (message && message.content) {
+      process.stdout.write(message.content);
+    }
+  }
+}
+```
+
+### Multi-Agent Workflow
+
+```typescript
+import { StateGraph, Annotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+
+// Define custom state with multiple agents
+const WorkflowState = Annotation.Root({
+  messages: Annotation<any[]>({
+    reducer: (x, y) => x.concat(y),
+  }),
+  currentAgent: Annotation<string>({
+    reducer: (x, y) => y ?? x,
+    default: () => "researcher",
+  }),
+});
+
+// Initialize different models for different agents
+const researcherModel = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0.3,
+});
+
+const writerModel = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0.7,
+});
+
+// Define agent nodes
+async function researcher(state: typeof WorkflowState.State) {
+  const response = await researcherModel.invoke([
+    { role: "system", content: "You are a research specialist." },
+    ...state.messages,
+  ]);
+  return {
+    messages: [response],
+    currentAgent: "writer",
+  };
+}
+
+async function writer(state: typeof WorkflowState.State) {
+  const response = await writerModel.invoke([
+    { role: "system", content: "You are a creative writer." },
+    ...state.messages,
+  ]);
+  return {
+    messages: [response],
+    currentAgent: "end",
+  };
+}
+
+// Router function
+function router(state: typeof WorkflowState.State) {
+  return state.currentAgent === "writer" ? "writer" : "__end__";
+}
+
+// Build the workflow
+const workflow = new StateGraph(WorkflowState)
+  .addNode("researcher", researcher)
+  .addNode("writer", writer)
+  .addEdge("__start__", "researcher")
+  .addConditionalEdges("researcher", router)
+  .addEdge("writer", "__end__");
+
+const app = workflow.compile();
+
+// Execute multi-agent workflow
+const result = await app.invoke({
+  messages: [
+    { role: "user", content: "Research and write about quantum computing" },
+  ],
+});
+```
+
+## Integration Patterns
+
+### With Memory/Checkpointing
+
+```typescript
+import { MemorySaver } from "@langchain/langgraph";
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0,
+});
+
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
+
+// Add memory for persistent conversations
+const memory = new MemorySaver();
+const app = workflow.compile({ checkpointer: memory });
+
+// Use with conversation threads
+const config = { configurable: { thread_id: "user-123" } };
+
+// First message
+await app.invoke(
+  { messages: [{ role: "user", content: "My name is Alice" }] },
+  config,
+);
+
+// Follow-up message (remembers context)
+const result = await app.invoke(
+  { messages: [{ role: "user", content: "What's my name?" }] },
+  config,
+);
+```
+
+### Human-in-the-Loop
+
+```typescript
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+import { MemorySaver } from "@langchain/langgraph";
+
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0,
+});
+
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
+
+// Compile with interrupt before agent node for human approval
+const memory = new MemorySaver();
+const app = workflow.compile({
+  checkpointer: memory,
+  interruptBefore: ["agent"],
+});
+
+const config = { configurable: { thread_id: "conversation-1" } };
+
+// Start the workflow (will pause before agent)
+await app.invoke(
+  { messages: [{ role: "user", content: "Send an email to the team" }] },
+  config,
+);
+
+// Get current state for human review
+const state = await app.getState(config);
+console.log("Pending action:", state.values);
+
+// Human approves and continues
+await app.invoke(null, config);
+```
+
+## Configuration Options
+
+### Model Selection
+
+- **Empty string**: Intelligent routing (recommended)
+- **Specific model**: Force a particular model
+- **Provider only**: Let Adaptive choose best model from provider
+
+```typescript
+// Intelligent routing (recommended)
+modelName: "adaptive/auto";
+
+// Specific model
+modelName: "gpt-4.1-nano";
+
+// Provider selection (Adaptive chooses best model)
+modelName: "openai";
+```
+
+### Temperature and Parameters
+
+All standard ChatOpenAI parameters work with Adaptive:
+
+```typescript
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+  temperature: 0.7,
+  maxTokens: 1000,
+  topP: 1,
+  frequencyPenalty: 0,
+  presencePenalty: 0,
+});
+```
+
+## Best Practices
+
+1. **Use empty model string** for intelligent routing across agent nodes
+2. **Different temperatures** for different agents (research vs creative)
+3. **Leverage checkpointing** for stateful conversations with memory
+4. **Use conditional edges** for complex routing logic
+5. **Add human-in-the-loop** for critical decisions with interrupt points
+6. **Tool integration** - Adaptive automatically selects function-calling models
+
+## Error Handling
+
+Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+
+```typescript
+import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+import { ChatOpenAI } from "@langchain/openai";
+
+// Adaptive handles routing failures automatically
+const model = new ChatOpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto", // Intelligent routing with automatic retries
+  temperature: 0,
+});
+
+async function callModel(state: typeof MessagesAnnotation.State) {
+  const response = await model.invoke(state.messages);
+  return { messages: [response] };
+}
+
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode("agent", callModel)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
+
+const app = workflow.compile();
+
+// Adaptive handles errors automatically - no try/catch needed for basic usage
+const result = await app.invoke({
+  messages: [{ role: "user", content: "Hello, how are you?" }],
+});
+```
+
+---
+
+## Complete Example
+
+See the [complete LangGraph example](https://github.com/your-org/adaptive/blob/main/examples/ts/examples/langgraph-agent.ts) for a full working implementation including:
+
+- Stateful agent with memory
+- Tool integration with conditional routing
+- Multi-agent workflows
+- Streaming responses
+- Human-in-the-loop patterns
+- Error handling
 
 ## Next Steps
 
-<CardGroup cols={2}>
-  <Card title="More Examples" href="/examples/basic-chat" icon="code">
-    See complete working examples with LangGraph
-  </Card>
-  <Card title="API Reference" href="/api-reference/chat-completions" icon="book">
-    Explore all available options and parameters
-  </Card>
-</CardGroup>
+- Explore [LangGraph prebuilt agents](https://langchain-ai.github.io/langgraphjs/how-tos/create-react-agent/) with Adaptive
+- Build [multi-agent systems](https://langchain-ai.github.io/langgraphjs/concepts/multi_agent/) with intelligent routing
+- Implement [persistence](https://langchain-ai.github.io/langgraphjs/how-tos/persistence/) for long-running agents
+- Add [human-in-the-loop](https://langchain-ai.github.io/langgraphjs/how-tos/human-in-the-loop/) approval workflows
+- Try [RAG agents](https://langchain-ai.github.io/langgraphjs/tutorials/rag/langgraph_adaptive_rag/) with cost optimization

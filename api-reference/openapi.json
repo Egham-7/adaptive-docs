@@ -410,11 +410,7 @@
             "type": "string",
             "description": "This fingerprint represents the backend configuration that the model runs with"
           },
-          "provider": {
-            "type": "string",
-            "description": "The provider that was selected for this completion",
-            "example": "openai"
-          }
+
         }
       },
       "ChatCompletionChoice": {
@@ -466,10 +462,7 @@
           "usage": {
             "$ref": "#/components/schemas/CompletionUsage"
           },
-          "provider": {
-            "type": "string",
-            "description": "The provider that was selected for this completion"
-          }
+
         }
       },
       "ChatCompletionChunkChoice": {

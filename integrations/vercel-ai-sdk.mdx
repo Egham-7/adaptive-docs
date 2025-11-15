@@ -9,25 +9,80 @@ icon: "/images/logos/vercel.svg"
 
 [Sign up here](https://www.llmadaptive.uk/sign-up?redirect_url=/api-platform/orgs) to create an account and generate your API key.
 
-## Quick Setup
+## Overview
+
+The Vercel AI SDK works seamlessly with Adaptive through two methods:
+
+- **Adaptive Provider (Recommended):** Use the native `@adaptive-llm/adaptive-ai-provider` provider for built-in support.
+- **OpenAI Provider:** Use Adaptive via `@ai-sdk/openai` with a custom base URL.
+
+---
+
+## Method 1: Adaptive Provider
 
 ### Installation
 
-```bash
-npm install ai @ai-sdk/openai zod
+<CodeGroup>
+```bash npm
+npm install ai @adaptive-llm/adaptive-ai-provider
 ```
 
-### Configure API Key
-
-Create a `.env.local` file and add your Adaptive API key:
-
-```env
-ADAPTIVE_API_KEY=your-api-key-here
+```bash yarn
+yarn add ai @adaptive-llm/adaptive-ai-provider
 ```
 
-## Basic Usage
+```bash pnpm
+pnpm add ai @adaptive-llm/adaptive-ai-provider
+```
+</CodeGroup>
 
-```javascript
+### Basic Setup
+
+<CodeGroup>
+```javascript Basic Configuration
+import { adaptive } from "@adaptive-llm/adaptive-ai-provider";
+
+// Use default configuration
+const model = adaptive();
+```
+
+```javascript Custom Configuration
+import { createAdaptive } from "@adaptive-llm/adaptive-ai-provider";
+
+const customAdaptive = createAdaptive({
+  baseURL: "https://api.llmadaptive.uk/v1",
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  headers: {
+    "User-Agent": "MyApp/1.0",
+  },
+});
+```
+</CodeGroup>
+
+---
+
+## Method 2: OpenAI Provider
+
+### Installation
+
+<CodeGroup>
+```bash npm
+npm install ai @ai-sdk/openai
+```
+
+```bash yarn
+yarn add ai @ai-sdk/openai
+```
+
+```bash pnpm
+pnpm add ai @ai-sdk/openai
+```
+</CodeGroup>
+
+### Configuration
+
+<CodeGroup>
+```javascript JavaScript/Node.js
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
@@ -40,158 +95,397 @@ const { text } = await generateText({
   model: adaptiveOpenAI(''), // Empty string enables intelligent routing
   prompt: 'Explain quantum computing simply',
 });
+```
+
+```typescript TypeScript
+import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
+
+const adaptiveOpenAI = openai({
+  apiKey: process.env.ADAPTIVE_API_KEY!,
+  baseURL: 'https://api.llmadaptive.uk/v1',
+});
+
+const { text } = await generateText({
+  model: adaptiveOpenAI(''), // Empty string enables intelligent routing
+  prompt: 'Explain quantum computing simply',
+});
 
 console.log(text);
 ```
+</CodeGroup>
 
-## Next.js App Router Example
+---
 
-### Route Handler (app/api/chat/route.ts)
+## Text Generation
 
-```typescript
-import { openai } from '@ai-sdk/openai';
-import { streamText, UIMessage, convertToModelMessages } from 'ai';
+<CodeGroup>
+```javascript Adaptive Provider
+import { generateText } from 'ai';
+import { adaptive } from '@adaptive-llm/adaptive-ai-provider';
 
-export const maxDuration = 30;
+const { text } = await generateText({
+  model: adaptive(),
+  prompt: 'Write a vegetarian lasagna recipe for 4 people.',
+});
+```
 
-export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+```javascript OpenAI Provider
+import { generateText } from 'ai';
 
-  const result = streamText({
-    model: openai({
-      apiKey: process.env.ADAPTIVE_API_KEY,
-      baseURL: 'https://api.llmadaptive.uk/v1'
-    })(''), // Empty string enables routing
-    messages: convertToModelMessages(messages),
-  });
+const { text } = await generateText({
+  model: adaptiveOpenAI(''),
+  prompt: 'Write a vegetarian lasagna recipe for 4 people.',
+});
+```
+</CodeGroup>
 
-  return result.toUIMessageStreamResponse();
+---
+
+## Streaming
+
+<CodeGroup>
+```javascript Adaptive Provider
+import { streamText } from 'ai';
+import { adaptive } from '@adaptive-llm/adaptive-ai-provider';
+
+const { textStream } = await streamText({
+  model: adaptive(),
+  prompt: 'Explain machine learning step by step',
+});
+
+for await (const delta of textStream) {
+  process.stdout.write(delta);
 }
 ```
 
-### UI Component (app/page.tsx)
+```javascript OpenAI Provider
+import { streamText } from 'ai';
 
-```typescript
-'use client';
+const { textStream } = await streamText({
+  model: adaptiveOpenAI(''),
+  prompt: 'Explain machine learning step by step',
+});
 
-import { useChat } from '@ai-sdk/react';
+for await (const delta of textStream) {
+  process.stdout.write(delta);
+}
+```
+</CodeGroup>
+
+---
+
+## React Chat Component
+
+<CodeGroup>
+```javascript useChat Hook
+import { useChat } from 'ai/react';
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: '/api/chat', // Your API route using Adaptive
+  });
 
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.map(message => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          {message.role === 'user' ? 'User: ' : 'AI: '}
-          {message.parts.map((part, i) => {
-            switch (part.type) {
-              case 'text':
-                return <div key={`${message.id}-${i}`}>{part.text}</div>;
-            }
-          })}
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          <strong>{m.role}: </strong>
+          {m.content}
         </div>
       ))}
-
+      
       <form onSubmit={handleSubmit}>
         <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-zinc-300 rounded shadow-xl"
           value={input}
           placeholder="Say something..."
           onChange={handleInputChange}
         />
+        <button type="submit">Send</button>
       </form>
     </div>
   );
 }
 ```
 
-## Tool Calling with Adaptive
+```javascript API Route - Adaptive Provider
+// pages/api/chat.js or app/api/chat/route.js
+import { adaptive } from '@adaptive-llm/adaptive-ai-provider';
+import { streamText } from 'ai';
 
-### Route Handler with Tools
+export async function POST(req) {
+  const { messages } = await req.json();
 
-```typescript
+  const result = await streamText({
+    model: adaptive(),
+    messages,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+```javascript API Route - OpenAI Provider
+// pages/api/chat.js or app/api/chat/route.js
 import { openai } from '@ai-sdk/openai';
-import { streamText, UIMessage, convertToModelMessages, tool } from 'ai';
+import { streamText } from 'ai';
+
+const adaptiveOpenAI = openai({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  baseURL: 'https://api.llmadaptive.uk/v1',
+});
+
+export async function POST(req) {
+  const { messages } = await req.json();
+
+  const result = await streamText({
+    model: adaptiveOpenAI(''),
+    messages,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+</CodeGroup>
+
+---
+
+## Configuration Parameters
+
+<Info>
+Advanced configuration options are available with the Adaptive provider for intelligent routing and optimization.
+</Info>
+
+<CodeGroup>
+```javascript Intelligent Routing
+import { generateText } from 'ai';
+import { adaptive } from '@adaptive-llm/adaptive-ai-provider';
+
+await generateText({
+  model: adaptive(),
+  prompt: "Summarize this article",
+  providerOptions: {
+    adaptive: {
+      // Intelligent routing configuration
+      model_router: {
+        models: [
+          "anthropic/claude-sonnet-4-5", // Specific Anthropic model
+          "openai/gpt-5-mini" // Specific OpenAI model
+        ],
+        cost_bias: 0.3, // 0 = cheapest, 1 = best performance
+        complexity_threshold: 0.5, // Override complexity detection
+        token_threshold: 1000 // Override token threshold
+      }
+    }
+  }
+});
+```
+
+```javascript Fallback Configuration
+await generateText({
+  model: adaptive(),
+  prompt: "Explain machine learning",
+  providerOptions: {
+    adaptive: {
+      // Fallback configuration
+      fallback: {
+        enabled: true, // Enable/disable fallback (default: true)
+        mode: "race" // 'sequential' or 'race'
+      }
+    }
+  }
+});
+```
+
+```javascript Caching Options
+await generateText({
+  model: adaptive(),
+  prompt: "What is TypeScript?",
+  providerOptions: {
+    adaptive: {
+      // Semantic caching
+      semantic_cache: {
+        enabled: true,
+        similarity_threshold: 0.85 // Similarity threshold for cache hits
+      }
+    }
+  }
+});
+```
+</CodeGroup>
+
+### Parameter Details
+
+<Accordion title="model_router - Intelligent Model Selection">
+Controls intelligent model selection:
+
+- **`models`**: Array of allowed author/model strings
+  - `"anthropic/claude-sonnet-4-5"` - Specific model
+  - `"openai/gpt-5-mini"` - Specific model
+- **`cost_bias`**: Balance cost vs performance (0-1)
+  - `0` = Always choose cheapest option
+  - `0.5` = Balanced cost and performance  
+  - `1` = Always choose best performance
+- **`complexity_threshold`**: Override automatic complexity detection (0-1)
+- **`token_threshold`**: Override automatic token counting threshold
+</Accordion>
+
+<Accordion title="fallback - Provider Fallback Behavior">
+Controls provider fallback behavior:
+
+- **`enabled`**: Enable/disable fallback (default: true)
+- **`mode`**: Fallback strategy
+  - `"sequential"` = Try providers one by one (lower cost)
+  - `"race"` = Try multiple providers simultaneously (faster)
+</Accordion>
+
+<Accordion title="semantic_cache - Semantic Caching">
+Improves performance by caching similar requests:
+
+- **`enabled`**: Enable semantic caching
+- **`similarity_threshold`**: Similarity threshold (0-1) for cache hits
+  - Higher values = more strict matching
+  - Lower values = more cache hits but less accuracy
+</Accordion>
+
+---
+
+## Custom Providers
+
+<Info>
+Custom providers are no longer supported. All models must be specified using the `provider:model_name` string format for models available in the registry.
+</Info>
+
+```javascript Custom Provider Configuration
+await generateText({
+  model: adaptive(),
+  prompt: "Explain machine learning concepts",
+  providerOptions: {
+    adaptive: {
+      // Include registry models in model list
+      model_router: {
+        models: [
+          "openai/gpt-5-mini", // Standard provider
+          "anthropic/claude-3-5-haiku"
+        ],
+        cost_bias: 0.5
+      }
+    }
+  }
+});
+```
+
+---
+
+## Tool/Function Calling
+
+<CodeGroup>
+```javascript Adaptive Provider
+import { generateText, tool } from 'ai';
+import { z } from 'zod';
+import { adaptive } from '@adaptive-llm/adaptive-ai-provider';
+
+const { text } = await generateText({
+  model: adaptive(),
+  prompt: "What's the weather in New York?",
+  tools: {
+    getWeather: tool({
+      description: 'Get weather for a location',
+      parameters: z.object({
+        location: z.string(),
+      }),
+      execute: async ({ location }) => {
+        return `Weather in ${location} is sunny and 72°F`;
+      },
+    }),
+  },
+});
+```
+
+```javascript OpenAI Provider
+import { generateText, tool } from 'ai';
 import { z } from 'zod';
 
-export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
-
-  const result = streamText({
-    model: openai({
-      apiKey: process.env.ADAPTIVE_API_KEY,
-      baseURL: 'https://api.llmadaptive.uk/v1'
-    })(''),
-    messages: convertToModelMessages(messages),
-    tools: {
-      weather: tool({
-        description: 'Get the weather in a location',
-        inputSchema: z.object({
-          location: z.string().describe('The location to get the weather for'),
-        }),
-        execute: async ({ location }) => {
-          // Your weather API call here
-          return {
-            location,
-            temperature: 72,
-            condition: 'Sunny'
-          };
-        },
+const { text } = await generateText({
+  model: adaptiveOpenAI(''),
+  prompt: "What's the weather in New York?",
+  tools: {
+    getWeather: tool({
+      description: 'Get weather for a location',
+      parameters: z.object({
+        location: z.string(),
       }),
+      execute: async ({ location }) => {
+        return `Weather in ${location} is sunny and 72°F`;
+      },
+    }),
+  },
+});
+```
+</CodeGroup>
+
+---
+
+## Cache Tier Tracking
+
+Access cache information in the response when using the Adaptive provider:
+
+```javascript Cache Tier Information
+const result = await generateText({
+  model: adaptive(),
+  prompt: "Hello world",
+});
+
+
+```
+
+---
+
+## Environment Variables
+
+```bash Environment Setup
+# .env.local
+ADAPTIVE_API_KEY=your-adaptive-api-key
+```
+
+---
+
+## Error Handling
+
+Adaptive automatically handles provider failures and retries. For comprehensive error handling patterns, see the [Error Handling Guide](/guides/error-handling).
+
+```typescript
+import { useChat } from 'ai/react';
+
+export default function Chat() {
+  const { messages, input, handleInputChange, handleSubmit, error, reload } = useChat({
+    api: '/api/chat',
+    onError: (error) => {
+      console.error('Adaptive chat error:', error);
+      // Adaptive has already tried multiple providers
     },
   });
 
-  return result.toUIMessageStreamResponse();
-}
-```
-
-### UI with Tool Results
-
-```typescript
-'use client';
-
-import { useChat } from '@ai-sdk/react';
-
-export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
-
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.map(message => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          {message.role === 'user' ? 'User: ' : 'AI: '}
-          {message.parts.map((part, i) => {
-            switch (part.type) {
-              case 'text':
-                return <div key={`${message.id}-${i}`}>{part.text}</div>;
-              case 'tool-weather':
-                return (
-                  <pre key={`${message.id}-${i}`}>
-                    {JSON.stringify(part, null, 2)}
-                  </pre>
-                );
-            }
-          })}
+    <div>
+      {/* Your chat UI */}
+      {error && (
+        <div className="error">
+          {error.message}
+          <button onClick={() => reload()}>Retry</button>
         </div>
-      ))}
-
-      <form onSubmit={handleSubmit}>
-        <input
-          value={input}
-          placeholder="Ask about weather..."
-          onChange={handleInputChange}
-        />
-      </form>
+      )}
     </div>
   );
 }
 ```
 
-## Key Features
+---
+
+## What You Get
 
 <CardGroup cols={2}>
-  <Card title="Model Routing" icon="brain">
+  <Card title="Intelligent Routing" icon="brain">
     Automatic model selection based on your prompt complexity
   </Card>
   <Card title="Built-in Streaming" icon="zap">

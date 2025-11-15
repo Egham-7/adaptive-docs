@@ -38,7 +38,7 @@ icon: "wrench"
         curl -H "Authorization: Bearer apk_123456" \
              -H "Content-Type: application/json" \
              https://api.llmadaptive.uk/v1/chat/completions \
-             -d '{"model":"","messages":[{"role":"user","content":"test"}]}'
+             -d '{"model":"adaptive/auto","messages":[{"role":"user","content":"test"}]}'
        ```
   </Accordion>
 
@@ -105,22 +105,22 @@ icon: "wrench"
     1. **Use empty string for intelligent routing:**
        ```javascript
        // ✅ Correct - enables intelligent routing
-       model: ""
+       model: "adaptive/auto"
        
        // ❌ Wrong - tries to use specific model
-       model: ""
-       model: ""
-       model: ""
+       model: "adaptive/auto"
+       model: "adaptive/auto"
+       model: "adaptive/auto"
        ```
 
     2. **TypeScript type issues:**
        ```typescript
        // Option 1: Type assertion
-       model: "" as any
+       model: "adaptive/auto" as any
        
        // Option 2: Disable strict checking for this parameter
        // @ts-ignore
-       model: ""
+       model: "adaptive/auto"
        ```
   </Accordion>
 
@@ -166,7 +166,7 @@ icon: "wrench"
     1. **Check request format:**
        ```javascript
        const completion = await openai.chat.completions.create({
-         model: "",
+         model: "adaptive/auto",
          messages: [
            { role: "user", content: "Hello" } // Ensure content is not empty
          ]
@@ -175,9 +175,8 @@ icon: "wrench"
 
     2. **Verify response handling:**
        ```javascript
-       console.log("Full response:", completion);
-       console.log("Content:", completion.choices[0]?.message?.content);
-       console.log("Provider:", completion.provider);
+        console.log("Full response:", completion);
+        console.log("Content:", completion.choices[0]?.message?.content);
        ```
 
     3. **Check for API errors:**
@@ -200,7 +199,7 @@ icon: "wrench"
        ```javascript
        // ✅ Correct streaming setup
        const stream = await openai.chat.completions.create({
-         model: "",
+         model: "adaptive/auto",
          messages: [...],
          stream: true
        });
@@ -328,7 +327,7 @@ icon: "wrench"
        llm = ChatOpenAI(
            api_key=os.getenv("ADAPTIVE_API_KEY"),
            base_url="https://api.llmadaptive.uk/v1",
-           model=""  # Important: empty string
+           model="adaptive/auto"  # Important: empty string
        )
        ```
 
@@ -341,7 +340,7 @@ icon: "wrench"
          configuration: {
            baseURL: "https://api.llmadaptive.uk/v1"
          },
-         model: ""
+         model: "adaptive/auto"
        });
        ```
 
@@ -372,7 +371,7 @@ icon: "wrench"
        });
        
        const { text } = await generateText({
-         model: adaptiveOpenAI(''), // Empty string for routing
+         model: adaptiveOpenAI('adaptive/auto'), // Empty string for routing
          prompt: 'Hello'
        });
        ```
@@ -443,13 +442,11 @@ icon: "wrench"
       "attempts": 2,
       "failures": [
         {
-          "provider": "openai",
           "model": "gpt-4",
           "error": "Rate limit exceeded",
           "duration_ms": 850
         },
         {
-          "provider": "anthropic",
           "model": "claude-3-opus",
           "error": "Service temporarily unavailable",
           "duration_ms": 1200
@@ -502,7 +499,7 @@ icon: "wrench"
    model: "gpt-4"  // ❌ May not be available
 
    // Use intelligent routing
-   model: ""       // ✅ Adaptive chooses best available
+   model: "adaptive/auto"       // ✅ Adaptive chooses best available
    ```
 
 3. **Verify model support** on [supported models](/supported-models) page
@@ -530,7 +527,7 @@ icon: "wrench"
 1. **Specify a model explicitly:**
    ```javascript
    // Instead of intelligent routing
-   model: ""                    // ❌ May fail to route
+   model: "adaptive/auto"                    // ❌ May fail to route
 
    // Specify explicitly
    model: "gpt-3.5-turbo"      // ✅ Direct routing
@@ -551,7 +548,6 @@ icon: "wrench"
     "type": "provider_failure",
     "message": "OpenAI API error: Rate limit exceeded",
     "details": {
-      "provider": "openai",
       "model": "gpt-4",
       "original_error": {
         "type": "rate_limit_exceeded",
@@ -615,11 +611,10 @@ When encountering errors:
     1. **Check routing decisions:**
        ```javascript
        const completion = await openai.chat.completions.create({
-         model: "",
+         model: "adaptive/auto",
          messages: [...]
        });
        
-       console.log("Selected provider:", completion.provider);
        console.log("Selected model:", completion.model);
        ```
 
@@ -627,7 +622,7 @@ When encountering errors:
        ```javascript
        // Prefer faster, cheaper models
        const completion = await openai.chat.completions.create({
-         model: "",
+         model: "adaptive/auto",
          messages: [...],
          cost_bias: 0.2 // 0 = cheapest/fastest, 1 = best quality
        });
@@ -637,7 +632,7 @@ When encountering errors:
        ```javascript
        // Route only to fast providers
        const completion = await openai.chat.completions.create({
-         model: "",
+         model: "adaptive/auto",
          messages: [...],
          provider_constraint: ["groq", "gemini"] // Fast providers
        });
@@ -664,7 +659,7 @@ When encountering errors:
        
        try {
          const completion = await openai.chat.completions.create({
-           model: "",
+           model: "adaptive/auto",
            messages: [...]
          }, {
            signal: controller.signal
@@ -721,7 +716,7 @@ When encountering errors:
        // pages/api/chat.js
        export default async function handler(req, res) {
          const completion = await openai.chat.completions.create({
-           model: "",
+           model: "adaptive/auto",
            messages: req.body.messages
          });
          
@@ -752,7 +747,7 @@ When encountering errors:
     2. **Type assertion for model parameter:**
        ```typescript
        const completion = await openai.chat.completions.create({
-         model: "" as any, // Type assertion
+         model: "adaptive/auto" as any, // Type assertion
          messages: [...]
        });
        ```
@@ -873,7 +868,7 @@ When reporting issues, please include:
     Test basic functionality first
     ```javascript
     const simple = await openai.chat.completions.create({
-      model: "",
+      model: "adaptive/auto",
       messages: [{ role: "user", content: "Hello" }]
     });
     ```
@@ -893,7 +888,7 @@ When reporting issues, please include:
     curl -X POST https://api.llmadaptive.uk/v1/chat/completions \
       -H "Authorization: Bearer apk_123456" \
       -H "Content-Type: application/json" \
-      -d '{"model":"","messages":[{"role":"user","content":"test"}]}'
+      -d '{"model":"adaptive/auto","messages":[{"role":"user","content":"test"}]}'
     ```
   </Step>
   
@@ -923,12 +918,12 @@ class AdaptiveClient {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const completion = await this.openai.chat.completions.create({
-          model: "",
+          model: "adaptive/auto",
           ...params
         });
         
         // Log success metrics
-        console.log(`✅ Success: ${completion.provider} | ${completion.usage.total_tokens} tokens`);
+        console.log(`✅ Success: ${completion.usage.total_tokens} tokens`);
         return completion;
         
       } catch (error) {

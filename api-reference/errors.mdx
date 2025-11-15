@@ -149,19 +149,16 @@ Adaptive supports two fallback modes:
       "attempts": 3,
       "failures": [
         {
-          "provider": "openai",
           "model": "gpt-4",
           "error": "Rate limit exceeded",
           "duration_ms": 1250
         },
         {
-          "provider": "anthropic",
           "model": "claude-3-opus",
           "error": "Service temporarily unavailable",
           "duration_ms": 2100
         },
         {
-          "provider": "google",
           "model": "gemini-pro",
           "error": "Quota exceeded",
           "duration_ms": 980
@@ -325,7 +322,6 @@ When a specific provider returns an error, Adaptive passes it through with addit
     "type": "provider_failure",
     "message": "OpenAI API error: Rate limit exceeded",
     "details": {
-      "provider": "openai",
       "model": "gpt-4",
       "original_error": {
         "type": "rate_limit_exceeded",

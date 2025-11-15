@@ -39,7 +39,7 @@ Adaptive accepts standard OpenAI-compatible authentication headers:
 curl https://api.llmadaptive.uk/v1/chat/completions \
   -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
-  -d '{"model": "", "messages": [{"role": "user", "content": "Hello!"}]}'
+  -d '{"model": "adaptive/auto", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 </Tab>
 
@@ -48,7 +48,7 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
 curl https://api.llmadaptive.uk/v1/chat/completions \
   -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
-  -d '{"model": "", "messages": [{"role": "user", "content": "Hello!"}]}'
+  -d '{"model": "adaptive/auto", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 </Tab>
 
@@ -58,7 +58,7 @@ curl https://api.llmadaptive.uk/v1/messages \
   -H "Authorization: Bearer apk_123456" \
   -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01" \
-  -d '{"model": "", "max_tokens": 1000, "messages": [{"role": "user", "content": "Hello!"}]}'
+  -d '{"model": "adaptive/auto", "max_tokens": 1000, "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 </Tab>
 </Tabs>
@@ -75,7 +75,7 @@ const openai = new OpenAI({
 });
 
 const completion = await openai.chat.completions.create({
-  model: "",
+  model: "adaptive/auto",
   messages: [{ role: "user", content: "Hello!" }]
 });
 ```
@@ -90,9 +90,66 @@ client = OpenAI(
 )
 
 completion = client.chat.completions.create(
-    model="",
+    model="adaptive/auto",
     messages=[{"role": "user", "content": "Hello!"}]
 )
+```
+
+```go Go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "github.com/openai/openai-go/v2"
+    "github.com/openai/openai-go/v2/option"
+)
+
+func main() {
+    client := openai.NewClient(
+        option.WithAPIKey(os.Getenv("ADAPTIVE_API_KEY")),
+        option.WithBaseURL("https://api.llmadaptive.uk/v1"),
+    )
+
+    completion, err := client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
+        Messages: []openai.ChatCompletionMessageParamUnion{
+            openai.UserMessage("Hello!"),
+        },
+        Model: openai.String("adaptive/auto"), // Empty for intelligent routing
+    })
+    
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+    
+    fmt.Println(completion.Choices[0].Message.Content)
+}
+```
+
+```php PHP
+<?php
+require_once 'vendor/autoload.php';
+
+$client = new GuzzleHttp\Client();
+
+$response = $client->post('https://api.llmadaptive.uk/v1/chat/completions', [
+    'headers' => [
+        'Authorization' => 'Bearer apk_123456',
+        'Content-Type' => 'application/json',
+    ],
+    'json' => [
+        'model' => 'adaptive/auto',
+        'messages' => [
+            ['role' => 'user', 'content' => 'Hello!']
+        ]
+    ]
+]);
+
+$data = json_decode($response->getBody(), true);
+echo $data['choices'][0]['message']['content'];
+?>
 ```
 </CodeGroup>
 
@@ -105,19 +162,127 @@ completion = client.chat.completions.create(
 ```bash
 # .env
 ADAPTIVE_API_KEY=apk_123456
+
+# Optional: For development vs production
+ADAPTIVE_BASE_URL=https://api.llmadaptive.uk/v1
 ```
 </Tab>
 
-<Tab title="Other Platforms">
-**Vercel/Netlify**: Add to Environment Variables in dashboard  
-**Heroku**: `heroku config:set ADAPTIVE_API_KEY=apk_123456`  
-**Docker**: `ENV ADAPTIVE_API_KEY=apk_123456`
+<Tab title="Docker">
+```dockerfile
+# Dockerfile
+ENV ADAPTIVE_API_KEY=apk_123456
+
+# Or use docker-compose.yml:
+# environment:
+#   - ADAPTIVE_API_KEY=your-adaptive-api-key-here
+```
+</Tab>
+
+<Tab title="Kubernetes">
+```yaml
+# k8s-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: adaptive-api-key
+type: Opaque
+data:
+   api-key: YXBrXzEyMzQ1Ng== # base64 encoded "apk_123456"
+
+---
+# deployment.yaml
+env:
+- name: ADAPTIVE_API_KEY
+  valueFrom:
+    secretKeyRef:
+      name: adaptive-api-key
+      key: api-key
+```
+</Tab>
+
+<Tab title="Cloud Platforms">
+**Vercel**: Add to Environment Variables in dashboard
+**Netlify**: Add to Site Settings > Environment Variables  
+**Heroku**: `heroku config:set ADAPTIVE_API_KEY=apk_123456`
+**AWS Lambda**: Add to Lambda function environment variables
 </Tab>
 </Tabs>
 
 ## Rate Limits
 
-See our [rate limits documentation](/rate-limits) for detailed information about request limits and handling rate limit errors.
+### Current Limits
+
+<CardGroup cols={3}>
+  <Card title="Free Tier" icon="gift">
+    **100 requests/minute**  
+    Perfect for getting started and small projects
+  </Card>
+  <Card title="Pro Tier" icon="rocket">
+    **1,000 requests/minute**  
+    For production applications and growing businesses
+  </Card>
+  <Card title="Enterprise" icon="building">
+    **Custom limits**  
+    Contact us for high-volume requirements
+  </Card>
+</CardGroup>
+
+### Rate Limit Headers
+
+Every response includes rate limit information:
+
+```json
+{
+  "x-ratelimit-limit": "1000",
+  "x-ratelimit-remaining": "999",
+  "x-ratelimit-reset": "1640995200"
+}
+```
+
+### Handling Rate Limits
+
+<CodeGroup>
+```javascript JavaScript Retry Logic
+async function makeRequestWithRetry(requestData, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const completion = await openai.chat.completions.create(requestData);
+      return completion;
+    } catch (error) {
+      if (error.status === 429) {
+        // Rate limited - wait and retry
+        const retryAfter = error.headers?.['retry-after'] || Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        continue;
+      }
+      throw error; // Re-throw non-rate-limit errors
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+```
+
+```python Python Retry Logic
+import time
+import random
+from openai import OpenAI
+
+def make_request_with_retry(client, request_data, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return client.chat.completions.create(**request_data)
+        except Exception as e:
+            if hasattr(e, 'status_code') and e.status_code == 429:
+                # Rate limited - exponential backoff with jitter
+                wait_time = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(wait_time)
+                continue
+            raise e  # Re-raise non-rate-limit errors
+    
+    raise Exception("Max retries exceeded")
+```
+</CodeGroup>
 
 ## Authentication Errors
 
@@ -192,23 +357,100 @@ See our [rate limits documentation](/rate-limits) for detailed information about
   </Card>
 </CardGroup>
 
+## Multiple API Keys
+
+### Managing Multiple Keys
+
+<CodeGroup>
+```javascript Environment-based Keys
+// Use different keys for different environments
+const getApiKey = () => {
+  const env = process.env.NODE_ENV || 'development';
+  return {
+    development: process.env.ADAPTIVE_API_KEY_DEV,
+    staging: process.env.ADAPTIVE_API_KEY_STAGING,
+    production: process.env.ADAPTIVE_API_KEY_PROD
+  }[env];
+};
+
+const openai = new OpenAI({
+  apiKey: getApiKey(),
+  baseURL: "https://api.llmadaptive.uk/v1"
+});
+```
+
+```python Environment-based Keys
+import os
+
+def get_api_key():
+    env = os.getenv('ENVIRONMENT', 'development')
+    keys = {
+        'development': os.getenv('ADAPTIVE_API_KEY_DEV'),
+        'staging': os.getenv('ADAPTIVE_API_KEY_STAGING'),
+        'production': os.getenv('ADAPTIVE_API_KEY_PROD')
+    }
+    return keys.get(env)
+
+client = OpenAI(
+    api_key=get_api_key(),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
 
 ## Troubleshooting
 
 ### Common Authentication Issues
 
-<Accordion title="API Key Not Working (401 Error)">
+<Accordion title="API Key Not Working">
+
+**Symptoms**: Getting 401 Unauthorized errors
+
+**Possible Causes**:
+- API key is incorrect or malformed
+- API key has expired or been revoked
+- Wrong authentication header format
+
 **Solutions**:
 - Double-check your API key in the dashboard
-- Ensure you're using `Authorization: Bearer apk_123456` header
-- Verify environment variable is loaded correctly
+- Ensure you're using the correct header format
+- Generate a new API key if needed
+- Verify environment variable names match your code
+
+</Accordion>
+
+<Accordion title="Rate Limits Hit Quickly">
+
+**Symptoms**: Frequent 429 errors
+
+**Possible Causes**:
+- Making requests too quickly
+- Multiple instances using the same key
+- Inefficient request patterns
+
+**Solutions**:
+- Implement request queuing and rate limiting
+- Use different API keys for different services
+- Enable caching to reduce duplicate requests
+- Consider upgrading your plan for higher limits
+
 </Accordion>
 
 <Accordion title="Environment Variables Not Loading">
+
+**Symptoms**: API key is undefined or null
+
+**Possible Causes**:
+- .env file not in correct location
+- Environment variable name mismatch
+- .env file not loaded by framework
+
 **Solutions**:
 - Verify .env file is in project root
-- Check variable names match exactly (`ADAPTIVE_API_KEY`)
-- Ensure your framework loads .env files
+- Check environment variable names match exactly
+- Ensure your framework loads .env files (use dotenv if needed)
+- Test with `console.log(process.env.ADAPTIVE_API_KEY)`
+
 </Accordion>
 
 ## Next Steps

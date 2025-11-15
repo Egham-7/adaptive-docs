@@ -6,34 +6,79 @@ icon: "/images/logos/openai.svg"
 ---
 
 <Note>
-💡 **Quick Start**: Same as OpenAI API, but use `model: ""` for intelligent routing and automatic cost savings
+💡 **Quick Start**: Same as OpenAI API, but use `model: "adaptive/auto"` for intelligent routing and automatic cost savings
 </Note>
 
 ## 30-Second Setup
 
 **1. Authentication**: Use your Adaptive API key (either format works)
 ```
-X-Stainless-API-Key: your-adaptive-api-key
-# OR
-Authorization: Bearer your-adaptive-api-key
+Authorization: Bearer apk_123456
 ```
 
 **2. Model Selection**: Leave empty for smart routing
 ```json
 {
-  "model": "",  // ← This enables intelligent routing
+  "model": "adaptive/auto",  // ← This enables intelligent routing
   "messages": [...]
 }
 ```
 
 **That's it!** Your requests automatically save 60-90% while maintaining quality.
 
+## SDK Examples
+
+<CodeGroup>
+```javascript Node.js
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const response = await client.chat.completions.create({
+  model: 'adaptive/auto', // Empty for intelligent routing
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+response = client.chat.completions.create(
+    model="adaptive/auto",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
 ## Essential Parameters
 
 <ParamField body="model" type="string" required>
   **For intelligent routing**: Use `""` (empty string) to automatically select the best model for cost and quality
   
-  **For specific models**: Use provider:model format like `"anthropic:claude-3-sonnet"` or `"openai:gpt-4"`
+  **For specific models**: Use author/model format like `"anthropic/claude-sonnet-4-5"` or `"openai/gpt-5-mini"`
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -82,8 +127,8 @@ Authorization: Bearer your-adaptive-api-key
     // Limit to specific providers
     model_router: {
       models: [
-        { provider: "openai" },
-        { provider: "anthropic" }
+        "openai/gpt-5-mini",
+        "anthropic/claude-sonnet-4-5"
       ]
     }
     ```
@@ -96,8 +141,9 @@ Authorization: Bearer your-adaptive-api-key
     
     <ParamField body="models" type="array">
       Allowed providers/models. Examples:
-      - `{ provider: "openai" }` - All OpenAI models
-      - `{ provider: "anthropic", model_name: "claude-4-5-sonnet" }` - Specific model
+      - `"openai/gpt-5-mini"` - Specific model
+      - `"anthropic/claude-sonnet-4-5"` - Specific model
+      - `"gemini/gemini-2.5-flash-lite"` - Specific model
     </ParamField>
     
     <ParamField body="complexity_threshold" type="number">
@@ -292,38 +338,38 @@ Authorization: Bearer your-adaptive-api-key
       Array of model capabilities to consider for routing. Can be simplified or detailed:
       
       **Simple formats:**
-      - `{ "provider": "openai" }` - Use all OpenAI models
-      - `{ "provider": "anthropic", "model_name": "claude-4-5-sonnet" }` - Use specific model
+      - `"openai/gpt-5-mini"` - Use specific OpenAI model
+      - `"anthropic/claude-sonnet-4-5"` - Use specific Anthropic model
       
       **Custom models require all parameters:**
       
       <Expandable title="Model Capability Object">
         <ParamField body="provider" type="string" required>
-          Provider name: `"openai"`, `"anthropic"`, `"google"`, `"groq"`, `"deepseek"`, `"mistral"`, `"grok"`, `"huggingface"`
+          Provider name: `"openai"`, `"anthropic"`, `"gemini"`, `"z-ai"`
         </ParamField>
         
         <ParamField body="model_name" type="string">
-          Specific model identifier (e.g., `"gpt-4"`, `"claude-3-sonnet"`). **Required for custom models or specific model selection**
+          Specific model identifier (e.g., `"gpt-5-mini"`, `"claude-sonnet-4-5"`). **Required for specific model selection**
         </ParamField>
         
         <ParamField body="cost_per_1m_input_tokens" type="number">
-          Cost per 1 million input tokens in USD. **Required for custom models**
+          Cost per 1 million input tokens in USD.
         </ParamField>
         
         <ParamField body="cost_per_1m_output_tokens" type="number">
-          Cost per 1 million output tokens in USD. **Required for custom models**
+          Cost per 1 million output tokens in USD.
         </ParamField>
-        
-        <ParamField body="max_context_tokens" type="integer">
-          Maximum context window size in tokens. **Required for custom models**
+
+        <ParamField body="context_length" type="integer">
+          Maximum context window size in tokens. Replaces deprecated `max_context_tokens`.
         </ParamField>
-        
-        <ParamField body="max_output_tokens" type="integer">
-          Maximum output tokens the model can generate. **Required for custom models**
+
+        <ParamField body="max_completion_tokens" type="integer">
+          Maximum output tokens the model can generate. Replaces deprecated `max_output_tokens`.
         </ParamField>
-        
-        <ParamField body="supports_tool_calling" type="boolean">
-          Whether the model supports function/tool calling. **Required for custom models**
+
+        <ParamField body="supported_parameters" type="array">
+          List of supported API parameters (e.g., ["temperature", "top_p", "tools"]). Replaces deprecated `supports_tool_calling` boolean.
         </ParamField>
         
         <ParamField body="description" type="string">
@@ -382,57 +428,7 @@ Authorization: Bearer your-adaptive-api-key
       Maximum number of retry attempts
     </ParamField>
   </Expandable>
-</ParamField>
-
-<ParamField body="provider_configs" type="object">
-  Configuration for custom providers. Required when using custom providers in your model list.
-  
-  <Expandable title="Provider Config Object">
-    <ParamField body="base_url" type="string" required>
-      API base URL for the custom provider (e.g., `"https://api.custom.com/v1"`)
-    </ParamField>
-    
-    <ParamField body="api_key" type="string" required>
-      Full API key for authentication with the custom provider
-    </ParamField>
-    
-    <ParamField body="auth_type" type="string">
-      Authentication type: `"bearer"`, `"api_key"`, `"basic"`, or `"custom"`. Default: `"bearer"`
-    </ParamField>
-    
-    <ParamField body="auth_header_name" type="string">
-      Custom authentication header name. Default: `"Authorization"`
-    </ParamField>
-    
-    <ParamField body="headers" type="object">
-      Additional headers to send with requests to the custom provider
-    </ParamField>
-    
-    <ParamField body="timeout_ms" type="integer">
-      Request timeout in milliseconds. Range: 1000-120000. Default: 30000
-    </ParamField>
-    
-    <ParamField body="rate_limit_rpm" type="integer">
-      Rate limit in requests per minute. Range: 1-100000
-    </ParamField>
-    
-    <ParamField body="health_endpoint" type="string">
-      Health check endpoint for monitoring provider availability
-    </ParamField>
-    
-    <ParamField body="retry_config" type="object">
-      Custom retry configuration for failed requests
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-</Accordion>
-
-## Advanced Configuration
-
-<Accordion title="🔧 Custom Providers & Enterprise Features">
-
-### Custom Providers
+ </ParamField>
 
 </Accordion>
 
@@ -451,8 +447,10 @@ Authorization: Bearer your-adaptive-api-key
 </ResponseField>
 
 <ResponseField name="model" type="string">
-   Model used for the completion (format: author/model_name)
+  Model used for the completion
 </ResponseField>
+
+
 
 <ResponseField name="choices" type="array">
   Array of completion choices
@@ -498,598 +496,13 @@ Authorization: Bearer your-adaptive-api-key
       Number of tokens in the completion
     </ResponseField>
     
-     <ResponseField name="total_tokens" type="integer">
-       Total tokens used
-     </ResponseField>
+    <ResponseField name="total_tokens" type="integer">
+      Total tokens used
+    </ResponseField>
+    
+
   </Expandable>
 </ResponseField>
-
-## Live Examples
-
-<Tip>
-💡 **Try These Examples**: Copy-paste ready code that works immediately. Each example shows the cost savings in action.
-</Tip>
-
-### 1. Simple Chat → 97% Cost Savings
-
-<Info>
-**Cost Comparison:** Simple question routes to Gemini Flash
-**OpenAI Direct:** $3.00 per 1M input tokens
-**Adaptive Smart:** Gemini Flash ($0.075/1M) + Overhead ($0.10/1M input, $0.20/1M output)
-**Savings: 97%** (total ~$0.10/1M vs $3.00/1M)
-</Info>
-
-<CodeGroup>
-
-```javascript JavaScript - Copy & Run
-const completion = await openai.chat.completions.create({
-  model: '',  // ← Smart routing enabled
-  messages: [
-    { role: 'user', content: 'Explain quantum computing simply' }
-  ],
-});
-
-console.log(completion.choices[0].message.content);
-```
-
-```python Python - Copy & Run
-completion = client.chat.completions.create(
-    model="",  # ← Smart routing enabled
-    messages=[
-        {"role": "user", "content": "Explain quantum computing simply"}
-    ]
-)
-
-print(completion.choices[0].message.content)
-```
-
-```bash cURL - Copy & Run
-curl https://api.llmadaptive.uk/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "X-Stainless-API-Key: $ADAPTIVE_API_KEY" \
-  -d '{
-    "model": "",
-    "messages": [
-      {"role": "user", "content": "Explain quantum computing simply"}
-    ]
-  }'
-```
-
-</CodeGroup>
-
-### 2. Complex Analysis → 85% Cost Savings
-
-<Info>
-**Cost Comparison:** Complex task routes to DeepSeek Reasoner
-**OpenAI Direct:** $15.00 per 1M input tokens
-**Adaptive Smart:** DeepSeek ($1.00/1M) + Overhead ($0.10/1M input, $0.20/1M output)
-**Savings: 85%** (total ~$1.30/1M vs $15.00/1M)
-</Info>
-
-<CodeGroup>
-
-```javascript JavaScript - Advanced Prompt
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { 
-      role: 'user', 
-      content: 'Analyze the economic implications of quantum computing on cryptocurrency security, considering both short-term disruptions and long-term adaptations. Include specific recommendations for blockchain protocols.' 
-    }
-  ],
-});
-
-// Complex prompts automatically route to premium models when needed
-```
-
-```python Python - Research Task
-completion = client.chat.completions.create(
-    model="",
-    messages=[
-        {
-            "role": "user", 
-            "content": "Conduct a comprehensive analysis of recent developments in quantum error correction, focusing on surface codes and their practical implementation challenges in NISQ devices."
-        }
-    ]
-)
-
-# Research tasks get premium models automatically
-print(f"Routed to: {completion.provider}")  # Best model for the task
-```
-
-</CodeGroup>
-
-### With Intelligent Routing Configuration
-
-```javascript
-// Simple provider selection
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'Write a Python function to sort a list' }
-  ],
-  model_router: {
-    models: [
-      { provider: "anthropic" }, // All Anthropic models
-      { provider: "openai", model_name: "gpt-5.1" } // Specific OpenAI model
-    ],
-    cost_bias: 0.2, // Prefer cost savings
-    complexity_threshold: 0.3,
-    token_threshold: 1000
-  },
-  fallback: {
-    mode: 'sequential'  // Enabled by specifying mode
-  }
-});
-```
-
-### Using Custom Providers
-
-```javascript
-// Custom provider example
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'Explain machine learning concepts' }
-  ],
-  model_router: {
-    models: [
-      { provider: "openai" }, // Standard provider
-      { 
-        provider: "my-custom-llm", // Custom provider
-        model_name: "custom-model-v1",
-        cost_per_1m_input_tokens: 2.0,
-        cost_per_1m_output_tokens: 6.0,
-        max_context_tokens: 16000,
-        max_output_tokens: 4000,
-        supports_tool_calling: true,
-        task_type: "Text Generation",
-        complexity: "medium"
-      }
-    ],
-    cost_bias: 0.5
-  },
-  
-  // Configure each custom provider
-  provider_configs: {
-    "my-custom-llm": {
-      base_url: "https://api.mycustom.com/v1",
-      api_key: "sk-custom-api-key-here",
-      auth_type: "bearer",
-      headers: {
-        "X-Custom-Header": "value"
-      },
-      timeout_ms: 45000
-    }
-  }
-});
-```
-
-### Customizing Standard Providers
-
-You can also customize standard providers (OpenAI, Anthropic, etc.) with custom base URLs, API keys, and settings:
-
-```javascript
-// Override standard provider configuration
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'Hello from custom OpenAI endpoint!' }
-  ],
-  model_router: {
-    models: [
-      { provider: "openai" }, // Will use custom config below
-      { provider: "anthropic" } // Will also use custom config
-    ]
-  },
-  
-  // Custom configurations for standard providers
-  provider_configs: {
-    "openai": {
-      base_url: "https://my-custom-openai-proxy.com/v1",
-      api_key: "sk-my-custom-openai-key",
-      timeout_ms: 60000,
-      headers: {
-        "X-Proxy-Key": "proxy-auth-123"
-      }
-    },
-    "anthropic": {
-      base_url: "https://my-anthropic-proxy.com/v1",
-      api_key: "sk-ant-custom-key",
-      timeout_ms: 45000
-    }
-  }
-});
-```
-
-### Streaming Response
-
-```javascript
-const stream = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'Tell me a story about space exploration' }
-  ],
-  stream: true
-});
-
-for await (const chunk of stream) {
-  process.stdout.write(chunk.choices[0]?.delta?.content || '');
-}
-```
-
-### Function Calling
-
-```javascript
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'user', content: 'What\'s the weather like in San Francisco?' }
-  ],
-  tools: [
-    {
-      type: 'function',
-      function: {
-        name: 'get_weather',
-        description: 'Get current weather for a location',
-        parameters: {
-          type: 'object',
-          properties: {
-            location: {
-              type: 'string',
-              description: 'City and state, e.g. San Francisco, CA'
-            }
-          },
-          required: ['location']
-        }
-      }
-    }
-  ]
-});
-```
-
-### Vision (Multimodal)
-
-```javascript
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    {
-      role: 'user',
-      content: [
-        { type: 'text', text: 'What\'s in this image?' },
-        {
-          type: 'image_url',
-          image_url: {
-            url: 'https://example.com/image.jpg'
-          }
-        }
-      ]
-    }
-  ],
-  modalities: ['text'] // Can also include 'audio' for supported models
-});
-```
-
-### Advanced Configuration with All Parameters
-
-```javascript
-const completion = await openai.chat.completions.create({
-  model: '',
-  messages: [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Explain machine learning concepts' }
-  ],
-  
-  // Core parameters
-  temperature: 0.7,
-  max_completion_tokens: 1000,
-  top_p: 0.9,
-  frequency_penalty: 0.1,
-  presence_penalty: 0.1,
-  n: 1,
-  seed: 12345,
-  stop: ['\n\n'],
-  user: 'user-123',
-  
-  // Advanced parameters
-  logprobs: true,
-  top_logprobs: 5,
-  response_format: {
-    type: 'json_schema',
-    json_schema: {
-      name: 'explanation',
-      schema: {
-        type: 'object',
-        properties: {
-          concept: { type: 'string' },
-          explanation: { type: 'string' }
-        }
-      }
-    }
-  },
-  service_tier: 'auto',
-  store: false,
-  metadata: {
-    session_id: 'abc123',
-    user_type: 'premium'
-  },
-  
-  // Reasoning models (o-series)
-  reasoning_effort: 'medium',
-  
-  // Function calling
-  tools: [
-    {
-      type: 'function',
-      function: {
-        name: 'search_knowledge',
-        description: 'Search knowledge base for information',
-        parameters: {
-          type: 'object',
-          properties: {
-            query: { type: 'string' }
-          }
-        }
-      }
-    }
-  ],
-  tool_choice: 'auto',
-  parallel_tool_calls: true,
-  
-  // Streaming
-  stream: false,
-  stream_options: {
-    include_usage: true
-  },
-  
-  // Adaptive-specific
-  model_router: {
-    models: [
-      { provider: "openai" }, // Use all OpenAI models
-      { provider: "anthropic", model_name: "claude-4-5-sonnet" }, // Specific model
-      // Custom model example (all params required):
-      {
-        provider: "my-custom-provider",
-        model_name: "custom-model-v1",
-        cost_per_1m_input_tokens: 5.0,
-        cost_per_1m_output_tokens: 10.0,
-        max_context_tokens: 32000,
-        max_output_tokens: 2048,
-        supports_tool_calling: false,
-        task_type: "Text Generation",
-        complexity: "medium"
-      }
-    ],
-    cost_bias: 0.3,
-    complexity_threshold: 0.5,
-    token_threshold: 2000
-  },
-  
-  provider_configs: {
-    "my-custom-provider": {
-      base_url: "https://api.custom.com/v1",
-      api_key: "sk-custom-key-123",
-      auth_type: "bearer",
-      headers: {
-        "Custom-Header": "custom-value"
-      },
-      timeout_ms: 30000,
-      rate_limit_rpm: 1000
-    }
-  },
-  
-  fallback: {
-    mode: 'sequential'  // Enabled by specifying mode
-  }
-});
-```
-
-## Error Handling & Troubleshooting
-
-<Warning>
-🛠️ **Quick Fix Guide**: Most issues have simple solutions. Here's how to resolve them fast.
-</Warning>
-
-### ⚡ Instant Fixes
-
-<AccordionGroup>
-<Accordion title="🔑 Authentication Error (401)">
-**Problem**: `{"error": {"message": "Invalid API key", "type": "authentication_error"}}`
-
-**Instant Solutions**:
-1. **Check header format**:
-   ```javascript
-   // ✅ Correct
-   headers: { "X-Stainless-API-Key": "your-adaptive-key" }
-   // OR
-   headers: { "Authorization": "Bearer your-adaptive-key" }
-   
-   // ❌ Wrong
-   headers: { "X-API-Key": "your-key" }  // Wrong header name
-   ```
-
-2. **Verify your key**: Copy-paste from [llmadaptive.uk](https://www.llmadaptive.uk) dashboard
-3. **Check environment variables**:
-   ```bash
-   echo $ADAPTIVE_API_KEY  # Should show your key
-   ```
-
-**Working Example**:
-```javascript
-const openai = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY,  // ← Make sure this is set
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-```
-</Accordion>
-
-<Accordion title="📋 Invalid Request (400)">
-**Problem**: `{"error": {"message": "Invalid request", "type": "invalid_request_error"}}`
-
-**Common Causes & Fixes**:
-
-1. **Empty messages array**:
-   ```javascript
-   // ❌ Wrong
-   messages: []
-   
-   // ✅ Correct  
-   messages: [{ role: "user", content: "Hello!" }]
-   ```
-
-2. **Missing required fields**:
-   ```javascript
-   // ❌ Wrong
-   { role: "user" }  // Missing content
-   
-   // ✅ Correct
-   { role: "user", content: "Your message here" }
-   ```
-
-3. **Invalid model_router config**:
-   ```javascript
-   // ❌ Wrong - custom model missing required fields
-   model_router: {
-     models: [{ provider: "custom-provider" }]  // Missing details
-   }
-   
-   // ✅ Correct - all required fields for custom models
-   model_router: {
-     models: [{
-       provider: "custom-provider",
-       model_name: "model-v1",
-       cost_per_1m_input_tokens: 2.0,
-       cost_per_1m_output_tokens: 6.0,
-       max_context_tokens: 16000,
-       max_output_tokens: 4000,
-       supports_tool_calling: true,
-       task_type: "Text Generation",
-       complexity: "medium"
-     }]
-   }
-   ```
-</Accordion>
-
-<Accordion title="⏱️ Rate Limited (429)">
-**Problem**: `{"error": {"message": "Rate limit exceeded", "type": "rate_limit_error"}}`
-
-**Immediate Actions**:
-1. **Wait and retry**: Rate limits reset every minute
-2. **Implement exponential backoff**:
-   ```javascript
-   async function callWithRetry(requestFn, maxRetries = 3) {
-     for (let i = 0; i < maxRetries; i++) {
-       try {
-         return await requestFn();
-       } catch (error) {
-         if (error.status === 429 && i < maxRetries - 1) {
-           await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-         } else {
-           throw error;
-         }
-       }
-     }
-   }
-   ```
-
-3. **Upgrade your plan** at [llmadaptive.uk](https://www.llmadaptive.uk) for higher limits
-4. **Use caching** to reduce requests:
-   ```javascript
-   semantic_cache: { enabled: true }
-   ```
-</Accordion>
-
-<Accordion title="🔧 Custom Provider Issues">
-**Problem**: Custom provider not working or failing
-
-**Checklist**:
-1. **Provider configuration must be complete**:
-   ```javascript
-   provider_configs: {
-     "my-provider": {
-       base_url: "https://api.example.com/v1",  // ✅ Required
-       api_key: "sk-your-key",                  // ✅ Required
-       auth_type: "bearer",                     // ✅ Good practice
-       timeout_ms: 30000                       // ✅ Recommended
-     }
-   }
-   ```
-
-2. **Model definition must include all fields**:
-   ```javascript
-   models: [{
-     provider: "my-provider",
-     model_name: "model-name",                    // ✅ Required
-     cost_per_1m_input_tokens: 2.0,              // ✅ Required
-     cost_per_1m_output_tokens: 6.0,             // ✅ Required
-     max_context_tokens: 16000,                  // ✅ Required
-     max_output_tokens: 4000,                    // ✅ Required
-     supports_tool_calling: false,           // ✅ Required
-     task_type: "Text Generation",               // ✅ Required
-     complexity: "medium"                        // ✅ Required
-   }]
-   ```
-
-3. **Test the provider directly first**:
-   ```bash
-   curl https://api.your-provider.com/v1/chat/completions \
-     -H "Authorization: Bearer your-key" \
-     -d '{"model": "model-name", "messages": [...]}'
-   ```
-</Accordion>
-</AccordionGroup>
-
-### Error Response Format
-
-<ResponseField name="error" type="object">
-  Standard error object format
-  
-  <Expandable title="Error Structure">
-    ```json
-    {
-      "error": {
-        "message": "Human-readable error description",
-        "type": "authentication_error", 
-        "code": "invalid_api_key"
-      }
-    }
-    ```
-    
-    <ResponseField name="message" type="string">
-      Clear description of what went wrong
-    </ResponseField>
-    
-    <ResponseField name="type" type="string">
-      Error category: `invalid_request_error`, `authentication_error`, `permission_error`, `rate_limit_error`, `server_error`
-    </ResponseField>
-    
-    <ResponseField name="code" type="string">
-      Specific error code for programmatic handling
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-### 🚨 Emergency Troubleshooting
-
-<Warning>
-**Service Down?**  
-1. Check our status page: [status.llmadaptive.uk](https://status.llmadaptive.uk)  
-2. Join our Discord: [discord.gg/adaptive](https://discord.gg/adaptive)  
-3. Email support: info@llmadaptive.uk
-</Warning>
-
-## Rate Limits
-
-| Plan | Requests per Minute | Tokens per Minute |
-|------|-------------------|-------------------|
-| Free | 100 | 10,000 |
-| Pro | 1,000 | 100,000 |
-| Enterprise | Custom | Custom |
-
-Rate limits are applied per API key and reset every minute.
-
-## Best Practices
 
 <CardGroup cols={2}>
   <Card title="Model Selection" icon="brain">

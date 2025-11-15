@@ -116,8 +116,7 @@ class AdaptiveRAGChain:
 
             return {
                 "answer": result["result"],
-                "sources": len(result.get("source_documents", [])),
-                "provider": result.get("metadata", {}).get("provider", "unknown")
+                "sources": len(result.get("source_documents", []))
             }
 
         except Exception as e:

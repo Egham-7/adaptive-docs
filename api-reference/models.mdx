@@ -390,7 +390,7 @@ chat_response = requests.post(
     "https://api.llmadaptive.uk/v1/chat/completions",
     headers={"Authorization": f"Bearer {api_key}"},
     json={
-        "model": "",  # Empty for intelligent routing
+        "model": "adaptive/auto",  # Empty for intelligent routing
         "messages": [{"role": "user", "content": "Hello"}],
         "model_router": {
             "models": [

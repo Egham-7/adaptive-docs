@@ -17,19 +17,52 @@ Get started with Adaptive by changing one line of code. No complex setup require
   </Step>
 </Steps>
 
-## Step 2: Install SDK
+## Step 2: Install SDK (Optional)
 
+<Tabs>
+<Tab title="JavaScript/Node.js">
 <CodeGroup>
 ```bash npm
 npm install openai
 ```
 
+```bash yarn
+yarn add openai
+```
+
+```bash pnpm
+pnpm add openai
+```
+</CodeGroup>
+</Tab>
+
+<Tab title="Python">
+<CodeGroup>
 ```bash pip
 pip install openai
 ```
+
+```bash poetry
+poetry add openai
+```
+
+```bash conda
+conda install openai
+```
 </CodeGroup>
+</Tab>
+
+<Tab title="cURL">
+No installation required - cURL is available on most systems.
+</Tab>
+</Tabs>
 
 ## Step 3: Make Your First Request
+
+Choose your preferred language and framework:
+
+<Tabs>
+<Tab title="OpenAI SDK">
 
 <CodeGroup>
 ```javascript JavaScript/Node.js
@@ -41,7 +74,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: '', // Leave empty for intelligent routing
+  model: 'adaptive/auto', // Leave empty for intelligent routing
   messages: [{ role: 'user', content: 'Hello!' }]
 });
 
@@ -57,7 +90,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="", # Leave empty for intelligent routing
+    model="adaptive/auto", # Leave empty for intelligent routing
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
@@ -67,28 +100,429 @@ print(response.choices[0].message.content)
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-adaptive-api-key" \
+   -H "Authorization: Bearer apk_123456" \
   -d '{
-    "model": "",
+    "model": "adaptive/auto",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
 </CodeGroup>
 
+</Tab>
+
+<Tab title="Anthropic SDK">
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  apiKey: 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+const response = await client.messages.create({
+  model: 'adaptive/auto', // Leave empty for intelligent routing
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.content[0].text);
+```
+
+```python Python
+import anthropic
+
+client = anthropic.Anthropic(
+    api_key="your-adaptive-api-key",
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+response = client.messages.create(
+    model="adaptive/auto", # Leave empty for intelligent routing
+    max_tokens=1000,
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.content[0].text)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1/messages \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -H "anthropic-version: 2023-06-01" \
+  -d '{
+    "model": "adaptive/auto",
+    "max_tokens": 1000,
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
+</Tab>
+
+<Tab title="Gemini SDK">
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import { GoogleGenerativeAI } from '@google/genai';
+
+const genAI = new GoogleGenerativeAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  httpOptions: {
+    baseUrl: 'https://api.llmadaptive.uk/v1beta'
+  }
+});
+
+const model = genAI.getGenerativeModel({ model: 'intelligent-routing' });
+
+const result = await model.generateContent({
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: 'Hello!' }]
+    }
+  ],
+  generationConfig: {
+    maxOutputTokens: 512
+  }
+});
+
+console.log(result.response.text());
+```
+
+```python Python
+import os
+import google.generativeai as genai
+
+genai.configure(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    transport="rest",
+    client_options={"api_endpoint": "https://api.llmadaptive.uk/v1beta"}
+)
+
+model = genai.GenerativeModel("intelligent-routing")
+
+response = model.generate_content(
+    "Hello!",
+    generation_config={"max_output_tokens": 512}
+)
+
+print(response.text)
+```
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1beta/models/intelligent-routing:generateContent \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer apk_123456" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Hello!"}]
+      }
+    ],
+    "generationConfig": {
+      "maxOutputTokens": 512
+    }
+  }'
+```
+</CodeGroup>
+
+</Tab>
+
+<Tab title="Vercel AI SDK">
+
+<CodeGroup>
+```javascript Basic Text Generation
+import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
+
+const { text } = await generateText({
+  model: openai('', {
+    baseURL: 'https://api.llmadaptive.uk/v1',
+    apiKey: 'your-adaptive-api-key'
+  }),
+  prompt: 'Hello!'
+});
+
+console.log(text);
+```
+
+```javascript Streaming
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+
+const { textStream } = await streamText({
+  model: openai('', {
+    baseURL: 'https://api.llmadaptive.uk/v1',
+    apiKey: 'your-adaptive-api-key'
+  }),
+  prompt: 'Write a story about AI'
+});
+
+for await (const delta of textStream) {
+  process.stdout.write(delta);
+}
+```
+
+```javascript React Components
+import { useChat } from 'ai/react';
+
+export default function Chat() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: '/api/chat', // Your API route
+    initialMessages: [{ role: 'system', content: 'Hello!' }]
+  });
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          {m.role}: {m.content}
+        </div>
+      ))}
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+      </form>
+    </div>
+  );
+}
+```
+</CodeGroup>
+
+</Tab>
+
+<Tab title="LangChain">
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import { ChatOpenAI } from '@langchain/openai';
+
+const model = new ChatOpenAI({
+  openAIApiKey: 'your-adaptive-api-key',
+  configuration: {
+    baseURL: 'https://api.llmadaptive.uk/v1'
+  },
+  modelName: 'adaptive/auto' // Leave empty for intelligent routing
+});
+
+const response = await model.invoke('Hello!');
+console.log(response.content);
+```
+
+```python Python
+from langchain_openai import ChatOpenAI
+
+model = ChatOpenAI(
+    openai_api_key="your-adaptive-api-key",
+    openai_api_base="https://api.llmadaptive.uk/v1",
+    model_name="adaptive/auto" # Leave empty for intelligent routing
+)
+
+response = model.invoke("Hello!")
+print(response.content)
+```
+
+```python Chains
+from langchain_openai import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+
+model = ChatOpenAI(
+    openai_api_key="your-adaptive-api-key",
+    openai_api_base="https://api.llmadaptive.uk/v1",
+    model_name="adaptive/auto"
+)
+
+prompt = PromptTemplate(
+    input_variables=["topic"],
+    template="Write a brief summary about {topic}"
+)
+
+chain = LLMChain(llm=model, prompt=prompt)
+result = chain.run(topic="artificial intelligence")
+print(result)
+```
+</CodeGroup>
+
+</Tab>
+</Tabs>
+
+## Error Handling
+
+Always implement proper error handling in production. Adaptive provides detailed error information to help you build resilient applications.
+
+<CodeGroup>
+```typescript TypeScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY,
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+
+async function chatWithRetry(message: string, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await client.chat.completions.create({
+        model: 'adaptive/auto',
+        messages: [{ role: 'user', content: message }]
+      });
+
+      return response.choices[0].message.content;
+
+    } catch (error: any) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+
+      // Check for FallbackError (unique to Adaptive)
+      if (error.response?.data?.error?.type === 'fallback_failed') {
+        const failures = error.response.data.error.details.failures;
+        console.log('Provider failures:', failures.map(f => ({
+          provider: f.provider,
+          model: f.model,
+          error: f.error,
+          duration: f.duration_ms
+        })));
+      }
+
+      if (attempt === maxRetries) throw error;
+
+      // Exponential backoff
+      await new Promise(resolve =>
+        setTimeout(resolve, Math.pow(2, attempt) * 1000)
+      );
+    }
+  }
+}
+
+// Usage
+try {
+  const result = await chatWithRetry('Explain quantum computing');
+  console.log(result);
+} catch (error) {
+  console.error('All retries failed:', error);
+  // Implement fallback strategy (cached response, default message, etc.)
+}
+```
+
+```python Python
+import os
+import time
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ['ADAPTIVE_API_KEY'],
+    base_url='https://api.llmadaptive.uk/v1'
+)
+
+def chat_with_retry(message: str, max_retries: int = 3):
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.chat.completions.create(
+                model='',
+                messages=[{'role': 'user', 'content': message}]
+            )
+            return response.choices[0].message.content
+
+        except Exception as error:
+            print(f"Attempt {attempt} failed: {error}")
+
+            # Check for FallbackError details
+            if hasattr(error, 'response') and error.response:
+                try:
+                    error_data = error.response.json()
+                    if error_data.get('error', {}).get('type') == 'fallback_failed':
+                        failures = error_data['error']['details']['failures']
+                        print("Provider failures:")
+                        for failure in failures:
+                            print(f"  {failure['provider']}/{failure['model']}: {failure['error']}")
+                except:
+                    pass
+
+            if attempt == max_retries:
+                raise
+
+            # Exponential backoff
+            time.sleep(2 ** attempt)
+
+# Usage
+try:
+    result = chat_with_retry('Explain quantum computing')
+    print(result)
+except Exception as error:
+    print(f"All retries failed: {error}")
+    # Implement fallback strategy
+```
+
+```javascript JavaScript (Browser)
+async function adaptiveChat(messages, options = {}) {
+  const { maxRetries = 3, fallbackMessage = 'Service temporarily unavailable' } = options;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.llmadaptive.uk/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer apk_123456'
+        },
+        body: JSON.stringify({
+          model: 'adaptive/auto',
+          messages,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        return fallbackMessage;
+      }
+
+      // Exponential backoff
+      await new Promise(resolve =>
+        setTimeout(resolve, Math.pow(2, attempt) * 1000)
+      );
+    }
+  }
+}
+
+// Usage
+const messages = [{ role: 'user', content: 'Hello!' }];
+const response = await adaptiveChat(messages);
+console.log(response);
+```
+</CodeGroup>
+
+<Note>
+**Production Tip**: Always log the `request_id` from error responses for debugging. For comprehensive error handling patterns, see the [Error Handling Best Practices](/guides/error-handling) guide.
+</Note>
+
 ## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Model Routing" icon="brain">
-    Leave `model` empty for automatic provider selection
+  <Card title="Intelligent Routing" icon="brain">
+    Leave `model` empty and let our AI choose the optimal provider for your request
   </Card>
   <Card title="Cost Savings" icon="dollar-sign">
-    Save 60-90% with smart model routing
-  </Card>
-  <Card title="Drop-in Replacement" icon="plug">
-    Works with existing OpenAI SDK code
+    Save 60-90% on AI costs with automatic model selection
   </Card>
   <Card title="6+ Providers" icon="network-wired">
     Access OpenAI, Anthropic, Google, Groq, DeepSeek, and Grok
+  </Card>
+  <Card title="Drop-in Replacement" icon="plug">
+    Works with existing OpenAI and Anthropic SDK code
   </Card>
 </CardGroup>
 
@@ -100,7 +534,7 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1677652288,
-  "model": "gpt-3.5-turbo",
+  "model": "gpt-5-nano",
   "choices": [{
     "index": 0,
     "message": {
@@ -109,11 +543,11 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
     },
     "finish_reason": "stop"
   }],
-   "usage": {
-     "prompt_tokens": 5,
-     "completion_tokens": 10,
-     "total_tokens": 15
-   }
+  "usage": {
+    "prompt_tokens": 5,
+    "completion_tokens": 10,
+    "total_tokens": 15
+  }
 }
 ```
 
@@ -126,18 +560,18 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
     "type": "text",
     "text": "Hello! I'm ready to help you."
   }],
-   "model": "anthropic/claude-4-5-sonnet",
+  "model": "claude-3-5-haiku",
   "stop_reason": "end_turn",
-   "usage": {
-     "input_tokens": 5,
-     "output_tokens": 10
-   }
+  "usage": {
+    "input_tokens": 5,
+    "output_tokens": 10
+  }
 }
 ```
 </CodeGroup>
 
 <Note>
-Adaptive returns standard OpenAI or Anthropic-compatible responses with additional metadata to show which model was selected and performance information.
+Adaptive returns standard OpenAI or Anthropic-compatible responses.
 </Note>
 
 ## Testing Your Integration
@@ -147,7 +581,7 @@ Adaptive returns standard OpenAI or Anthropic-compatible responses with addition
     Run your code with a simple message like "Hello!" to verify the connection
   </Step>
   <Step title="Check Response">
-     Confirm you receive a response and check the model field to see which model was selected
+    Confirm you receive a response and check the `provider` field to see which model was selected
   </Step>
   <Step title="Monitor Dashboard">
     View request logs and analytics in your [Adaptive dashboard](https://www.llmadaptive.uk/dashboard)
@@ -157,16 +591,27 @@ Adaptive returns standard OpenAI or Anthropic-compatible responses with addition
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="API Reference" href="/api-reference/chat-completions" icon="terminal">
-    Complete API documentation
+  <Card title="Advanced Features" href="/features/intelligent-routing" icon="lightbulb">
+    Learn about intelligent routing and semantic caching
   </Card>
   <Card title="Integration Guides" href="/integrations/openai-sdk" icon="book">
-    Detailed SDK guides
+    Detailed guides for each SDK and framework
   </Card>
-  <Card title="Examples" href="/examples/basic-chat" icon="code">
-    Working code examples
+  <Card title="API Reference" href="/api-reference/chat-completions" icon="terminal">
+    Complete API documentation with all parameters
   </Card>
+  <Card title="Code Examples" href="/examples/basic-chat" icon="code">
+    Working examples for common use cases
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+<CardGroup cols={2}>
   <Card title="Troubleshooting" href="/troubleshooting" icon="wrench">
-    Common issues and solutions
+    Common issues and their solutions
+  </Card>
+  <Card title="Support" href="https://www.llmadaptive.uk/support" icon="life-ring">
+    Get help from our team
   </Card>
 </CardGroup>

@@ -1,6 +1,6 @@
 ---
-title: 'Model Routing'
-description: 'Automatic model selection for optimal cost and performance'
+title: "Intelligent Routing"
+description: "Automatic model selection for optimal cost and performance"
 icon: "route"
 ---
 
@@ -8,39 +8,86 @@ Adaptive's AI-powered routing engine analyzes every request and automatically se
 
 ## How It Works
 
-Adaptive's model routing is powered by a sophisticated evaluation system that analyzes model performance across diverse benchmarks:
-
 <Steps>
-  <Step title="Benchmark Clustering">
-    We take top benchmarks and cluster questions by embedding each one, creating semantic clusters that group similar tasks together
+  <Step title="Request Analysis">
+    Our ML models analyze your prompt's complexity, length, task type, and
+    function calling requirements in real-time
   </Step>
-  <Step title="Model Evaluation">
-    Each LLM is evaluated on every cluster, generating performance profiles that show which models excel at specific types of tasks
+  <Step title="Provider Selection">
+    The routing engine considers available providers, costs, performance
+    metrics, and function calling support
   </Step>
-  <Step title="Inference Routing">
-    When a prompt arrives, we embed it to find its cluster match, then select the best-performing model for that cluster
+  <Step title="Optimal Match">
+    The best model is selected and your request is routed automatically
   </Step>
-  <Step title="Continuous Learning">
-    The system continuously updates profiles as new models and benchmarks become available. Benchmarks are updated based on production workloads, and models are continuously evaluated to guard against performance degradation.
+  <Step title="Response Delivery">
+    You receive a standard response with provider information showing which
+    model was used
   </Step>
 </Steps>
 
-<Note>
-   **Coming Soon**: Custom evaluations for each user, allowing you to define your own benchmarks and evaluation criteria for personalized model routing.
-</Note>
+## SDK Setup
+
+All examples below assume you've configured the official OpenAI SDKs to point at Adaptive:
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
+  baseURL: 'https://api.llmadaptive.uk/v1'
+});
+```
+
+```python Python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
+    base_url="https://api.llmadaptive.uk/v1"
+)
+```
+</CodeGroup>
 
 ## Quick Start
 
-Simply leave the model field empty to enable model routing:
+Simply leave the model field empty to enable intelligent routing:
 
-```javascript
+<CodeGroup>
+```javascript JavaScript/Node.js
 const completion = await openai.chat.completions.create({
-  model: "", // Empty enables model routing
+  model: "adaptive/auto", // Empty enables intelligent routing
   messages: [{ role: "user", content: "Hello!" }]
 });
 
-console.log(`Used provider: ${completion.provider}`);
+
+
+````
+
+```python Python
+completion = client.chat.completions.create(
+    model="adaptive/auto", # Empty enables intelligent routing
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(f"Used provider: {completion.provider}")
+````
+
+```bash cURL
+curl https://api.llmadaptive.uk/v1/chat/completions \
+  -H "Authorization: Bearer apk_123456" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
 ```
+
+</CodeGroup>
+
+## Real Examples
 
 <Note>
   Costs shown include Adaptive overhead ($0.10/1M input + $0.20/1M output). With
@@ -88,9 +135,10 @@ console.log(`Used provider: ${completion.provider}`);
 
 When tools are provided, Adaptive automatically prioritizes models with function calling capabilities:
 
-```javascript
+<CodeGroup>
+```javascript JavaScript/Node.js
 const completion = await openai.chat.completions.create({
-  model: "",
+  model: "adaptive/auto",
   messages: [{ role: "user", content: "What's the weather in San Francisco?" }],
   tools: [{
     type: "function",
@@ -109,33 +157,86 @@ const completion = await openai.chat.completions.create({
 });
 
 // Automatically routes to models that support function calling
-```
+
+````
+
+```python Python
+completion = client.chat.completions.create(
+    model="adaptive/auto",
+    messages=[{"role": "user", "content": "What's the weather in San Francisco?"}],
+    tools=[{
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "City name"}
+                },
+                "required": ["location"]
+            }
+        }
+    }]
+)
+
+# Automatically routes to models that support function calling
+````
+
+</CodeGroup>
 
 ### Control Cost vs Performance
 
 Balance between cost savings and response quality:
 
-```javascript
+<CodeGroup>
+```javascript JavaScript/Node.js
 const completion = await openai.chat.completions.create({
-  model: "",
+  model: "adaptive/auto",
   messages: [{ role: "user", content: "Explain quantum physics" }],
   cost_bias: 0.3 // 0 = cheapest, 0.5 = balanced, 1 = best performance
 });
 ```
 
+```python Python
+completion = client.chat.completions.create(
+    model="adaptive/auto",
+    messages=[{"role": "user", "content": "Explain quantum physics"}],
+    cost_bias=0.3  # 0 = cheapest, 0.5 = balanced, 1 = best performance
+)
+```
+
+</CodeGroup>
+
 ### Limit Available Providers
 
 Restrict routing to specific providers or models:
 
-```javascript
+<CodeGroup>
+```javascript JavaScript/Node.js
 const completion = await openai.chat.completions.create({
-  model: "",
+  model: "adaptive/auto",
   messages: [{ role: "user", content: "Write a story" }],
   model_router: {
     models: ["openai/gpt-5-mini", "anthropic/claude-sonnet-4-5"] // Specify allowed models
   }
 });
 ```
+
+```python Python
+completion = client.chat.completions.create(
+    model="adaptive/auto",
+    messages=[{"role": "user", "content": "Write a story"}],
+    model_router={
+        "models": [
+            "openai/gpt-4.1-nano",  # Lightweight OpenAI option
+            "anthropic/claude-3-5-haiku"  # Specific model
+        ]
+    }
+)
+```
+
+</CodeGroup>
 
 ## Routing Performance
 
@@ -155,7 +256,8 @@ const completion = await openai.chat.completions.create({
 
 Want to see which model would be selected before making the request? Use our model selection preview:
 
-```javascript
+<CodeGroup>
+```javascript JavaScript/Node.js
 // Preview which model would be selected
 const response = await fetch('https://api.llmadaptive.uk/v1/select-model', {
   method: 'POST',
@@ -177,7 +279,33 @@ const response = await fetch('https://api.llmadaptive.uk/v1/select-model', {
 const result = await response.json();
 console.log(`Would select: ${result.selected_model.author}/${result.selected_model.model_name}`);
 console.log(`Alternatives: ${JSON.stringify(result.alternatives)}`);
-```
+
+````
+
+```python Python
+import requests
+
+# Preview which model would be selected
+response = requests.post(
+    'https://api.llmadaptive.uk/v1/select-model',
+    headers={'Authorization': 'Bearer apk_123456'},
+    json={
+        'prompt': 'Complex data analysis task',
+        'models': [
+            'openai/gpt-5-mini',
+            'anthropic/claude-sonnet-4-5',
+            'gemini/gemini-2.5-flash-lite'
+        ],
+        'cost_bias': 0.5
+    }
+)
+
+result = response.json()
+print(f"Would select: {result['selected_model']['author']}/{result['selected_model']['model_name']}")
+print(f"Alternatives: {result.get('alternatives', [])}")
+````
+
+</CodeGroup>
 
 ## Response Information
 
@@ -195,9 +323,7 @@ Every response includes provider information:
     "prompt_tokens": 9,
     "completion_tokens": 12,
     "total_tokens": 21
-  },
-  "provider": "gemini", // Which provider was selected
-  "model": "gemini-flash" // Specific model used
+  }
 }
 ```
 
@@ -205,7 +331,7 @@ Every response includes provider information:
 
 <CardGroup cols={2}>
   <Card title="Enterprise Optimization" icon="building">
-    **Custom provider contracts**: Use model routing with your own API
+    **Custom provider contracts**: Use intelligent routing with your own API
     keys and enterprise pricing
   </Card>
   <Card title="Local Deployment" icon="server">
