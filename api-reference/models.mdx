@@ -121,7 +121,7 @@ filtered_models = response.json()
 print(f"Found {len(filtered_models)} models matching criteria")
 
 for model in filtered_models:
-    print(f"- {model['display_name']}: {model['context_length']} tokens, ${model['pricing']['prompt']}/token")
+    print(f"- {model['display_name']}: {model['context_length']} tokens, ${model['pricing']['prompt_cost']}/token")
 ```
 </RequestExample>
 
@@ -198,68 +198,85 @@ const multiProviderModels = await multiResponse.json();
 ```json 200 Success
 [
   {
-    "id": 1,
-    "openrouter_id": "openai/gpt-5-mini",
-    "provider": "openai",
+    "id": 123,
+    "author": "openai",
     "model_name": "gpt-5-mini",
     "display_name": "GPT-5 Mini",
     "description": "Affordable and intelligent small model for fast, lightweight tasks",
     "context_length": 128000,
     "pricing": {
-      "prompt": "0.00015",
-      "completion": "0.0006",
-      "request": "0",
-      "image": "0"
+      "prompt_cost": "0.00015",
+      "completion_cost": "0.0006",
+      "request_cost": "0",
+      "image_cost": "0",
+      "web_search_cost": "0",
+      "internal_reasoning_cost": "0"
     },
     "architecture": {
-      "modality": "text+image->text",
-      "input_modalities": ["text", "image"],
-      "output_modalities": ["text"],
-      "tokenizer": "o200k_base",
-      "instruct_type": null
+      "modality": "text",
+      "tokenizer": "cl100k_base",
+      "instruct_type": "chat",
+      "modalities": [
+        {
+          "modality_type": "input",
+          "modality_value": "text"
+        },
+        {
+          "modality_type": "output",
+          "modality_value": "text"
+        }
+      ]
     },
     "top_provider": {
       "context_length": 128000,
       "max_completion_tokens": 16384,
-      "is_moderated": true
+      "is_moderated": "true"
     },
     "supported_parameters": [
-      "temperature",
-      "top_p",
-      "max_tokens",
-      "tools",
-      "response_format",
-      "seed"
-    ],
-    "default_parameters": {
-      "temperature": 1.0
-    },
-    "endpoints": [
       {
-        "name": "openai/gpt-5-mini",
-        "model_name": "GPT-5 Mini",
-        "context_length": 128000,
-        "pricing": {
-          "prompt": "0.00015",
-          "completion": "0.0006",
-          "request": "0",
-          "image": "0.2890"
-        },
-        "provider_name": "OpenAI",
-        "tag": "openai",
-        "max_completion_tokens": 16384,
-        "supported_parameters": [
-          "temperature",
-          "top_p",
-          "tools",
-          "response_format"
-        ],
-        "status": 0,
-        "supports_implicit_caching": false
+        "parameter_name": "temperature"
+      },
+      {
+        "parameter_name": "top_p"
+      },
+      {
+        "parameter_name": "max_tokens"
+      },
+      {
+        "parameter_name": "tools"
       }
     ],
-    "created_at": "2025-01-15T10:30:00Z",
-    "last_updated": "2025-01-20T14:45:00Z"
+    "default_parameters": {
+      "parameters": {
+        "temperature": 1.0,
+        "top_p": 1.0,
+        "max_tokens": 4096
+      }
+    },
+    "providers": [
+      {
+        "name": "openai",
+        "endpoint_model_name": "gpt-5-mini",
+        "context_length": 128000,
+        "provider_name": "OpenAI",
+        "tag": "openai",
+        "quantization": "",
+        "max_completion_tokens": 16384,
+        "max_prompt_tokens": 128000,
+        "status": 0,
+        "uptime_last_30m": "99.9%",
+        "supports_implicit_caching": "true",
+        "is_zdr": "false",
+        "pricing": {
+          "prompt_cost": "0.00015",
+          "completion_cost": "0.0006",
+          "request_cost": "0",
+          "image_cost": "0.2890",
+          "input_cache_read_cost": "0",
+          "input_cache_write_cost": "0"
+        }
+      }
+    ]
   }
 ]
 ```
@@ -298,7 +315,7 @@ model = response.json()
 
 print(f"Model: {model['display_name']}")
 print(f"Context Length: {model['context_length']}")
-print(f"Input Cost: ${model['pricing']['prompt']} per token")
+print(f"Input Cost: ${model['pricing']['prompt_cost']} per token")
 ```
 
 ```javascript JavaScript
@@ -321,68 +338,85 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
 <ResponseExample>
 ```json 200 Success
 {
-  "id": 1,
-  "openrouter_id": "openai/gpt-5-mini",
-  "provider": "openai",
+  "id": 123,
+  "author": "openai",
   "model_name": "gpt-5-mini",
   "display_name": "GPT-5 Mini",
   "description": "Affordable and intelligent small model for fast, lightweight tasks",
   "context_length": 128000,
   "pricing": {
-    "prompt": "0.00015",
-    "completion": "0.0006",
-    "request": "0",
-    "image": "0"
+    "prompt_cost": "0.00015",
+    "completion_cost": "0.0006",
+    "request_cost": "0",
+    "image_cost": "0",
+    "web_search_cost": "0",
+    "internal_reasoning_cost": "0"
   },
   "architecture": {
-    "modality": "text+image->text",
-    "input_modalities": ["text", "image"],
-    "output_modalities": ["text"],
-    "tokenizer": "o200k_base",
-    "instruct_type": null
+    "modality": "text",
+    "tokenizer": "cl100k_base",
+    "instruct_type": "chat",
+    "modalities": [
+      {
+        "modality_type": "input",
+        "modality_value": "text"
+      },
+      {
+        "modality_type": "output",
+        "modality_value": "text"
+      }
+    ]
   },
   "top_provider": {
     "context_length": 128000,
     "max_completion_tokens": 16384,
-    "is_moderated": true
+    "is_moderated": "true"
   },
   "supported_parameters": [
-    "temperature",
-    "top_p",
-    "max_tokens",
-    "tools",
-    "response_format",
-    "seed"
-  ],
-  "default_parameters": {
-    "temperature": 1.0
-  },
-  "endpoints": [
     {
-      "name": "openai/gpt-5-mini",
-      "model_name": "GPT-5 Mini",
-      "context_length": 128000,
-      "pricing": {
-        "prompt": "0.00015",
-        "completion": "0.0006",
-        "request": "0",
-        "image": "0.2890"
-      },
-      "provider_name": "OpenAI",
-      "tag": "openai",
-      "max_completion_tokens": 16384,
-      "supported_parameters": [
-        "temperature",
-        "top_p",
-        "tools",
-        "response_format"
-      ],
-      "status": 0,
-      "supports_implicit_caching": false
+      "parameter_name": "temperature"
+    },
+    {
+      "parameter_name": "top_p"
+    },
+    {
+      "parameter_name": "max_tokens"
+    },
+    {
+      "parameter_name": "tools"
     }
   ],
-  "created_at": "2025-01-15T10:30:00Z",
-  "last_updated": "2025-01-20T14:45:00Z"
+  "default_parameters": {
+    "parameters": {
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "max_tokens": 4096
+    }
+  },
+  "providers": [
+    {
+      "name": "openai",
+      "endpoint_model_name": "gpt-5-mini",
+      "context_length": 128000,
+      "provider_name": "OpenAI",
+      "tag": "openai",
+      "quantization": "",
+      "max_completion_tokens": 16384,
+      "max_prompt_tokens": 128000,
+      "status": 0,
+      "uptime_last_30m": "99.9%",
+      "supports_implicit_caching": "true",
+      "is_zdr": "false",
+      "pricing": {
+        "prompt_cost": "0.00015",
+        "completion_cost": "0.0006",
+        "request_cost": "0",
+        "image_cost": "0.2890",
+        "input_cache_read_cost": "0",
+        "input_cache_write_cost": "0"
+      }
+    }
+  ]
 }
 ```
 
@@ -406,8 +440,7 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | integer | Database ID (internal use) |
-| `openrouter_id` | string | OpenRouter model identifier (primary lookup key) |
-| `provider` | string | Provider name (e.g., "openai", "anthropic") |
+| `author` | string | Model author/organization (e.g., "openai", "anthropic") |
 | `model_name` | string | Model identifier for API calls |
 | `display_name` | string | Human-readable model name |
 | `description` | string | Model description and use cases |
@@ -415,21 +448,20 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
 | `pricing` | object | Pricing information (see below) |
 | `architecture` | object | Model architecture details (see below) |
 | `top_provider` | object | Top provider configuration (see below) |
-| `supported_parameters` | array | Supported API parameters |
-| `default_parameters` | object | Default parameter values |
-| `endpoints` | array | Available provider endpoints (see below) |
-| `created_at` | string | Creation timestamp (ISO 8601) |
-| `last_updated` | string | Last update timestamp (ISO 8601) |
+| `supported_parameters` | array | Supported API parameters (see below) |
+| `default_parameters` | object | Default parameter values (see below) |
+| `providers` | array | Available provider endpoints (see below) |
 
 ### Pricing Object
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `prompt` | string | Cost per input token (USD, string format) |
-| `completion` | string | Cost per output token (USD, string format) |
-| `request` | string | Cost per request (optional) |
-| `image` | string | Cost per image (optional) |
-| `web_search` | string | Cost for web search (optional) |
+| `prompt_cost` | string | Cost per input token (USD, string format) |
+| `completion_cost` | string | Cost per output token (USD, string format) |
+| `request_cost` | string | Cost per request (optional) |
+| `image_cost` | string | Cost per image (optional) |
+| `web_search_cost` | string | Cost for web search (optional) |
+| `internal_reasoning_cost` | string | Cost for internal reasoning tokens (optional) |
 
 **Note**: Pricing is in string format to preserve precision. Multiply by 1M for cost per million tokens.
 
@@ -437,11 +469,17 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `modality` | string | Input/output modality (e.g., "text->text", "text+image->text") |
-| `input_modalities` | array | Supported input types |
-| `output_modalities` | array | Supported output types |
+| `modality` | string | Primary modality (e.g., "text", "multimodal") |
 | `tokenizer` | string | Tokenizer used (e.g., "cl100k_base", "o200k_base") |
-| `instruct_type` | string | Instruction format (e.g., "chatml", null) |
+| `instruct_type` | string | Instruction format (e.g., "chat", null) |
+| `modalities` | array | Supported input/output modalities (see below) |
+
+### ArchitectureModality Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `modality_type` | string | "input" or "output" |
+| `modality_value` | string | Modality value (e.g., "text", "image") |
 
 ### TopProvider Object
 
@@ -449,22 +487,56 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
 |-------|------|-------------|
 | `context_length` | integer | Provider's context limit |
 | `max_completion_tokens` | integer | Maximum output tokens |
-| `is_moderated` | boolean | Whether content is moderated |
+| `is_moderated` | string | Whether content is moderated ("true" or "false") |
 
-### Endpoint Object
+### ModelSupportedParameter Object
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | Full endpoint name |
-| `model_name` | string | Display model name |
-| `context_length` | integer | Context length for this endpoint |
-| `pricing` | object | Endpoint-specific pricing |
-| `provider_name` | string | Provider name |
+| `parameter_name` | string | Name of supported parameter (e.g., "temperature", "tools") |
+
+### ModelDefaultParameters Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `parameters` | object | Default parameter values (see DefaultParametersValues below) |
+
+### DefaultParametersValues Object
+
+Contains strongly typed default parameter values including sampling, penalty, token, and control parameters.
+
+### ModelProvider Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Provider name |
+| `endpoint_model_name` | string | Model name at the endpoint |
+| `context_length` | integer | Context length for this provider |
+| `provider_name` | string | Human-readable provider name |
 | `tag` | string | Provider tag/slug |
+| `quantization` | string | Model quantization (optional) |
 | `max_completion_tokens` | integer | Max completion tokens |
-| `supported_parameters` | array | Supported parameters |
+| `max_prompt_tokens` | integer | Max prompt tokens |
 | `status` | integer | Status code (0 = active) |
-| `supports_implicit_caching` | boolean | Implicit caching support |
+| `uptime_last_30m` | string | Uptime percentage last 30 minutes |
+| `supports_implicit_caching` | string | Implicit caching support ("true" or "false") |
+| `is_zdr` | string | Zero-downtime routing support ("true" or "false") |
+| `pricing` | object | Provider-specific pricing (see ProviderPricing below) |
+
+### ProviderPricing Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prompt_cost` | string | Cost per input token |
+| `completion_cost` | string | Cost per output token |
+| `request_cost` | string | Cost per request |
+| `image_cost` | string | Cost per image |
+| `image_output_cost` | string | Cost per image output |
+| `audio_cost` | string | Cost per audio |
+| `input_audio_cache_cost` | string | Cost for cached input audio |
+| `input_cache_read_cost` | string | Cost to read from input cache |
+| `input_cache_write_cost` | string | Cost to write to input cache |
+| `discount` | string | Discount applied |
 
 ## Integration with Other APIs
 
