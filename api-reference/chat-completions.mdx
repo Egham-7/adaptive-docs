@@ -1,203 +1,69 @@
 ---
 title: 'Chat Completions'
 api: 'POST https://api.llmadaptive.uk/v1/chat/completions'
-description: 'OpenAI-compatible completions with 60-90% cost savings'
-icon: "/images/logos/openai.svg"
+description: 'OpenAI-compatible completions with intelligent routing'
 ---
 
 <Note>
-💡 **Quick Start**: Same as OpenAI API, but use `model: "adaptive/auto"` for intelligent routing and automatic cost savings
+Use `model: "adaptive/auto"` for automatic cost optimization and model selection
 </Note>
 
-## 30-Second Setup
-
-**1. Authentication**: Use your Adaptive API key (either format works)
-```
-Authorization: Bearer apk_123456
-```
-
-**2. Model Selection**: Leave empty for smart routing
-```json
-{
-  "model": "adaptive/auto",  // ← This enables intelligent routing
-  "messages": [...]
-}
-```
-
-**That's it!** Your requests automatically save 60-90% while maintaining quality.
-
-## SDK Examples
+## Quick Start
 
 <CodeGroup>
-```javascript Node.js
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.ADAPTIVE_API_KEY || 'your-adaptive-api-key',
-  baseURL: 'https://api.llmadaptive.uk/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'adaptive/auto', // Empty for intelligent routing
-  messages: [{ role: 'user', content: 'Hello!' }]
-});
-
-console.log(response.choices[0].message.content);
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("ADAPTIVE_API_KEY", "your-adaptive-api-key"),
-    base_url="https://api.llmadaptive.uk/v1"
-)
-
-response = client.chat.completions.create(
-    model="adaptive/auto",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-
-print(response.choices[0].message.content)
-```
-
 ```bash cURL
 curl https://api.llmadaptive.uk/v1/chat/completions \
-  -H "Content-Type: application/json" \
   -H "Authorization: Bearer apk_123456" \
   -d '{
     "model": "adaptive/auto",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
+
+```python Python
+import openai
+
+client = openai.OpenAI(
+    api_key="apk_123456",
+    base_url="https://api.llmadaptive.uk/v1"
+)
+
+response = client.chat.completions.create(
+    model="adaptive/auto",  # Auto-select best model
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
 </CodeGroup>
 
-## Essential Parameters
+## Parameters
 
 <ParamField body="model" type="string" required>
-  **For intelligent routing**: Use `""` (empty string) to automatically select the best model for cost and quality
-  
-  **For specific models**: Use author/model format like `"anthropic/claude-sonnet-4-5"` or `"openai/gpt-5-mini"`
+  Use `"adaptive/auto"` for auto-selection or specify model like `"openai/gpt-4"`
 </ParamField>
 
 <ParamField body="messages" type="array" required>
-  Array of message objects. Same format as OpenAI.
-  
-  <Expandable title="Message Format">
-    ```json
-    [
-      {"role": "system", "content": "You are a helpful assistant"},
-      {"role": "user", "content": "Hello!"}
-    ]
-    ```
-    
-    **Roles**: `system`, `user`, `assistant`, `tool`
-  </Expandable>
+  Message array with `role` and `content` fields
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  Creativity level: `0` = focused, `1` = balanced, `2` = creative. Default: `1`
+  Controls randomness (0-2). Default: 1
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
-  Maximum response length in tokens. Leave unset for automatic sizing.
+  Maximum tokens to generate
 </ParamField>
 
 <ParamField body="stream" type="boolean">
-  Enable streaming responses. Default: `false`
+  Enable streaming. Default: false
 </ParamField>
 
-## Smart Routing & Cost Control
-
 <ParamField body="model_router" type="object">
-  **Control intelligent routing** to optimize cost and performance
-  
-  <Expandable title="Quick Examples">
-    ```javascript
-    // Prefer cost savings (80% cheaper on average)
-    model_router: { cost_bias: 0.1 }
-    
-    // Balanced cost and quality
-    model_router: { cost_bias: 0.5 }
-    
-    // Prefer best performance
-    model_router: { cost_bias: 0.9 }
-    
-    // Limit to specific providers
-    model_router: {
-      models: [
-        "openai/gpt-5-mini",
-        "anthropic/claude-sonnet-4-5"
-      ]
-    }
-    ```
-  </Expandable>
-  
-  <Expandable title="Full Configuration">
-    <ParamField body="cost_bias" type="number">
-      Balance cost vs performance: `0` = cheapest, `1` = best quality. Default: `0.5`
-    </ParamField>
-    
-    <ParamField body="models" type="array">
-      Allowed providers/models. Examples:
-      - `"openai/gpt-5-mini"` - Specific model
-      - `"anthropic/claude-sonnet-4-5"` - Specific model
-      - `"gemini/gemini-2.5-flash-lite"` - Specific model
-    </ParamField>
-    
-    <ParamField body="complexity_threshold" type="number">
-      Override automatic complexity detection (0-1)
-    </ParamField>
-    
-    <ParamField body="token_threshold" type="integer">
-      Override automatic token counting threshold
-    </ParamField>
-  </Expandable>
+  Control routing: `{"cost_bias": 0.5, "models": ["openai/gpt-4"]}`
 </ParamField>
 
 <ParamField body="fallback" type="object">
-  **Provider backup** when primary fails
-  
-  <Expandable title="Fallback Options">
-    ```javascript
-    // Try providers one by one (cheaper)
-    fallback: { mode: "sequential" }
-    
-    // Try multiple providers at once (faster)
-    fallback: { mode: "race" }
-    ```
-    
-    <ParamField body="mode" type="string">
-      `"sequential"` (cheaper) or `"race"` (faster)
-    </ParamField>
-  </Expandable>
+  Provider fallback: `{"mode": "sequential"}`
 </ParamField>
-
-
-
-<Accordion title="📋 All Standard OpenAI Parameters">
-
-### Core Parameters
-
-<ParamField body="max_tokens" type="integer">
-  **Deprecated** - Maximum number of tokens to generate. Use `max_completion_tokens` instead.
-</ParamField>
-
-<ParamField body="max_completion_tokens" type="integer">
-  Maximum number of tokens that can be generated for completion, including reasoning tokens.
-</ParamField>
-
-<ParamField body="stream" type="boolean">
-  Whether to stream the response. Default: `false`
-</ParamField>
-
-<ParamField body="top_p" type="number">
-  Nucleus sampling parameter between 0 and 1. Default: `1`
-</ParamField>
-
-<ParamField body="frequency_penalty" type="number">
-  Penalty for token frequency. Range: -2.0 to 2.0. Default: `0`
 </ParamField>
 
 <ParamField body="presence_penalty" type="number">
@@ -398,123 +264,26 @@ curl https://api.llmadaptive.uk/v1/chat/completions \
       </Expandable>
     </ParamField>
     
-    <ParamField body="cost_bias" type="number">
-      Bias towards cost optimization. Range: 0.0-1.0 where 0.0 = cheapest, 1.0 = best performance
-    </ParamField>
-    
-    <ParamField body="complexity_threshold" type="number">
-      Threshold for task complexity routing decisions. Range: 0.0-1.0
-    </ParamField>
-    
-    <ParamField body="token_threshold" type="integer">
-      Token count threshold for model selection. Positive integer.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="fallback" type="object">
-  Configuration for provider fallback behavior. Fallback is disabled by default (empty/omitted), enabled when mode is specified.
-  
-  <Expandable title="Fallback Config">
-    <ParamField body="mode" type="string">
-      Fallback strategy: `"sequential"` or `"race"`. Empty/omitted = disabled, specified = enabled.
-    </ParamField>
-    
-    <ParamField body="timeout_ms" type="integer">
-      Timeout in milliseconds for fallback operations
-    </ParamField>
-    
-    <ParamField body="max_retries" type="integer">
-      Maximum number of retry attempts
-    </ParamField>
-  </Expandable>
- </ParamField>
-
-</Accordion>
-
 ## Response
 
-<ResponseField name="id" type="string">
-  Unique identifier for the completion
-</ResponseField>
-
-<ResponseField name="object" type="string">
-  Object type, always `chat.completion`
-</ResponseField>
-
-<ResponseField name="created" type="integer">
-  Unix timestamp of creation
-</ResponseField>
-
-<ResponseField name="model" type="string">
-  Model used for the completion
-</ResponseField>
-
-
-
-<ResponseField name="choices" type="array">
-  Array of completion choices
-  
-  <Expandable title="Choice Object">
-    <ResponseField name="index" type="integer">
-      Index of the choice
-    </ResponseField>
-    
-    <ResponseField name="message" type="object">
-      The generated message
-      
-      <Expandable title="Message Object">
-        <ResponseField name="role" type="string">
-          Role of the message, always "assistant"
-        </ResponseField>
-        
-        <ResponseField name="content" type="string">
-          The content of the message
-        </ResponseField>
-        
-        <ResponseField name="tool_calls" type="array">
-          Tool calls made by the model (if any)
-        </ResponseField>
-      </Expandable>
-    </ResponseField>
-    
-    <ResponseField name="finish_reason" type="string">
-      Reason completion finished: `stop`, `length`, `tool_calls`, or `content_filter`
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="usage" type="object">
-  Token usage statistics
-  
-  <Expandable title="Usage Object">
-    <ResponseField name="prompt_tokens" type="integer">
-      Number of tokens in the prompt
-    </ResponseField>
-    
-    <ResponseField name="completion_tokens" type="integer">
-      Number of tokens in the completion
-    </ResponseField>
-    
-    <ResponseField name="total_tokens" type="integer">
-      Total tokens used
-    </ResponseField>
-    
-
-  </Expandable>
-</ResponseField>
-
-<CardGroup cols={2}>
-  <Card title="Model Selection" icon="brain">
-    Use empty string `""` for model to enable intelligent routing and cost savings
-  </Card>
-  <Card title="Cost Control" icon="dollar-sign">
-    Use `cost_bias` parameter to balance cost vs performance for your use case
-  </Card>
-  <Card title="Custom Providers" icon="plug">
-    When using custom providers, always include their configuration in `provider_configs`
-  </Card>
-  <Card title="Error Handling" icon="shield-check">
-    Always implement proper error handling for network and API failures
-  </Card>
-</CardGroup>
+```json
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "openai/gpt-4",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Hello! How can I help you?"
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 9,
+    "completion_tokens": 12,
+    "total_tokens": 21
+  }
+}
+```

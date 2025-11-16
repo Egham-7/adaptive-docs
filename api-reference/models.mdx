@@ -44,56 +44,153 @@ A Registry Model is a comprehensive data structure containing:
   Optional provider filter (e.g., "openai", "anthropic", "google")
 </ParamField>
 
+### Advanced Filtering
+
+The Models API supports comprehensive filtering with repeatable query parameters:
+
+<ParamField query="author" type="string[]">
+  Filter by model author (repeatable). Example: `?author=openai&author=anthropic`
+</ParamField>
+
+<ParamField query="model_name" type="string[]">
+  Filter by model name (repeatable). Example: `?model_name=gpt-4&model_name=claude-3`
+</ParamField>
+
+<ParamField query="input_modality" type="string[]">
+  Filter by input modality (repeatable). Example: `?input_modality=text&input_modality=image`
+</ParamField>
+
+<ParamField query="output_modality" type="string[]">
+  Filter by output modality (repeatable). Example: `?output_modality=text`
+</ParamField>
+
+<ParamField query="min_context_length" type="integer">
+  Filter by minimum context length. Example: `?min_context_length=128000`
+</ParamField>
+
+<ParamField query="max_prompt_cost" type="string">
+  Filter by maximum prompt cost. Example: `?max_prompt_cost=0.00001`
+</ParamField>
+
+<ParamField query="supported_param" type="string[]">
+  Filter by required parameters (repeatable). Example: `?supported_param=tools&supported_param=vision`
+</ParamField>
+
+<ParamField query="status" type="integer">
+  Filter by endpoint status (0=active). Example: `?status=0`
+</ParamField>
+
+<ParamField query="quantization" type="string[]">
+  Filter by model quantization (repeatable). Example: `?quantization=fp16`
+</ParamField>
+
 <RequestExample>
-```bash cURL
+```bash Advanced Filter Examples
+# Find vision-capable OpenAI models with large context
+curl "https://api.llmadaptive.uk/v1/models?author=openai&supported_param=vision&min_context_length=100000" \
+  -H "Authorization: Bearer apk_123456"
+
+# Find cost-effective models with multimodal input
+curl "https://api.llmadaptive.uk/v1/models?input_modality=text&input_modality=image&max_prompt_cost=0.00001" \
+  -H "Authorization: Bearer apk_123456"
+
+# Find active models from multiple providers with tool support
+curl "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic&supported_param=tools&status=0" \
+  -H "Authorization: Bearer apk_123456"
+```
+
+```python Python - Advanced Filtering
+import requests
+
+headers = {"Authorization": f"Bearer {api_key}"}
+
+# Find models matching multiple criteria
+response = requests.get(
+    "https://api.llmadaptive.uk/v1/models",
+    headers=headers,
+    params={
+        "author": ["openai", "anthropic"],
+        "input_modality": ["text", "image"],
+        "supported_param": ["tools"],
+        "min_context_length": 100000,
+        "status": 0
+    }
+)
+
+filtered_models = response.json()
+print(f"Found {len(filtered_models)} models matching criteria")
+
+for model in filtered_models:
+    print(f"- {model['display_name']}: {model['context_length']} tokens, ${model['pricing']['prompt']}/token")
+```
+</RequestExample>
+
+<Note>
+  **Query Parameter Syntax**: For multiple values, repeat the parameter name:
+  - ✅ Correct: `?author=openai&author=anthropic`
+  - ❌ Incorrect: `?author=openai,anthropic` (comma-separated not supported)
+</Note>
+
+<RequestExample>
+```bash List All Models
 curl https://api.llmadaptive.uk/v1/models \
   -H "Authorization: Bearer apk_123456"
 ```
 
-```bash Filter by Provider
-curl https://api.llmadaptive.uk/v1/models?provider=openai \
+```bash Filter by Single Provider
+curl "https://api.llmadaptive.uk/v1/models?provider=openai" \
+  -H "Authorization: Bearer apk_123456"
+```
+
+```bash Filter by Multiple Providers (Repeat Parameter)
+curl "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic" \
   -H "Authorization: Bearer apk_123456"
 ```
 
 ```python Python
 import requests
 
-headers = {
-    "Authorization": f"Bearer {api_key}"
-}
+headers = {"Authorization": f"Bearer {api_key}"}
 
 # List all models
-response = requests.get(
-    "https://api.llmadaptive.uk/v1/models",
-    headers=headers
-)
+response = requests.get("https://api.llmadaptive.uk/v1/models", headers=headers)
 models = response.json()
 
-# Filter by provider
+# Filter by single provider
 response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?provider=anthropic",
+    "https://api.llmadaptive.uk/v1/models?provider=openai",
     headers=headers
 )
-anthropic_models = response.json()
+openai_models = response.json()
+
+# Filter by multiple providers (repeat parameter)
+response = requests.get(
+    "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic",
+    headers=headers
+)
+multi_provider_models = response.json()
 ```
 
 ```javascript JavaScript
-const headers = {
-  'Authorization': `Bearer ${apiKey}`
-};
+const headers = {'Authorization': `Bearer ${apiKey}`};
 
 // List all models
-const response = await fetch('https://api.llmadaptive.uk/v1/models', {
-  headers
-});
+const response = await fetch('https://api.llmadaptive.uk/v1/models', { headers });
 const models = await response.json();
 
-// Filter by provider
-const anthropicResponse = await fetch(
-  'https://api.llmadaptive.uk/v1/models?provider=anthropic',
+// Filter by single provider
+const openaiResponse = await fetch(
+  'https://api.llmadaptive.uk/v1/models?provider=openai',
   { headers }
 );
-const anthropicModels = await anthropicResponse.json();
+const openaiModels = await openaiResponse.json();
+
+// Filter by multiple providers (repeat parameter)
+const multiResponse = await fetch(
+  'https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic',
+  { headers }
+);
+const multiProviderModels = await multiResponse.json();
 ```
 </RequestExample>
 
@@ -380,7 +477,7 @@ import requests
 
 # 1. Query registry for available models
 models_response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?provider=openai",
+    "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic",
     headers={"Authorization": f"Bearer {api_key}"}
 )
 available_models = models_response.json()
@@ -409,9 +506,9 @@ Combine with the [Select Model API](/api-reference/select-model) for explicit se
 ```python
 import requests
 
-# 1. Get models from registry
+# 1. Get models from registry with filtering
 models_response = requests.get(
-    "https://api.llmadaptive.uk/v1/models",
+    "https://api.llmadaptive.uk/v1/models?supported_param=tools&min_context_length=100000",
     headers={"Authorization": f"Bearer {api_key}"}
 )
 models = models_response.json()
@@ -431,118 +528,3 @@ selection_response = requests.post(
 )
 ```
 
-## Best Practices
-
-### 1. Cache Registry Data
-
-Cache model information to reduce API calls:
-
-```python
-import requests
-from datetime import datetime, timedelta
-
-class ModelRegistry:
-    def __init__(self, api_key):
-        self.api_key = api_key
-        self.cache = {}
-        self.cache_expiry = None
-        self.cache_duration = timedelta(hours=1)
-
-    def get_models(self, provider=None):
-        # Check cache
-        if self.cache and self.cache_expiry and datetime.now() < self.cache_expiry:
-            if provider:
-                return [m for m in self.cache.get('models', [])
-                       if m['provider'] == provider]
-            return self.cache.get('models', [])
-
-        # Fetch from API
-        url = "https://api.llmadaptive.uk/v1/models"
-        if provider:
-            url += f"?provider={provider}"
-
-        response = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {self.api_key}"}
-        )
-
-        models = response.json()
-        self.cache = {'models': models}
-        self.cache_expiry = datetime.now() + self.cache_duration
-
-        return models
-```
-
-### 2. Handle Registry Failures Gracefully
-
-Always have fallback options:
-
-```python
-import requests
-
-def get_models_with_fallback(api_key, provider=None):
-    try:
-        url = "https://api.llmadaptive.uk/v1/models"
-        if provider:
-            url += f"?provider={provider}"
-
-        response = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {api_key}"},
-            timeout=5
-        )
-        response.raise_for_status()
-        return response.json()
-
-    except Exception as e:
-        print(f"Registry query failed: {e}")
-        # Return fallback models
-        return [
-            {"provider": "openai", "model_name": "gpt-5-mini"},
-            {"provider": "anthropic", "model_name": "claude-sonnet-4-5"}
-        ]
-```
-
-### 3. Filter by Capabilities
-
-Select models based on your requirements:
-
-```python
-def find_models_by_criteria(api_key, min_context=100000, supports_tools=True):
-    response = requests.get(
-        "https://api.llmadaptive.uk/v1/models",
-        headers={"Authorization": f"Bearer {api_key}"}
-    )
-
-    models = response.json()
-
-    filtered = []
-    for model in models:
-        # Check context length
-        if model['context_length'] < min_context:
-            continue
-
-        # Check tool support
-        if supports_tools and 'tools' not in model.get('supported_parameters', []):
-            continue
-
-        filtered.append(model)
-
-    return filtered
-```
-
-## Error Handling
-
-| Status Code | Description | Solution |
-|-------------|-------------|----------|
-| 200 | Success | Process returned models |
-| 400 | Bad Request | Check model ID parameter |
-| 404 | Not Found | Model doesn't exist in registry |
-| 502 | Bad Gateway | Registry service unavailable, use fallback |
-
-## Related Documentation
-
-- [Model Specification Reference](/api-reference/model-specification) - Complete field documentation
-- [Chat Completions API](/api-reference/chat-completions) - Use models in chat completions
-- [Select Model API](/api-reference/select-model) - Intelligent model selection
-- [Model Routing](/features/model-routing) - How routing uses registry data
