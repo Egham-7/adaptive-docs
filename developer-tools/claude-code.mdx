@@ -44,6 +44,11 @@ export ANTHROPIC_BASE_URL=https://api.llmadaptive.uk
 export ANTHROPIC_AUTH_TOKEN=your-adaptive-api-key
 export ANTHROPIC_MODEL=adaptive/auto
 export ANTHROPIC_SMALL_FAST_MODEL=adaptive/auto
+# Manual model overrides (override all for complete control)
+export ANTHROPIC_DEFAULT_OPUS_MODEL=adaptive/auto  # Model for opus, or opusplan when Plan Mode is active
+export ANTHROPIC_DEFAULT_SONNET_MODEL=adaptive/auto  # Model for sonnet, or opusplan when Plan Mode is not active
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=adaptive/auto  # Model for haiku, or background functionality
+export CLAUDE_CODE_SUBAGENT_MODEL=adaptive/auto  # Model for subagents
 ```
 
 ```json Manual Settings File
