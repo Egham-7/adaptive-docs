@@ -13,7 +13,7 @@ Get optimal model recommendations for your prompts without running inference.
 curl https://api.llmadaptive.uk/v1/select-model \
   -H "Authorization: Bearer apk_123456" \
   -d '{
-    "models": ["openai/gpt-4", "anthropic/claude-3"],
+    "models": ["openai/gpt-4", "anthropic/claude-3-5-sonnet-20241022"],
     "prompt": "Write a Python function to sort a list"
   }'
 ```
@@ -25,7 +25,7 @@ response = requests.post(
     "https://api.llmadaptive.uk/v1/select-model",
     headers={"Authorization": "Bearer apk_123456"},
     json={
-        "models": ["openai/gpt-4", "anthropic/claude-3"],
+        "models": ["openai/gpt-4", "anthropic/claude-3-5-sonnet-20241022"],
         "prompt": "Write a Python function to sort a list"
     }
 )
@@ -34,8 +34,16 @@ response = requests.post(
 
 ## Parameters
 
-<ParamField body="models" type="array" required>
-  Array of available models: `["openai/gpt-4", "anthropic/claude-3"]`
+<ParamField body="models" type="array">
+  **Optional** - Array of available model specifications in `provider/model_name` format.
+
+  If provided, these models will be used for selection. If omitted, Adaptive automatically uses all models from your configured providers via the [Model Registry](/api-reference/models).
+
+  <Expandable title="Model Specification Format">
+    ```json
+    ["openai/gpt-4", "anthropic/claude-3-5-sonnet-20241022", "google/gemini-2.0-flash-exp"]
+    ```
+  </Expandable>
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -43,31 +51,15 @@ response = requests.post(
 </ParamField>
 
 <ParamField body="cost_bias" type="number">
-  Cost vs performance balance (0.0-1.0). Default: 0.5
+  Cost optimization preference (0.0 = cheapest, 1.0 = best performance).
+
+  Default: Uses your project's adaptive configuration. Override to prioritize cost savings or performance for this specific selection.
 </ParamField>
 
-## Response
+<ParamField body="semantic_cache_threshold" type="number">
+  Semantic cache similarity threshold (0.0-1.0, higher = stricter matching).
 
-```json
-{
-  "selected_model": "openai/gpt-4",
-  "confidence": 0.85,
-  "reasoning": "Best balance of cost and capability for coding tasks",
-  "estimated_cost": {
-    "prompt": 0.00003,
-    "completion": 0.00006
-  }
-}
-```
-      Override whether to use semantic caching for this specific request
-      (overrides server configuration)
-    </ParamField>
-
-    <ParamField body="semantic_threshold" type="number">
-      Override similarity threshold for cache hits (0.0-1.0, higher = more
-      strict matching)
-    </ParamField>
-  </Expandable>
+  Default: Uses your project's adaptive configuration. Override to control how similar prompts need to be for cache hits.
 </ParamField>
 
 ## Response
@@ -84,7 +76,7 @@ response = requests.post(
     </ResponseField>
 
     <ResponseField name="model_name" type="string">
-      Model identifier (e.g., "gpt-5-mini", "claude-sonnet-4-5")
+      Model identifier (e.g., "gpt-4", "claude-3-5-sonnet-20241022")
     </ResponseField>
 
     <ResponseField name="display_name" type="string">
@@ -113,7 +105,9 @@ response = requests.post(
   **Alternative models** (optional) Fallback model options if the primary selection is unavailable. Each alternative is a complete RegistryModel object.
 </ResponseField>
 
-
+<ResponseField name="cache_tier" type="string">
+  **Cache hit information** Indicates if the selection came from cache ("semantic_exact", "semantic_similar", or empty if not cached)
+</ResponseField>
 
 ## Authentication
 
@@ -122,6 +116,49 @@ Same as chat completions:
 ```bash
 -H "Authorization: Bearer apk_123456"
 ```
+
+## Example Requests
+
+### With Explicit Models
+
+Specify exactly which models to consider:
+
+```json
+{
+  "models": [
+    "openai/gpt-4",
+    "anthropic/claude-3-5-sonnet-20241022"
+  ],
+  "prompt": "Write a Python function to calculate fibonacci numbers",
+  "cost_bias": 0.3,
+  "semantic_cache_threshold": 0.9
+}
+```
+
+### Auto-Discovery from Registry
+
+Let Adaptive use all configured provider models:
+
+```json
+{
+  "prompt": "Write a Python function to calculate fibonacci numbers",
+  "cost_bias": 0.3
+}
+```
+
+Adaptive will automatically fetch all available models from your configured providers (OpenAI, Anthropic, Google, etc.).
+
+### Using Project Defaults
+
+Use your project's adaptive configuration settings:
+
+```json
+{
+  "prompt": "Write a Python function to calculate fibonacci numbers"
+}
+```
+
+Uses `cost_bias` and `semantic_cache_threshold` from your project's adaptive configuration in the dashboard.
 
 ## No Inference = Fast & Cheap
 
