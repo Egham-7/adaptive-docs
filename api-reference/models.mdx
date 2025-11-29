@@ -7,123 +7,58 @@ api: 'GET /v1/models'
 
 ## Overview
 
-The Models API provides access to Adaptive's comprehensive model registry, which contains detailed information about available LLM models including pricing, capabilities, context limits, and provider details.
+Query Adaptive's model registry to discover available LLM models, their pricing, capabilities, and provider information. Use this API to find models that match your requirements and get up-to-date pricing details.
 
-**Use this API to:**
-- Discover available models across all providers
-- Get detailed pricing and capability information
-- Filter models by provider
-- Retrieve specific model details for integration
+**Common use cases:**
+- List all available models
+- Filter models by provider, features, or price
+- Get pricing information for cost estimation
+- Find models with specific capabilities (e.g., vision, tool calling)
 
-## Registry Model System
+## Quick Start
 
-Adaptive maintains a centralized **Model Registry** that tracks comprehensive information about LLM models from multiple providers (OpenAI, Anthropic, Google, DeepSeek, Groq, and more).
+Get all available models:
 
-### What is a Registry Model?
+```bash
+curl https://api.llmadaptive.uk/v1/models \
+  -H "Authorization: Bearer apk_123456"
+```
 
-A Registry Model is a comprehensive data structure containing:
+Filter by provider (e.g., OpenAI):
 
-- **Identity**: Provider, model name, OpenRouter ID
-- **Pricing**: Input/output token costs, per-request costs
-- **Capabilities**: Context length, supported parameters, tool calling support
-- **Architecture**: Modality, tokenizer, instruction format
-- **Provider Info**: Top provider configuration, available endpoints
-- **Metadata**: Display name, description, timestamps
+```bash
+curl "https://api.llmadaptive.uk/v1/models?provider=openai" \
+  -H "Authorization: Bearer apk_123456"
+```
 
-### How the Registry Works
+Get a specific model:
 
-1. **Centralized Data Source**: The registry service maintains up-to-date model information
-2. **Automatic Lookups**: When you specify a provider or model, Adaptive queries the registry
-3. **Auto-Fill**: Known models automatically get pricing and capability data filled in
+```bash
+curl https://api.llmadaptive.uk/v1/models/gpt-4 \
+  -H "Authorization: Bearer apk_123456"
+```
+
+<Note>
+Responses include key fields like `model_name`, `display_name`, `context_length`, `pricing`, and available `providers`.
+</Note>
 
 ## Endpoints
 
 ### List All Models
 
+**Common Query Parameters:**
+
 <ParamField query="provider" type="string">
-  Optional provider filter (e.g., "openai", "anthropic", "google")
-</ParamField>
-
-### Advanced Filtering
-
-The Models API supports comprehensive filtering with repeatable query parameters:
-
-<ParamField query="author" type="string[]">
-  Filter by model author (repeatable). Example: `?author=openai&author=anthropic`
-</ParamField>
-
-<ParamField query="model_name" type="string[]">
-  Filter by model name (repeatable). Example: `?model_name=gpt-4&model_name=claude-3`
-</ParamField>
-
-<ParamField query="input_modality" type="string[]">
-  Filter by input modality (repeatable). Example: `?input_modality=text&input_modality=image`
-</ParamField>
-
-<ParamField query="output_modality" type="string[]">
-  Filter by output modality (repeatable). Example: `?output_modality=text`
+  Filter by provider (e.g., "openai", "anthropic", "google"). Repeat parameter for multiple providers.
 </ParamField>
 
 <ParamField query="min_context_length" type="integer">
-  Filter by minimum context length. Example: `?min_context_length=128000`
-</ParamField>
-
-<ParamField query="max_prompt_cost" type="string">
-  Filter by maximum prompt cost. Example: `?max_prompt_cost=0.00001`
+  Filter by minimum context length (e.g., `128000` for 128K tokens)
 </ParamField>
 
 <ParamField query="supported_param" type="string[]">
-  Filter by required parameters (repeatable). Example: `?supported_param=tools&supported_param=vision`
+  Filter by required features (repeatable). Example: `?supported_param=tools` for tool calling support
 </ParamField>
-
-<ParamField query="status" type="integer">
-  Filter by endpoint status (0=active). Example: `?status=0`
-</ParamField>
-
-<ParamField query="quantization" type="string[]">
-  Filter by model quantization (repeatable). Example: `?quantization=fp16`
-</ParamField>
-
-<RequestExample>
-```bash Advanced Filter Examples
-# Find vision-capable OpenAI models with large context
-curl "https://api.llmadaptive.uk/v1/models?author=openai&supported_param=vision&min_context_length=100000" \
-  -H "Authorization: Bearer apk_123456"
-
-# Find cost-effective models with multimodal input
-curl "https://api.llmadaptive.uk/v1/models?input_modality=text&input_modality=image&max_prompt_cost=0.00001" \
-  -H "Authorization: Bearer apk_123456"
-
-# Find active models from multiple providers with tool support
-curl "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic&supported_param=tools&status=0" \
-  -H "Authorization: Bearer apk_123456"
-```
-
-```python Python - Advanced Filtering
-import requests
-
-headers = {"Authorization": f"Bearer {api_key}"}
-
-# Find models matching multiple criteria
-response = requests.get(
-    "https://api.llmadaptive.uk/v1/models",
-    headers=headers,
-    params={
-        "author": ["openai", "anthropic"],
-        "input_modality": ["text", "image"],
-        "supported_param": ["tools"],
-        "min_context_length": 100000,
-        "status": 0
-    }
-)
-
-filtered_models = response.json()
-print(f"Found {len(filtered_models)} models matching criteria")
-
-for model in filtered_models:
-    print(f"- {model['display_name']}: {model['context_length']} tokens, ${model['pricing']['prompt_cost']}/token")
-```
-</RequestExample>
 
 <Note>
   **Query Parameter Syntax**: For multiple values, repeat the parameter name:
@@ -137,13 +72,8 @@ curl https://api.llmadaptive.uk/v1/models \
   -H "Authorization: Bearer apk_123456"
 ```
 
-```bash Filter by Single Provider
+```bash Filter by Provider
 curl "https://api.llmadaptive.uk/v1/models?provider=openai" \
-  -H "Authorization: Bearer apk_123456"
-```
-
-```bash Filter by Multiple Providers (Repeat Parameter)
-curl "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic" \
   -H "Authorization: Bearer apk_123456"
 ```
 
@@ -156,41 +86,13 @@ headers = {"Authorization": f"Bearer {api_key}"}
 response = requests.get("https://api.llmadaptive.uk/v1/models", headers=headers)
 models = response.json()
 
-# Filter by single provider
+# Filter by provider
 response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?provider=openai",
-    headers=headers
+    "https://api.llmadaptive.uk/v1/models",
+    headers=headers,
+    params={"provider": "openai"}
 )
 openai_models = response.json()
-
-# Filter by multiple providers (repeat parameter)
-response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic",
-    headers=headers
-)
-multi_provider_models = response.json()
-```
-
-```javascript JavaScript
-const headers = {'Authorization': `Bearer ${apiKey}`};
-
-// List all models
-const response = await fetch('https://api.llmadaptive.uk/v1/models', { headers });
-const models = await response.json();
-
-// Filter by single provider
-const openaiResponse = await fetch(
-  'https://api.llmadaptive.uk/v1/models?provider=openai',
-  { headers }
-);
-const openaiModels = await openaiResponse.json();
-
-// Filter by multiple providers (repeat parameter)
-const multiResponse = await fetch(
-  'https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic',
-  { headers }
-);
-const multiProviderModels = await multiResponse.json();
 ```
 </RequestExample>
 
@@ -198,93 +100,27 @@ const multiProviderModels = await multiResponse.json();
 ```json 200 Success
 [
   {
-    "id": 123,
-    "author": "openai",
-    "model_name": "gpt-5-mini",
-    "display_name": "GPT-5 Mini",
-    "description": "Affordable and intelligent small model for fast, lightweight tasks",
+    "model_name": "gpt-4",
+    "display_name": "GPT-4",
     "context_length": 128000,
     "pricing": {
-      "prompt_cost": "0.00015",
-      "completion_cost": "0.0006",
-      "request_cost": "0",
-      "image_cost": "0",
-      "web_search_cost": "0",
-      "internal_reasoning_cost": "0"
-    },
-    "architecture": {
-      "modality": "text",
-      "tokenizer": "cl100k_base",
-      "instruct_type": "chat",
-      "modalities": [
-        {
-          "modality_type": "input",
-          "modality_value": "text"
-        },
-        {
-          "modality_type": "output",
-          "modality_value": "text"
-        }
-      ]
-    },
-    "top_provider": {
-      "context_length": 128000,
-      "max_completion_tokens": 16384,
-      "is_moderated": "true"
+      "prompt_cost": "0.00003",
+      "completion_cost": "0.00006"
     },
     "supported_parameters": [
-      {
-        "parameter_name": "temperature"
-      },
-      {
-        "parameter_name": "top_p"
-      },
-      {
-        "parameter_name": "max_tokens"
-      },
-      {
-        "parameter_name": "tools"
-      }
+      {"parameter_name": "temperature"},
+      {"parameter_name": "tools"}
     ],
-    "default_parameters": {
-      "parameters": {
-        "temperature": 1.0,
-        "top_p": 1.0,
-        "max_tokens": 4096
-      }
-    },
     "providers": [
       {
         "name": "openai",
-        "endpoint_model_name": "gpt-5-mini",
-        "context_length": 128000,
-        "provider_name": "OpenAI",
-        "tag": "openai",
-        "quantization": "",
-        "max_completion_tokens": 16384,
-        "max_prompt_tokens": 128000,
         "status": 0,
-        "uptime_last_30m": "99.9%",
-        "supports_implicit_caching": "true",
-        "is_zdr": "false",
-        "pricing": {
-          "prompt_cost": "0.00015",
-          "completion_cost": "0.0006",
-          "request_cost": "0",
-          "image_cost": "0.2890",
-          "input_cache_read_cost": "0",
-          "input_cache_write_cost": "0"
-        }
+        "context_length": 128000
       }
     ]
   }
+  // ... more models
 ]
-```
-
-```json 502 Bad Gateway
-{
-  "error": "Failed to fetch models from registry: connection timeout"
-}
 ```
 </ResponseExample>
 
@@ -296,127 +132,45 @@ const multiProviderModels = await multiResponse.json();
 
 <RequestExample>
 ```bash cURL
-curl https://api.llmadaptive.uk/v1/models/gpt-5-mini \
+curl https://api.llmadaptive.uk/v1/models/gpt-4 \
   -H "Authorization: Bearer apk_123456"
 ```
 
 ```python Python
 import requests
 
-headers = {
-    "Authorization": f"Bearer {api_key}"
-}
+headers = {"Authorization": f"Bearer {api_key}"}
 
 response = requests.get(
-    "https://api.llmadaptive.uk/v1/models/gpt-5-mini",
+    "https://api.llmadaptive.uk/v1/models/gpt-4",
     headers=headers
 )
 model = response.json()
-
-print(f"Model: {model['display_name']}")
-print(f"Context Length: {model['context_length']}")
-print(f"Input Cost: ${model['pricing']['prompt_cost']} per token")
-```
-
-```javascript JavaScript
-const headers = {
-  'Authorization': `Bearer ${apiKey}`
-};
-
-const response = await fetch(
-  'https://api.llmadaptive.uk/v1/models/gpt-5-mini',
-  { headers }
-);
-const model = await response.json();
-
-console.log(`Model: ${model.display_name}`);
-console.log(`Context Length: ${model.context_length}`);
-console.log(`Input Cost: $${model.pricing.prompt} per token`);
 ```
 </RequestExample>
 
 <ResponseExample>
 ```json 200 Success
 {
-  "id": 123,
-  "author": "openai",
-  "model_name": "gpt-5-mini",
-  "display_name": "GPT-5 Mini",
-  "description": "Affordable and intelligent small model for fast, lightweight tasks",
+  "model_name": "gpt-4",
+  "display_name": "GPT-4",
   "context_length": 128000,
   "pricing": {
-    "prompt_cost": "0.00015",
-    "completion_cost": "0.0006",
-    "request_cost": "0",
-    "image_cost": "0",
-    "web_search_cost": "0",
-    "internal_reasoning_cost": "0"
-  },
-  "architecture": {
-    "modality": "text",
-    "tokenizer": "cl100k_base",
-    "instruct_type": "chat",
-    "modalities": [
-      {
-        "modality_type": "input",
-        "modality_value": "text"
-      },
-      {
-        "modality_type": "output",
-        "modality_value": "text"
-      }
-    ]
-  },
-  "top_provider": {
-    "context_length": 128000,
-    "max_completion_tokens": 16384,
-    "is_moderated": "true"
+    "prompt_cost": "0.00003",
+    "completion_cost": "0.00006"
   },
   "supported_parameters": [
-    {
-      "parameter_name": "temperature"
-    },
-    {
-      "parameter_name": "top_p"
-    },
-    {
-      "parameter_name": "max_tokens"
-    },
-    {
-      "parameter_name": "tools"
-    }
+    {"parameter_name": "temperature"},
+    {"parameter_name": "tools"}
   ],
-  "default_parameters": {
-    "parameters": {
-      "temperature": 1.0,
-      "top_p": 1.0,
-      "max_tokens": 4096
-    }
-  },
   "providers": [
     {
       "name": "openai",
-      "endpoint_model_name": "gpt-5-mini",
-      "context_length": 128000,
-      "provider_name": "OpenAI",
-      "tag": "openai",
-      "quantization": "",
-      "max_completion_tokens": 16384,
-      "max_prompt_tokens": 128000,
       "status": 0,
-      "uptime_last_30m": "99.9%",
-      "supports_implicit_caching": "true",
-      "is_zdr": "false",
-      "pricing": {
-        "prompt_cost": "0.00015",
-        "completion_cost": "0.0006",
-        "request_cost": "0",
-        "image_cost": "0.2890",
-        "input_cache_read_cost": "0",
-        "input_cache_write_cost": "0"
-      }
+      "context_length": 128000
     }
   ]
+  // ... additional fields omitted for brevity
 }
 ```
 
@@ -425,178 +179,176 @@ console.log(`Input Cost: $${model.pricing.prompt} per token`);
   "error": "Model 'unknown-model' not found"
 }
 ```
-
-```json 400 Bad Request
-{
-  "error": "Model name is required"
-}
-```
 </ResponseExample>
 
-## Response Schema
+## Response Fields
 
-### RegistryModel Object
+**Key fields in the response:**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | integer | Database ID (internal use) |
-| `author` | string | Model author/organization (e.g., "openai", "anthropic") |
-| `model_name` | string | Model identifier for API calls |
+| `model_name` | string | Model identifier (e.g., "gpt-4", "claude-sonnet-4-5") |
 | `display_name` | string | Human-readable model name |
-| `description` | string | Model description and use cases |
-| `context_length` | integer | Maximum context window size in tokens |
-| `pricing` | object | Pricing information (see below) |
-| `architecture` | object | Model architecture details (see below) |
-| `top_provider` | object | Top provider configuration (see below) |
-| `supported_parameters` | array | Supported API parameters (see below) |
-| `default_parameters` | object | Default parameter values (see below) |
-| `providers` | array | Available provider endpoints (see below) |
+| `context_length` | integer | Maximum context window in tokens |
+| `pricing.prompt_cost` | string | Cost per input token (as string for precision) |
+| `pricing.completion_cost` | string | Cost per output token (as string for precision) |
+| `supported_parameters` | array | Supported API parameters (e.g., temperature, tools) |
+| `providers` | array | Available provider endpoints |
+| `providers[].name` | string | Provider name (e.g., "openai", "anthropic") |
+| `providers[].status` | integer | Provider status (0 = active) |
+
+<Note>
+**Field Type Notes:**
+- Pricing values are strings (not numbers) to preserve decimal precision
+- Boolean-like fields use strings (`"true"` or `"false"`) for compatibility
+- `status: 0` means active, non-zero means inactive
+</Note>
+
+<Accordion title="Complete Response Schema">
+
+### Full Model Object
+
+The complete response includes additional fields:
+
+- `id` - Database ID (internal)
+- `author` - Model author/organization
+- `description` - Model description
+- `architecture` - Architecture details (modality, tokenizer, etc.)
+- `top_provider` - Top provider configuration
+- `default_parameters` - Default parameter values
 
 ### Pricing Object
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `prompt_cost` | string | Cost per input token (USD, string format) |
-| `completion_cost` | string | Cost per output token (USD, string format) |
-| `request_cost` | string | Cost per request (optional) |
-| `image_cost` | string | Cost per image (optional) |
-| `web_search_cost` | string | Cost for web search (optional) |
-| `internal_reasoning_cost` | string | Cost for internal reasoning tokens (optional) |
+- `request_cost` - Per-request cost
+- `image_cost` - Per-image cost
+- `web_search_cost` - Web search cost
+- `internal_reasoning_cost` - Internal reasoning cost
 
-**Note**: Pricing is in string format to preserve precision. Multiply by 1M for cost per million tokens.
+### Provider Object
 
-### Architecture Object
+Each provider in the `providers` array includes:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `modality` | string | Primary modality (e.g., "text", "multimodal") |
-| `tokenizer` | string | Tokenizer used (e.g., "cl100k_base", "o200k_base") |
-| `instruct_type` | string | Instruction format (e.g., "chat", null) |
-| `modalities` | array | Supported input/output modalities (see below) |
+- `endpoint_model_name` - Model name at endpoint
+- `context_length` - Provider-specific context limit
+- `max_completion_tokens` - Maximum output tokens
+- `quantization` - Model quantization
+- `uptime_last_30m` - Recent uptime percentage
+- `supports_implicit_caching` - Caching support
+- `pricing` - Provider-specific pricing details
 
-### ArchitectureModality Object
+</Accordion>
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `modality_type` | string | "input" or "output" |
-| `modality_value` | string | Modality value (e.g., "text", "image") |
+## Common Use Cases
 
-### TopProvider Object
+### Find Models with Specific Features
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `context_length` | integer | Provider's context limit |
-| `max_completion_tokens` | integer | Maximum output tokens |
-| `is_moderated` | string | Whether content is moderated ("true" or "false") |
+```bash
+# Find models with tool calling support
+curl "https://api.llmadaptive.uk/v1/models?supported_param=tools" \
+  -H "Authorization: Bearer apk_123456"
+```
 
-### ModelSupportedParameter Object
+### Find Models with Large Context Windows
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `parameter_name` | string | Name of supported parameter (e.g., "temperature", "tools") |
+```bash
+# Find models with at least 128K context
+curl "https://api.llmadaptive.uk/v1/models?min_context_length=128000" \
+  -H "Authorization: Bearer apk_123456"
+```
 
-### ModelDefaultParameters Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `parameters` | object | Default parameter values (see DefaultParametersValues below) |
-
-### DefaultParametersValues Object
-
-Contains strongly typed default parameter values including sampling, penalty, token, and control parameters.
-
-### ModelProvider Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | Provider name |
-| `endpoint_model_name` | string | Model name at the endpoint |
-| `context_length` | integer | Context length for this provider |
-| `provider_name` | string | Human-readable provider name |
-| `tag` | string | Provider tag/slug |
-| `quantization` | string | Model quantization (optional) |
-| `max_completion_tokens` | integer | Max completion tokens |
-| `max_prompt_tokens` | integer | Max prompt tokens |
-| `status` | integer | Status code (0 = active) |
-| `uptime_last_30m` | string | Uptime percentage last 30 minutes |
-| `supports_implicit_caching` | string | Implicit caching support ("true" or "false") |
-| `is_zdr` | string | Zero-downtime routing support ("true" or "false") |
-| `pricing` | object | Provider-specific pricing (see ProviderPricing below) |
-
-### ProviderPricing Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `prompt_cost` | string | Cost per input token |
-| `completion_cost` | string | Cost per output token |
-| `request_cost` | string | Cost per request |
-| `image_cost` | string | Cost per image |
-| `image_output_cost` | string | Cost per image output |
-| `audio_cost` | string | Cost per audio |
-| `input_audio_cache_cost` | string | Cost for cached input audio |
-| `input_cache_read_cost` | string | Cost to read from input cache |
-| `input_cache_write_cost` | string | Cost to write to input cache |
-| `discount` | string | Discount applied |
-
-## Integration with Other APIs
-
-### Use with Chat Completions
-
-Combine with the [Chat Completions API](/api-reference/chat-completions) for intelligent routing:
+### Get Pricing for Cost Estimation
 
 ```python
 import requests
 
-# 1. Query registry for available models
-models_response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?provider=openai&provider=anthropic",
-    headers={"Authorization": f"Bearer {api_key}"}
-)
-available_models = models_response.json()
+headers = {"Authorization": f"Bearer {api_key}"}
 
-# 2. Use models in chat completion with intelligent routing
-chat_response = requests.post(
-    "https://api.llmadaptive.uk/v1/chat/completions",
-    headers={"Authorization": f"Bearer {api_key}"},
-    json={
-        "model": "adaptive/auto",  # Empty for intelligent routing
-        "messages": [{"role": "user", "content": "Hello"}],
-        "model_router": {
-            "models": [
-                f"{m['provider']}:{m['model_name']}"
-                for m in available_models[:3]  # Use top 3 models
-            ]
-        }
-    }
+# Get model details including pricing
+response = requests.get(
+    "https://api.llmadaptive.uk/v1/models/gpt-4",
+    headers=headers
 )
+model = response.json()
+
+# Calculate cost for 1000 input tokens and 500 output tokens
+input_cost = float(model['pricing']['prompt_cost']) * 1000
+output_cost = float(model['pricing']['completion_cost']) * 500
+total_cost = input_cost + output_cost
+
+print(f"Estimated cost: ${total_cost:.4f}")
 ```
 
-### Use with Select Model API
-
-Combine with the [Select Model API](/api-reference/select-model) for explicit selection:
+### Compare Models Across Providers
 
 ```python
 import requests
 
-# 1. Get models from registry with filtering
-models_response = requests.get(
-    "https://api.llmadaptive.uk/v1/models?supported_param=tools&min_context_length=100000",
-    headers={"Authorization": f"Bearer {api_key}"}
-)
-models = models_response.json()
+headers = {"Authorization": f"Bearer {api_key}"}
 
-# 2. Use select-model to choose best model for prompt
-selection_response = requests.post(
-    "https://api.llmadaptive.uk/v1/select-model",
-    headers={"Authorization": f"Bearer {api_key}"},
-    json={
-        "prompt": "Write a Python function to process CSV files",
-        "models": [
-            f"{m['provider']}/{m['model_name']}"
-            for m in models
-            if "tools" in m.get("supported_parameters", [])
-        ]
-    }
+# Get GPT-4 and Claude models
+response = requests.get(
+    "https://api.llmadaptive.uk/v1/models",
+    headers=headers,
+    params={"provider": ["openai", "anthropic"]}
 )
+models = response.json()
+
+# Compare pricing
+for model in models:
+    print(f"{model['display_name']}: "
+          f"${model['pricing']['prompt_cost']}/token input, "
+          f"${model['pricing']['completion_cost']}/token output")
 ```
 
+## Advanced Filtering
+
+<Accordion title="Additional Filter Parameters">
+
+The Models API supports advanced filtering with these additional parameters:
+
+**Filter by Author:**
+```
+?author=openai&author=anthropic
+```
+
+**Filter by Model Name:**
+```
+?model_name=gpt-4&model_name=claude-3
+```
+
+**Filter by Input/Output Modality:**
+```
+?input_modality=text&input_modality=image
+?output_modality=text
+```
+
+**Filter by Maximum Cost:**
+```
+?max_prompt_cost=0.00001
+```
+
+**Filter by Status:**
+```
+?status=0  # 0 = active endpoints only
+```
+
+**Filter by Quantization:**
+```
+?quantization=fp16
+```
+
+**Combine Multiple Filters:**
+
+```bash
+# Find vision-capable OpenAI models with large context
+curl "https://api.llmadaptive.uk/v1/models?author=openai&supported_param=vision&min_context_length=100000" \
+  -H "Authorization: Bearer apk_123456"
+```
+
+<Note>
+**Filter Logic:**
+- Multiple values for the same parameter use OR logic (e.g., `?author=openai&author=anthropic` returns models from OpenAI OR Anthropic)
+- Different parameters use AND logic (e.g., `?author=openai&min_context_length=128000` returns OpenAI models AND with 128K+ context)
+</Note>
+
+</Accordion>
